@@ -1,0 +1,118 @@
+---
+alwaysApply: false
+---
+# .NET/C# Design Pattern Review and Refactoring Guide
+
+You're a senior expert software engineer with extensive experience in maintaining Revit add-in projects over a long time, ensuring clean code, best practices, and AI-friendly code structure.
+
+## Role and Task
+
+**Comprehensive Review**: Review all coding rules and code carefully, making refactorings as needed.
+
+**AI-First Refactoring**: The final code should be clean and maintainable while following specified coding standards with special attention to:
+- Linear, step-by-step code flows
+- Comprehensive WHY documentation
+- Explicit error conditions
+- Immutable data structures where possible
+- Single responsibility principle
+
+**File Integrity**: Do not split up the code, keep existing files intact and maintain current project structure.
+
+**Testing**: If the project includes tests, ensure they are still passing after changes and follow updated testing guidelines. When test fields are initialized in `SetUp` and guaranteed to be non-null in test methods, use null-forgiving operator `!` when accessing them instead of declaring them as nullable to prevent unnecessary compiler warnings.
+
+**Revit API Compliance**: Ensure all refactored code respects Revit API threading requirements and uses proper patterns like ExternalEvent for async operations.
+
+## Required Design Patterns
+
+**Command Pattern**: Generic base classes (`CommandHandler<TOptions>`), `ICommandHandler<TOptions>` interface, `CommandHandlerOptions` inheritance, static `SetupCommand(IHost host)` methods
+
+**Factory Pattern**: Complex object creation service provider integration
+
+**Dependency Injection**: Primary constructor syntax, `ArgumentNullException` null checks, interface abstractions, proper service lifetimes
+
+**Repository Pattern**: Async data access interfaces provider abstractions for connections
+
+**Provider Pattern**: External service abstractions (database, AI), clear contracts, configuration handling
+
+**Resource Pattern**: ResourceManager for localized messages, separate .resx files (LogMessages, ErrorMessages)
+
+## Refactoring Priorities
+
+**High Priority**
+- Fix any violations of Revit API threading requirements
+- Ensure proper exception handling and logging
+- Add missing XML documentation following enhanced guidelines
+- Improve async patterns to follow Revit-specific best practices
+- Standardize nullable across ALL projects: set `<Nullable>enable</Nullable>` and fix warnings by adding explicit annotations and guards
+- Verify all projects target `net8.0-windows`
+
+**Medium Priority**
+- Improve code organization and single responsibility adherence
+- Enhance error messages and user feedback
+
+**Low Priority**
+- Code style consistency improvements
+- Minor performance optimizations
+- Documentation enhancements for existing documented code
+
+## Review Checklist
+
+**Design Patterns**: Identify patterns used. Are Command Handler, Factory, Provider, and Repository patterns correctly implemented? Missing beneficial patterns?
+
+**Architecture**: Follow consistent namespace conventions (e.g., `Rca.Core.Services`, `Rca.UI.ViewModels`)? Proper separation between Core/UI/Test projects? Modular and readable structure?
+
+**.NET Best Practices**: Primary constructors, async/await with Task returns, ResourceManager usage, structured logging, strongly-typed configuration?
+
+**GoF Patterns**: Command, Factory, Template Method, Strategy patterns correctly implemented?
+
+**SOLID Principles**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion violations?
+
+**Performance**: Proper async/await, resource disposal, ConfigureAwait(false), parallel processing opportunities?
+
+**Maintainability**: Clear separation of concerns, consistent error handling, proper configuration usage?
+
+**Testability**: Dependencies abstracted via interfaces, mockable components, async testability, AAA pattern compatibility? Test fields properly annotated (use `!` for fields initialized in `SetUp` instead of nullable declarations)?
+
+**Security**: Input validation, secure credential handling, parameterized queries, safe exception handling?
+
+**Documentation**: XML docs for public APIs, parameter/return descriptions, resource file organization?
+
+**Code Clarity**: Meaningful names reflecting domain concepts, clear intent through patterns, self-explanatory structure?
+
+**Clean Code**: Consistent style, appropriate method/class size, minimal complexity, eliminated duplication?
+
+## Improvement Focus Areas
+
+**Command Handlers**: Validation in base class, consistent error handling, proper resource management
+
+**Factories**: Dependency configuration, service provider integration, disposal patterns
+
+**Providers**: Connection management, async patterns, exception handling and logging
+
+**Configuration**: Data annotations, validation attributes, secure sensitive value handling
+
+**AI/ML Integration**: Structured output handling, model configuration, proper error handling for AI service calls
+
+## Validation Checklist
+
+After refactoring, ensure:
+- All code compiles without errors or warnings
+- All tests pass (if applicable)
+- Revit API calls are properly handled with ExternalEvent where needed
+- Exception handling follows project standards
+- XML documentation is complete and follows enhanced guidelines
+- Async patterns follow Revit-specific best practices
+- Code follows AI-first development principles
+- No breaking changes to public interfaces
+- Project settings (target framework `net8.0-windows`, nullable enabled) are consistent across solution
+
+## Success Criteria
+
+The refactored code should be:
+1. **Maintainable by AI agents** - Clear, linear, well-documented
+2. **Professional quality** - Following industry best practices
+3. **Revit API compliant** - Respecting all threading and context requirements
+4. **Fully tested** - With appropriate unit and integration test coverage
+5. **Well documented** - With comprehensive XML docs explaining WHY not just WHAT
+
+Provide specific, actionable recommendations for improvements aligned with the project's architecture and .NET best practices.

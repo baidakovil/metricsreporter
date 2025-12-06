@@ -1,0 +1,115 @@
+---
+description: 'Main Development Guidelines for the Project'
+alwaysApply: true
+---
+
+## Project Overview
+
+Welcome to the Revit plugin project. Revit Chat Assistant is an add-in for Autodesk Revit, designed to make working in Revit faster and more convenient with the help of an AI chat agent embedded in a dedicated panel. Similar to how GitHub Copilot works in VS Code or Visual Studio, Revit Chat Assistant (RCA) can modify the Revit model or answer user questions.
+
+Follow these guidelines to generate clean, maintainable C# code for AI-first development.
+
+## AI-First Development Principles
+
+- **Linear, step-by-step code flows** - Avoid complex nested logic that's hard for AI to understand and modify
+- **Comprehensive WHY documentation** - Every non-trivial decision should be explained in comments or XML docs
+- **Explicit error conditions** - Handle and document all expected failure modes
+- **Prefer immutable data structures** - Reduces state-related bugs and makes code more predictable
+- **Single responsibility principle** - Each method and class should have one clear purpose
+
+## Code Standards
+
+### General Standards
+
+- When building or testing some project, run full solution build. Per-project building or testing is not allowed
+- Follow the project's [.editorconfig](../../.editorconfig) file for formatting, naming, and code style conventions
+- Add XML doc comments (`///`) above every public class and method following [csharp-docs.prompt.mdc](./csharp-docs.prompt.mdc)
+- Keep each method focused on a single responsibility and follow SOLID principles
+- Name files to match the primary class they contain
+- Organize code into folders by feature
+- Use `using` directives only for namespaces you reference
+- Avoid magic strings—define all literal strings as `const` or resource entries
+- Encapsulate long event handlers by extracting helper methods
+- Always check for `null` before accessing object members (or use nullable reference types appropriately)
+- Group related properties in region blocks with clear names
+- Prefer `ArgumentNullException.ThrowIfNull(param)` over manual `if (param == null) throw new ArgumentNullException(nameof(param));` patterns for parameter validation
+
+### Revit API Guidelines
+
+- Declare all Revit API calls inside `try`/`catch` and log exceptions appropriately
+- Use `ExternalEvent` pattern for async operations that require Revit API access
+- Respect Revit API threading requirements - most API calls must be on the UI thread
+- Mock Revit API dependencies in unit tests using interfaces
+- Reference RevitAPI.dll and RevitAPIUI.dll with `<Private>False</Private>` in all projects
+- For Loader project, ensure ILRepack properly handles RevitAPI references during assembly merging
+
+## Project Configuration
+
+### Framework Settings
+
+- Enable nullable reference types across ALL projects: set `<Nullable>enable</Nullable>` in every `.csproj` and use correct annotations (`?`, `!`) to fix warnings gradually. Temporary suppressions are allowed only at narrow scope when interacting with external APIs
+- **Avoid unnecessary nullable in tests**: In test classes, if fields are always initialized in `SetUp` and used in test methods, use null-forgiving operator `!` when accessing them rather than declaring them as nullable. This prevents compiler warnings and clearly indicates the field is guaranteed to be initialized before use.
+- Use C# 12+ features: primary constructors, collection expressions, and .NET 8 optimizations like `StringBuilder.AppendLine()` for string concatenation
+- Build the project after every significant change using `dotnet build --no-incremental` to ensure a full rebuild
+
+### Testing
+
+- Write unit tests for all non-UI logic in separate test projects following [csharp-nunit.prompt.mdc](../../tests/.cursor/rules/csharp-nunit.prompt.mdc)
+- Use dependency injection for services and providers to enable proper testing
+- Follow [csharp-async.prompt.mdc](./csharp-async.prompt.mdc) for async code patterns
+- **Nullable fields in test classes**: When test fields (like `testDirectory`, `reportPath`, `service`) are initialized in `SetUp` and guaranteed to be non-null in test methods, use null-forgiving operator `!` when accessing them instead of declaring them as nullable (`string?`). This prevents unnecessary nullable warnings and makes the intent clear. Example: `private string? testDirectory;` → `testDirectory!` in test methods, or better: `private string testDirectory = null!;` with initialization in `SetUp`.
+
+## Documentation
+
+- Create comprehensive XML documentation comments for all public classes, interfaces, methods, and properties as described in [csharp-docs.prompt.mdc](./csharp-docs.prompt.mdc)
+- When task is approved to be done, update documentation in the [docs](docs) folder. Do not create excessive documentation, but ensure all non-trivial logic is explained
+
+## Architecture Patterns
+
+### Dependency Injection
+
+- Use constructor dependency injection with null checks via ArgumentNullException
+- Register services with appropriate lifetimes (Singleton, Scoped, Transient)
+- Use Microsoft.Extensions.DependencyInjection patterns
+- Implement service interfaces for testability
+- Use primary constructor syntax for dependency injection (e.g., `public class MyClass(IDependency dependency)`)
+
+### Design Patterns
+
+- Implement the Command Handler pattern with generic base classes (e.g., `CommandHandler<TOptions>`)
+- Use interface segregation with clear naming conventions (prefix interfaces with 'I')
+- Follow the Factory pattern for complex object creation
+
+## Error Management
+
+- Use structured logging with consistent message formats that is managed in [LoggingPipeServerService](./../../src/Rca.Loader/Logging/LoggingPipeServerService.cs)
+- Provide meaningful error messages
+- Log technical details for debugging purposes
+- Use appropriate exception types for different error conditions
+
+## Resource Management
+
+### Localization
+
+- Use ResourceManager for localized messages and error strings
+- Separate LogMessages and ErrorMessages resource files
+- Access resources via `_resourceManager.GetString("MessageKey")`
+
+### Configuration
+
+- Use strongly-typed configuration classes with data annotations
+- Implement validation attributes (Required, NotEmptyOrWhitespace)
+- Use IConfiguration binding for settings
+- For user or developer debug settings, use [settings service](./../../src/Rca.Loader/Configuration/SettingsService.cs)
+
+## Code Quality
+
+- Follow SOLID principles: Single Responsibility (one reason to change), Open/Closed (open for extension, closed for modification), Liskov Substitution (subtypes must be substitutable), Interface Segregation (many specific interfaces), Dependency Inversion (depend on abstractions)
+- Avoid code duplication through base classes and utilities
+- Use descriptive names that clearly indicate purpose (e.g., `GetUserByIdAsync` not `GetData`)
+- Keep methods under 50 lines and focused on single operation
+- Implement `IDisposable` for classes managing unmanaged resources, use `using` statements for cleanup
+
+## Conclusion
+
+This project is designed to be maintained primarily by AI agents, so prioritize clarity, consistency, and comprehensive documentation over brevity.
