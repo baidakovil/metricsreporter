@@ -13,6 +13,7 @@ internal static class MetricValueRenderer
   /// Renders a metric value as HTML, including the value, delta (if any), and appropriate styling.
   /// </summary>
   /// <param name="value">The metric value to render. Can be <see langword="null"/>.</param>
+  /// <param name="unit">Optional unit identifier (e.g., "percent").</param>
   /// <returns>HTML markup for the metric value.</returns>
   public static string Render(MetricValue? value, string? unit)
   {

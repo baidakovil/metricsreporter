@@ -9,8 +9,8 @@ using System.Text.RegularExpressions;
 /// </summary>
 /// <remarks>
 /// Patterns can contain the wildcard characters <c>*</c> (matches any sequence of characters)
-/// and <c>?</c> (matches a single character). When <paramref name="plainTextIsExactMatch"/>
-/// is <see langword="true"/>, patterns without wildcards are treated as exact matches.
+/// and <c>?</c> (matches a single character). When plain-text matching is enabled,
+/// patterns without wildcards are treated as exact matches; otherwise they behave as substring matches.
 /// </remarks>
 public sealed class NamePatternSet
 {
