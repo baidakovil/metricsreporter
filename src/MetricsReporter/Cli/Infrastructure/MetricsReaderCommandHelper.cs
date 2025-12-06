@@ -1,20 +1,19 @@
-namespace MetricsReporter.MetricsReader.Commands;
-
-using System.Threading.Tasks;
+using System;
 using System.Threading;
-using MetricsReporter.MetricsReader.Output;
+using System.Threading.Tasks;
+using MetricsReporter.MetricsReader;
 using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
 using MetricsReporter.Model;
-using Spectre.Console.Cli;
+
+namespace MetricsReporter.Cli.Infrastructure;
 
 /// <summary>
-/// Provides helpers shared by all metrics-reader commands.
+/// Helper methods for creating metrics reader engines used by CLI commands.
 /// </summary>
-internal abstract class MetricsReaderCommandBase<TSettings> : AsyncCommand<TSettings>
-  where TSettings : MetricsReaderSettingsBase
+internal static class MetricsReaderCommandHelper
 {
-  protected static async Task<MetricsReaderEngine> CreateEngineAsync(TSettings settings, CancellationToken cancellationToken)
+  public static async Task<MetricsReaderEngine> CreateEngineAsync(MetricsReaderSettingsBase settings, CancellationToken cancellationToken)
   {
     using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, MetricsReaderCancellation.Token);
     var factory = CreateFactory();
@@ -30,10 +29,6 @@ internal abstract class MetricsReaderCommandBase<TSettings> : AsyncCommand<TSett
     return new MetricsReaderContextFactory(reportLoader, thresholdsFileLoader);
   }
 
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Factory method creates MetricsReaderEngine by instantiating all required services (node enumerator, snapshot builder, violation aggregator/orderer); decomposition would fragment factory logic without meaningful architectural benefit.")]
   private static MetricsReaderEngine CreateEngine(MetricsReaderContext context)
   {
     var nodeEnumerator = new MetricsNodeEnumerator(context.Report);
@@ -43,5 +38,4 @@ internal abstract class MetricsReaderCommandBase<TSettings> : AsyncCommand<TSett
     return new MetricsReaderEngine(nodeEnumerator, snapshotBuilder, violationAggregator, violationOrderer, context.Report);
   }
 }
-
 

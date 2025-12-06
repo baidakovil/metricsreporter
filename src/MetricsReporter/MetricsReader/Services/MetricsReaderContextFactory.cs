@@ -16,26 +16,17 @@ internal sealed class MetricsReaderContextFactory
 {
   private readonly IJsonReportLoader _reportLoader;
   private readonly IThresholdsFileLoader _thresholdsFileLoader;
-  private readonly ISolutionLocator _solutionLocator;
-  private readonly IMetricsUpdaterFactory _updaterFactory;
-
   /// <summary>
   /// Initializes a new instance of the <see cref="MetricsReaderContextFactory"/> class.
   /// </summary>
   /// <param name="reportLoader">The report loader to use.</param>
   /// <param name="thresholdsFileLoader">The thresholds file loader to use.</param>
-  /// <param name="solutionLocator">The solution locator to use.</param>
-  /// <param name="updaterFactory">The metrics updater factory to use.</param>
   public MetricsReaderContextFactory(
     IJsonReportLoader reportLoader,
-    IThresholdsFileLoader thresholdsFileLoader,
-    ISolutionLocator solutionLocator,
-    IMetricsUpdaterFactory updaterFactory)
+    IThresholdsFileLoader thresholdsFileLoader)
   {
     _reportLoader = reportLoader ?? throw new ArgumentNullException(nameof(reportLoader));
     _thresholdsFileLoader = thresholdsFileLoader ?? throw new ArgumentNullException(nameof(thresholdsFileLoader));
-    _solutionLocator = solutionLocator ?? throw new ArgumentNullException(nameof(solutionLocator));
-    _updaterFactory = updaterFactory ?? throw new ArgumentNullException(nameof(updaterFactory));
   }
 
   /// <summary>
@@ -48,24 +39,11 @@ internal sealed class MetricsReaderContextFactory
   {
     ArgumentNullException.ThrowIfNull(settings);
 
-    var reportPath = ResolveReportPath(settings.ReportPath, !settings.NoUpdate);
-    await UpdateMetricsIfNeededAsync(settings.NoUpdate, reportPath, cancellationToken).ConfigureAwait(false);
+    var reportPath = ResolveReportPath(settings.ReportPath, allowMissing: false);
 
     var report = await LoadReportAsync(reportPath, cancellationToken).ConfigureAwait(false);
     var parameters = await BuildContextCreationParameters(report, settings, cancellationToken).ConfigureAwait(false);
     return CreateContext(parameters);
-  }
-
-  private async Task UpdateMetricsIfNeededAsync(bool noUpdate, string reportPath, CancellationToken cancellationToken)
-  {
-    if (noUpdate)
-    {
-      return;
-    }
-
-    var solutionPath = _solutionLocator.FindSolutionPath(reportPath);
-    var updater = _updaterFactory.Create(solutionPath);
-    await updater.UpdateAsync(cancellationToken).ConfigureAwait(false);
   }
 
   private async Task<MetricsReport> LoadReportAsync(string reportPath, CancellationToken cancellationToken)
@@ -115,8 +93,12 @@ internal sealed class MetricsReaderContextFactory
 
   private static string ResolveReportPath(string? path, bool allowMissing)
   {
-    var resolved = string.IsNullOrWhiteSpace(path) ? string.Empty : path;
-    resolved = Path.GetFullPath(resolved);
+    if (string.IsNullOrWhiteSpace(path))
+    {
+      throw new ArgumentException("Report path must be provided.", nameof(path));
+    }
+
+    var resolved = Path.GetFullPath(path);
     if (!allowMissing && !File.Exists(resolved))
     {
       throw new FileNotFoundException($"Metrics report not found: {resolved}", resolved);

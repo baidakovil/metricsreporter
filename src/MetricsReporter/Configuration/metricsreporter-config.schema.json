@@ -1,0 +1,229 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "metricsreporter configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "general": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "verbosity": {
+          "type": "string",
+          "enum": [ "quiet", "minimal", "normal", "detailed" ],
+          "default": "normal",
+          "description": "Controls informational logging. Errors are always logged."
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 900,
+          "description": "Timeout in seconds for external scripts."
+        },
+        "workingDirectory": {
+          "type": "string",
+          "description": "Working directory used for resolving relative paths and running scripts."
+        },
+        "logTruncationLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 4000,
+          "description": "Maximum number of stdout/stderr characters logged on script failures."
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metricsDir": { "type": "string", "description": "Root directory for metrics artifacts (AltCover/Roslyn/SARIF/baseline)." },
+        "solutionName": { "type": "string", "description": "Solution name displayed in reports." },
+        "baselineReference": { "type": "string", "description": "Optional baseline reference label." },
+        "report": { "type": "string", "description": "Output JSON path for the generate command." },
+        "readReport": { "type": "string", "description": "Input JSON path for read/test commands." },
+        "thresholds": { "type": "string", "description": "Path to thresholds JSON file." },
+        "thresholdsInline": { "type": "string", "description": "Inline thresholds JSON payload." },
+        "altcover": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "AltCover/OpenCover coverage XML paths."
+        },
+        "roslyn": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Roslyn metrics XML paths."
+        },
+        "sarif": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "SARIF report paths."
+        },
+        "baseline": { "type": "string", "description": "Baseline JSON path." },
+        "outputHtml": { "type": "string", "description": "HTML output path." },
+        "inputJson": { "type": "string", "description": "Existing JSON report used for HTML-only generation." },
+        "coverageHtmlDir": { "type": "string", "description": "Directory containing coverage HTML reports for hyperlinking." },
+        "baselineStoragePath": { "type": "string", "description": "Directory where archived baselines are stored." },
+        "suppressedSymbols": { "type": "string", "description": "Path to suppressed symbols payload." },
+        "solutionDirectory": { "type": "string", "description": "Solution directory for suppressed-symbol analysis." },
+        "sourceCodeFolders": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Source code folder roots for suppressed-symbol analysis."
+        },
+        "excludedMembers": { "type": "string", "description": "Comma/semicolon-separated member name patterns to exclude." },
+        "excludedAssemblies": { "type": "string", "description": "Comma/semicolon-separated assembly name patterns to exclude." },
+        "excludedTypes": { "type": "string", "description": "Comma/semicolon-separated type name patterns to exclude." },
+        "analyzeSuppressedSymbols": { "type": "boolean", "description": "Enable suppressed-symbol analysis." },
+        "replaceBaseline": { "type": "boolean", "description": "Replace baseline when differences are detected." }
+      }
+    },
+    "scripts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "generate": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "PowerShell scripts executed before aggregation."
+        },
+        "read": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Scripts executed for every read/readsarif/test invocation."
+            },
+            "byMetric": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "metrics": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1,
+                    "description": "Metric identifiers that trigger the script."
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "PowerShell script path.",
+                    "minLength": 1
+                  }
+                },
+                "required": [ "metrics", "path" ]
+              },
+              "description": "Metric-specific scripts executed only when requested metrics match."
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [ "general", "paths", "scripts" ]
+}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "metricsreporter configuration",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "verbosity": {
+          "type": "string",
+          "enum": ["Information", "Warning", "Error"]
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Timeout applied to each script execution."
+        },
+        "workingDirectory": {
+          "type": "string",
+          "description": "Base directory for resolving relative paths and running scripts."
+        },
+        "logTruncationLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Max characters of stdout/stderr preserved in logs."
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metricsDir": { "type": "string" },
+        "report": { "type": "string" },
+        "outputHtml": { "type": "string" },
+        "outputJson": { "type": "string" },
+        "thresholds": { "type": "string" },
+        "thresholdsFile": { "type": "string" },
+        "baseline": { "type": "string" },
+        "baselineRef": { "type": "string" },
+        "suppressedSymbols": { "type": "string" },
+        "metricsReportStoragePath": { "type": "string" },
+        "coverageHtmlDir": { "type": "string" },
+        "solutionDir": { "type": "string" },
+        "altcover": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "roslyn": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sarif": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sourceCodeFolders": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "scripts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "generate": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "read": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "byMetric": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "path": { "type": "string" },
+                  "metrics": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1
+                  }
+                },
+                "required": ["path", "metrics"]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

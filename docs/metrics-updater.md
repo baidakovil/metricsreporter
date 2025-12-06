@@ -1,4 +1,6 @@
-# MetricsUpdater: Design, Dependencies, and Future Improvements
+# MetricsUpdater: (Deprecated) Design, Dependencies, and Future Improvements
+
+> **Status:** Removed in the Spectre-based CLI refactor. Script hooks executed via `IProcessRunner` now replace MetricsUpdater’s MSBuild orchestration. This document is kept for historical context.
 
 ## What MetricsUpdater does
 `MetricsUpdater` (in `src/MetricsReporter/MetricsReader/Services/MetricsUpdater.cs`) orchestrates two MSBuild invocations:

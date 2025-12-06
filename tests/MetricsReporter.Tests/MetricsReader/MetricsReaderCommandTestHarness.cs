@@ -61,9 +61,9 @@ internal static class MetricsReaderCommandTestHarness
   {
     var args = new List<string>
     {
-      "--report", settings.ReportPath,
-      "--namespace", settings.Namespace,
-      "--metric", settings.Metric,
+      "--report", settings.ReportPath!,
+      "--namespace", settings.Namespace!,
+      "--metric", settings.Metric!,
       "--symbol-kind", settings.SymbolKind.ToString()
     };
 
@@ -84,7 +84,7 @@ internal static class MetricsReaderCommandTestHarness
       args.Add("--all");
     }
 
-    AppendCommonArguments(args, settings.IncludeSuppressed, settings.ThresholdsFile, settings.NoUpdate);
+    AppendCommonArguments(args, settings.IncludeSuppressed, settings.ThresholdsFile);
     return args.ToArray();
   }
 
@@ -92,12 +92,12 @@ internal static class MetricsReaderCommandTestHarness
   {
     var args = new List<string>
     {
-      "--report", settings.ReportPath,
-      "--symbol", settings.Symbol,
-      "--metric", settings.Metric
+      "--report", settings.ReportPath!,
+      "--symbol", settings.Symbol!,
+      "--metric", settings.Metric!
     };
 
-    AppendCommonArguments(args, settings.IncludeSuppressed, settings.ThresholdsFile, settings.NoUpdate);
+    AppendCommonArguments(args, settings.IncludeSuppressed, settings.ThresholdsFile);
     return args.ToArray();
   }
 
@@ -105,8 +105,8 @@ internal static class MetricsReaderCommandTestHarness
   {
     var args = new List<string>
     {
-      "--report", settings.ReportPath,
-      "--namespace", settings.Namespace,
+      "--report", settings.ReportPath!,
+      "--namespace", settings.Namespace!,
       "--symbol-kind", settings.SymbolKind.ToString()
     };
 
@@ -133,15 +133,14 @@ internal static class MetricsReaderCommandTestHarness
       args.Add("--all");
     }
 
-    AppendCommonArguments(args, settings.IncludeSuppressed, settings.ThresholdsFile, settings.NoUpdate);
+    AppendCommonArguments(args, settings.IncludeSuppressed, settings.ThresholdsFile);
     return args.ToArray();
   }
 
   private static void AppendCommonArguments(
     List<string> args,
     bool includeSuppressed,
-    string? thresholdsFile,
-    bool noUpdate)
+    string? thresholdsFile)
   {
     if (includeSuppressed)
     {
@@ -152,11 +151,6 @@ internal static class MetricsReaderCommandTestHarness
     {
       args.Add("--thresholds-file");
       args.Add(thresholdsFile!);
-    }
-
-    if (noUpdate)
-    {
-      args.Add("--no-update");
     }
   }
 

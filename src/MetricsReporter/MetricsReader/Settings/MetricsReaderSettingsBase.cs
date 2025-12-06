@@ -9,11 +9,9 @@ using Spectre.Console.Cli;
 /// </summary>
 internal abstract class MetricsReaderSettingsBase : CommandSettings
 {
-  private const string DefaultReportPath = "build/Metrics/Report/MetricsReport.g.json";
-
   [CommandOption("--report <PATH>")]
-  [Description("Path to MetricsReport.g.json. Defaults to build/Metrics/Report/MetricsReport.g.json.")]
-  public string ReportPath { get; init; } = DefaultReportPath;
+  [Description("Path to MetricsReport.g.json. Can be provided via CLI, env, or config.")]
+  public string? ReportPath { get; init; }
 
   [CommandOption("--thresholds-file <PATH>")]
   [Description("Optional thresholds file (MetricsReporterThresholds.json) used to override report metadata.")]
@@ -23,18 +21,9 @@ internal abstract class MetricsReaderSettingsBase : CommandSettings
   [Description("Include metrics that have been suppressed via SuppressMessage attributes.")]
   public bool IncludeSuppressed { get; init; }
 
-  [CommandOption("--no-update")]
-  [Description("Skips rebuilding metrics before reading the report. By default metrics are regenerated.")]
-  public bool NoUpdate { get; init; }
-
   /// <inheritdoc />
   public override ValidationResult Validate()
   {
-    if (string.IsNullOrWhiteSpace(ReportPath))
-    {
-      return ValidationResult.Error("--report must point to MetricsReport.g.json.");
-    }
-
     return ValidationResult.Success();
   }
 }
