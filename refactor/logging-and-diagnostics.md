@@ -19,8 +19,3 @@ Introduce structured logging across the solution using `Microsoft.Extensions.Log
 - Nullable enabled; DI-first architecture.
 - No backward compatibility requirements.
 - Align with SOLID and patterns from `dotnet-design-pattern-review.mdc`.
-
-## Options and validation alignment
-- Reuse the shared `MetricsReporterOptions` schema (`general` section): verbosity and log truncation limit. Populate from CLI/env/config file; defaults are fine otherwise.
-- Shared schema: generation and reader commands consume the same basic logging settings.
-
