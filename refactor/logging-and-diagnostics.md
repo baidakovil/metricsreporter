@@ -21,6 +21,6 @@ Introduce structured logging across the solution using `Microsoft.Extensions.Log
 - Align with SOLID and patterns from `dotnet-design-pattern-review.mdc`.
 
 ## Options and validation alignment
-- Minimal typed options (`Microsoft.Extensions.Options` + validation): verbosity and log truncation limit from `MetricsReporterOptions.general` (documented in to-be-created `docs/refactor/options-schema.md`). Populate from CLI/env/config file; defaults are fine otherwise.
+- Reuse the shared `MetricsReporterOptions` schema (`general` section): verbosity and log truncation limit. Populate from CLI/env/config file; defaults are fine otherwise.
 - Shared schema: generation and reader commands consume the same basic logging settings.
 

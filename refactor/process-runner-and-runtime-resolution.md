@@ -13,8 +13,9 @@ Introduce an `IProcessRunner` for external commands with script-driven coverage/
 - No backward compatibility; legacy env var fallbacks and runtime globs can be removed.
 
 ## Options and configuration alignment
-- Define a single `MetricsReporterOptions` schema (see to-be-created `docs/refactor/options-schema.md`) before implementing: sections `general` (verbosity, timeout, workingDirectory, logTruncationLimit) and `scripts` (generate list; read.any list; read.byMetric map). Defaults cover the rest.
-- Options populated from CLI/env/config with the same schema reused by generate/read commands. Precedence: CLI > env vars > `.metricsreporter.json` (from CWD upward) > defaults.
+- **Prerequisites**: Before implementation, create both `src/MetricsReporter/Configuration/metricsreporter-config.schema.json` (JSON Schema for `.metricsreporter.json` validation) and `docs/refactor/options-schema.md` (documentation covering sections `general`, `paths`, `scripts`, JSON→C# mapping, precedence rules).
+- Define sections: `general` (verbosity, timeout, workingDirectory, logTruncationLimit) and `scripts` (generate list; read.any list; read.byMetric map). Defaults cover the rest.
+- Introduce `.metricsreporter.json` as a first-class config source (resolved from CWD upward); populate options from CLI/env/config using this schema. Precedence: CLI > env vars > config file > defaults.
 - Cancellation token flows from CLI command handlers through orchestrator into `IProcessRunner`.
 
 ## Logging integration

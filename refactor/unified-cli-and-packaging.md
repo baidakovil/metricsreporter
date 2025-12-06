@@ -23,8 +23,9 @@ Rebuild a single Spectre.Console.Cli application with modern command surface; ba
 - Ensure CI builds/publishes the tool and updates install docs (`dotnet tool install -g metricsreporter`).
 
 ## Configuration and options alignment
-- Establish a single `MetricsReporterOptions` schema (document in `docs/options-schema.md` before implementation): sections `general` (verbosity, timeout, workingDirectory, logTruncationLimit), `paths` (report/thresholds/altcover/roslyn/sarif/output), `scripts` (generate list; read.any list; read.byMetric map). Defaults for the rest.
-- Config file: `.metricsreporter.json` resolved from CWD upward (no global file). Sources priority: CLI > env > config file > defaults.
+- **Prerequisites**: Before implementation, create both `src/MetricsReporter/Configuration/metricsreporter-config.schema.json` (JSON Schema for validation/IDE autocomplete) and `docs/refactor/options-schema.md` (documentation with sections `general`, `paths`, `scripts`, JSON→C# mapping, precedence rules, CLI/env examples).
+- Sections: `general` (verbosity, timeout, workingDirectory, logTruncationLimit), `paths` (report/thresholds/altcover/roslyn/sarif/output), `scripts` (generate list; read.any list; read.byMetric map). Defaults for the rest.
+- Introduce a JSON config file `.metricsreporter.json` as a first-class source. Resolve from CWD upward (no global file). Sources priority: CLI > env > config file > defaults.
 - Provide global options: verbosity, config path override, timeout defaults. No fancy log format switches.
 - Validation errors should be reported with Spectre validation messages before command execution.
 - Scripts in config/CLI: allow multiple entries; executed in listed order. `generate` uses its scripts before aggregation; `read` can define common scripts and per-metric scripts (e.g., `any` list always, `coverage` appended for coverage reads). Non-zero exit stops the pipeline. No built-in runtime/anchor MSBuild flow unless a script implements it.
