@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rca.tools/schemas/metrics-report.schema.json",
+  "title": "MetricsReport",
+  "type": "object",
+  "required": ["metadata", "solution"],
+  "properties": {
+    "metadata": { "$ref": "#/definitions/reportMetadata" },
+    "solution": { "$ref": "#/definitions/solutionNode" }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "metricValue": {
+      "type": "object",
+      "properties": {
+        "value": { "type": ["number", "null"] },
+        "delta": { "type": ["number", "null"] },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Success",
+            "Warning",
+            "Error"
+          ],
+          "description": "Threshold comparison result. Metrics with omitted thresholds default to \"Success\", while metrics without data are not emitted."
+        },
+        "breakdown": {
+          "type": ["object", "null"],
+          "description": "Optional breakdown of rule violations by rule ID (e.g., CA1502, IDE0051). Only present for SarifCaRuleViolations and SarifIdeRuleViolations metrics and includes both aggregated counts and violation metadata.",
+          "patternProperties": {
+            "^(CA|IDE)\\d{4}$": {
+              "$ref": "#/definitions/sarifRuleBreakdownEntry"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["status"],
+      "additionalProperties": false
+    },
+    "metricsBag": {
+      "type": "object",
+      "properties": {
+        "AltCoverSequenceCoverage": { "$ref": "#/definitions/metricValue" },
+        "AltCoverBranchCoverage": { "$ref": "#/definitions/metricValue" },
+        "AltCoverCyclomaticComplexity": { "$ref": "#/definitions/metricValue" },
+        "AltCoverNPathComplexity": { "$ref": "#/definitions/metricValue" },
+        "RoslynMaintainabilityIndex": { "$ref": "#/definitions/metricValue" },
+        "RoslynCyclomaticComplexity": { "$ref": "#/definitions/metricValue" },
+        "RoslynClassCoupling": { "$ref": "#/definitions/metricValue" },
+        "RoslynDepthOfInheritance": { "$ref": "#/definitions/metricValue" },
+        "RoslynSourceLines": { "$ref": "#/definitions/metricValue" },
+        "RoslynExecutableLines": { "$ref": "#/definitions/metricValue" },
+        "SarifCaRuleViolations": { "$ref": "#/definitions/metricValue" },
+        "SarifIdeRuleViolations": { "$ref": "#/definitions/metricValue" }
+      },
+      "additionalProperties": false
+    },
+    "sourceLocation": {
+      "type": "object",
+      "properties": {
+        "path": { "type": ["string", "null"] },
+        "startLine": { "type": ["integer", "null"], "minimum": 1 },
+        "endLine": { "type": ["integer", "null"], "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "metricsNode": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["Solution", "Assembly", "Namespace", "Type", "Member"]
+        },
+        "fullyQualifiedName": { "type": ["string", "null"] },
+        "source": { "$ref": "#/definitions/sourceLocation" },
+        "isNew": { "type": "boolean" },
+        "metrics": { "$ref": "#/definitions/metricsBag" }
+      },
+      "required": ["name", "kind", "isNew", "metrics"],
+      "additionalProperties": false
+    },
+    "memberNode": {
+      "allOf": [
+        { "$ref": "#/definitions/metricsNode" }
+      ]
+    },
+    "typeNode": {
+      "allOf": [
+        { "$ref": "#/definitions/metricsNode" },
+        {
+          "type": "object",
+          "properties": {
+            "members": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/memberNode" }
+            }
+          },
+          "required": ["members"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "namespaceNode": {
+      "allOf": [
+        { "$ref": "#/definitions/metricsNode" },
+        {
+          "type": "object",
+          "properties": {
+            "types": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/typeNode" }
+            }
+          },
+          "required": ["types"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "assemblyNode": {
+      "allOf": [
+        { "$ref": "#/definitions/metricsNode" },
+        {
+          "type": "object",
+          "properties": {
+            "namespaces": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/namespaceNode" }
+            }
+          },
+          "required": ["namespaces"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "solutionNode": {
+      "allOf": [
+        { "$ref": "#/definitions/metricsNode" },
+        {
+          "type": "object",
+          "properties": {
+            "assemblies": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/assemblyNode" }
+            }
+          },
+          "required": ["assemblies"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "metricThreshold": {
+      "type": "object",
+      "properties": {
+        "warning": { "type": ["number", "null"] },
+        "error": { "type": ["number", "null"] },
+        "higherIsBetter": { "type": "boolean" },
+        "positiveDeltaNeutral": { "type": "boolean" }
+      },
+      "required": ["higherIsBetter"],
+      "additionalProperties": false
+    },
+    "metricThresholdsByLevel": {
+      "type": "object",
+      "properties": {
+        "Solution": { "$ref": "#/definitions/metricThreshold" },
+        "Assembly": { "$ref": "#/definitions/metricThreshold" },
+        "Namespace": { "$ref": "#/definitions/metricThreshold" },
+        "Type": { "$ref": "#/definitions/metricThreshold" },
+        "Member": { "$ref": "#/definitions/metricThreshold" }
+      },
+      "additionalProperties": false
+    },
+    "ruleDescription": {
+      "type": "object",
+      "properties": {
+        "shortDescription": { "type": "string" },
+        "fullDescription": { "type": ["string", "null"] },
+        "helpUri": { "type": ["string", "null"] },
+        "category": { "type": ["string", "null"] }
+      },
+      "required": ["shortDescription"],
+      "additionalProperties": false
+    },
+    "metricDescriptor": {
+      "type": "object",
+      "properties": {
+        "unit": { "type": ["string", "null"], "enum": ["percent", "count", "score", null] }
+      },
+      "additionalProperties": false
+    },
+    "reportMetadata": {
+      "type": "object",
+      "properties": {
+        "generatedAtUtc": { "type": "string", "format": "date-time" },
+        "baselineReference": { "type": ["string", "null"] },
+        "paths": {
+          "type": "object",
+          "properties": {
+            "metricsDirectory": { "type": "string" },
+            "baseline": { "type": ["string", "null"] },
+            "report": { "type": "string" },
+            "html": { "type": "string" },
+            "thresholds": { "type": ["string", "null"] }
+          },
+          "required": ["metricsDirectory", "report", "html"],
+          "additionalProperties": false
+        },
+        "thresholdsByLevel": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/metricThresholdsByLevel" }
+        },
+        "thresholdDescriptions": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "null"] }
+        },
+        "metricDescriptors": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/metricDescriptor" }
+        },
+        "excludedMemberNamesPatterns": {
+          "type": ["string", "null"],
+          "description": "Comma-separated member name patterns excluded while generating the report."
+        },
+        "excludedAssemblyNames": {
+          "type": ["string", "null"],
+          "description": "Comma-separated assembly name patterns excluded while generating the report."
+        },
+        "excludedTypeNamePatterns": {
+          "type": ["string", "null"],
+          "description": "Comma-separated fully qualified type name patterns excluded while generating the report."
+        },
+        "suppressedSymbols": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filePath": { "type": "string" },
+              "fullyQualifiedName": { "type": "string" },
+              "ruleId": { "type": "string" },
+              "metric": { "type": "string" },
+              "justification": { "type": ["string", "null"] }
+            },
+            "required": ["filePath", "fullyQualifiedName", "ruleId", "metric"],
+            "additionalProperties": false
+          }
+        },
+        "ruleDescriptions": {
+          "type": "object",
+          "description": "Rule descriptions extracted from SARIF files, keyed by rule ID (e.g., CA1502, IDE0051).",
+          "patternProperties": {
+            "^(CA|IDE)\\d{4}$": {
+              "$ref": "#/definitions/ruleDescription"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["generatedAtUtc", "paths"],
+      "additionalProperties": false
+    },
+    "sarifRuleBreakdownEntry": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of SARIF results aggregated under this rule."
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/sarifRuleViolationDetail"
+          }
+        }
+      },
+      "required": ["count"],
+      "additionalProperties": false
+    },
+    "sarifRuleViolationDetail": {
+      "type": "object",
+      "properties": {
+        "message": { "type": ["string", "null"] },
+        "uri": { "type": ["string", "null"] },
+        "startLine": { "type": ["integer", "null"], "minimum": 1 },
+        "endLine": { "type": ["integer", "null"], "minimum": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+

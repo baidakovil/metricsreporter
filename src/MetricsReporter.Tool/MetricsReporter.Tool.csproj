@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>metricsreporter</ToolCommandName>
+    <AssemblyName>MetricsReporter.Tool</AssemblyName>
+    <RootNamespace>MetricsReporter.Tool</RootNamespace>
+    <PackageId>MetricsReporter.Tool</PackageId>
+    <Description>CLI tool wrapper for the MetricsReporter library.</Description>
+    <PackageTags>metrics;coverage;sarif;roslyn;dotnet;tool</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MetricsReporter\MetricsReporter.csproj" />
+  </ItemGroup>
+</Project>

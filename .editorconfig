@@ -1,0 +1,52 @@
+root = true
+
+[*.cs]
+# dotnet_diagnostic.CA1501.severity = warning
+# dotnet_diagnostic.CA1502.severity = warning
+# dotnet_diagnostic.CA1505.severity = warning
+# dotnet_diagnostic.CA1506.severity = warning
+
+# .editorconfig for RCA Plugin (AI-optimized)
+root = true
+
+# All files - basic consistency
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# C# files - core rules only
+[*.cs]
+# Naming conventions (critical for AI consistency)
+dotnet_naming_rule.interface_should_be_prefixed_with_i.severity = warning
+dotnet_naming_rule.interface_should_be_prefixed_with_i.symbols = interfaces
+dotnet_naming_rule.interface_should_be_prefixed_with_i.style = prefix_i
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.prefix_i.required_prefix = I
+dotnet_naming_style.prefix_i.capitalization = pascal_case
+
+# Essential code quality rules
+dotnet_diagnostic.IDE0060.severity = warning # Remove unused parameter
+dotnet_diagnostic.IDE0051.severity = warning # Remove unused private member
+dotnet_diagnostic.CA1062.severity = warning  # Validate public method arguments
+
+# Modern C# preferences (AI-friendly)
+csharp_prefer_braces = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_require_accessibility_modifiers = always
+
+# JSON and other formats
+[*.json]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+
+# Exclude build artifacts
+[{bin,obj}/**]
+insert_final_newline = false
+trim_trailing_whitespace = false

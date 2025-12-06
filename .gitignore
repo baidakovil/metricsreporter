@@ -1,0 +1,14 @@
+#IDE folders
+*.vs/
+*.vscode/
+
+#Project-specific folders
+*obj/
+*bin/
+*temp/
+
+# Coverage reports
+/build/Metrics/*
+
+# Generated metrics baselines
+*.g.json
