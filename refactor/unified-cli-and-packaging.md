@@ -23,10 +23,11 @@ Rebuild a single Spectre.Console.Cli application with modern command surface; ba
 - Ensure CI builds/publishes the tool and updates install docs (`dotnet tool install -g metricsreporter`).
 
 ## Configuration and options alignment
-- Typed options (`Microsoft.Extensions.Options` + validation) with a shared minimal schema: inputs/outputs, thresholds, runtime/anchor projects, verbosity, timeout. Defaults for the rest.
-- Configuration sources: CLI args (Spectre), JSON config file, environment variables merged in priority order; same model for generate/read/readsarif/test.
-- Provide global options: verbosity, config path, timeout defaults. No fancy log format switches.
+- Typed options (`Microsoft.Extensions.Options` + validation) with a shared minimal schema: inputs/outputs, thresholds, verbosity, timeout, script lists. Defaults for the rest.
+- Config file: `.metricsreporter.json` resolved from CWD upward (no global file). Sources priority: CLI > env > config file > defaults.
+- Provide global options: verbosity, config path override, timeout defaults. No fancy log format switches.
 - Validation errors should be reported with Spectre validation messages before command execution.
+- Scripts in config/CLI: allow multiple entries; executed in listed order. `generate` uses its scripts before aggregation; `read` can define common scripts and per-metric scripts (e.g., `any` list always, `coverage` appended for coverage reads). Non-zero exit stops the pipeline. No built-in runtime/anchor MSBuild flow unless a script implements it.
 
 ## Exit codes and UX
 - Keep consistent exit codes (0 OK, 1 parse error, 2 IO error, 3 validation error, etc.) and document them in `--help`.
