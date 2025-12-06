@@ -35,9 +35,10 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
   }
 
   /// <inheritdoc />
-  protected override async Task<int> ExecuteAsync(CommandContext context, GenerateSettings settings, CancellationToken cancellationToken)
+  public override async Task<int> ExecuteAsync(CommandContext context, GenerateSettings settings)
   {
     _ = context;
+    var cancellationToken = CancellationToken.None;
     var envConfig = EnvironmentConfigurationProvider.Read();
     var workingDirectoryHint = settings.WorkingDirectory
       ?? envConfig.General.WorkingDirectory

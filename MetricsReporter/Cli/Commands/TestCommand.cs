@@ -34,9 +34,10 @@ internal sealed class TestCommand : AsyncCommand<TestSettings>
   }
 
   /// <inheritdoc />
-  protected override async Task<int> ExecuteAsync(CommandContext context, TestSettings settings, CancellationToken cancellationToken)
+  public override async Task<int> ExecuteAsync(CommandContext context, TestSettings settings)
   {
     _ = context;
+    var cancellationToken = CancellationToken.None;
     var envConfig = EnvironmentConfigurationProvider.Read();
     var workingDirectoryHint = settings.WorkingDirectory
       ?? envConfig.General.WorkingDirectory

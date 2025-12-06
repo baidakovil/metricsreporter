@@ -12,8 +12,9 @@ using Spectre.Console.Cli;
 internal sealed class ReadAnyCommand : MetricsReaderCommandBase<NamespaceMetricSettings>
 {
   /// <inheritdoc />
-  protected override async Task<int> ExecuteAsync(CommandContext context, NamespaceMetricSettings settings, CancellationToken cancellationToken)
+  public override async Task<int> ExecuteAsync(CommandContext context, NamespaceMetricSettings settings)
   {
+    var cancellationToken = MetricsReaderCancellation.Token;
     var executor = CreateExecutor();
     await executor.ExecuteAsync(settings, cancellationToken).ConfigureAwait(false);
     return 0;

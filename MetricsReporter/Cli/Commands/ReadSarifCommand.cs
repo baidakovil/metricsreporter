@@ -33,9 +33,10 @@ internal sealed class ReadSarifCommand : AsyncCommand<ReadSarifSettings>
   }
 
   /// <inheritdoc />
-  protected override async Task<int> ExecuteAsync(CommandContext context, ReadSarifSettings settings, CancellationToken cancellationToken)
+  public override async Task<int> ExecuteAsync(CommandContext context, ReadSarifSettings settings)
   {
     _ = context;
+    var cancellationToken = CancellationToken.None;
     var envConfig = EnvironmentConfigurationProvider.Read();
     var workingDirectoryHint = settings.WorkingDirectory
       ?? envConfig.General.WorkingDirectory

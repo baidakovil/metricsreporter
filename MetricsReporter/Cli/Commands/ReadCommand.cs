@@ -35,9 +35,10 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
   }
 
   /// <inheritdoc />
-  protected override async Task<int> ExecuteAsync(CommandContext context, ReadSettings settings, CancellationToken cancellationToken)
+  public override async Task<int> ExecuteAsync(CommandContext context, ReadSettings settings)
   {
     _ = context;
+    var cancellationToken = CancellationToken.None;
     var envConfig = EnvironmentConfigurationProvider.Read();
     var workingDirectoryHint = settings.WorkingDirectory
       ?? envConfig.General.WorkingDirectory

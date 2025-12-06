@@ -34,14 +34,14 @@ dotnet pack MetricsReporter/MetricsReporter.csproj -c Release -o C:\Users\baidak
 # CLI dotnet tool package
 dotnet pack MetricsReporter.Tool/MetricsReporter.Tool.csproj -c Release -o C:\Users\baidakov\.nuget\local-feed
 ```
-Packages will be versioned `0.1.0` by default (see `Directory.Build.props`).
+Packages will be versioned `0.2.0` by default (see `Directory.Build.props`).
 
 ## Installing the CLI from the local feed
 ```pwsh
 # install (per-user global tool)
-dotnet tool install --global MetricsReporter.Tool --version 0.1.0 --add-source C:\Users\baidakov\.nuget\local-feed
+dotnet tool install --global MetricsReporter.Tool --version 0.2.0 --add-source C:\Users\baidakov\.nuget\local-feed
 # update to a new packed version
-dotnet tool update --global MetricsReporter.Tool --version 0.1.x --add-source C:\Users\baidakov\.nuget\local-feed
+dotnet tool update --global MetricsReporter.Tool --version 0.2.x --add-source C:\Users\baidakov\.nuget\local-feed
 ```
 Run `metricsreporter --help` to see CLI options. Use `metricsreporter metrics-reader --help` for the metrics-reader sub-commands.
 
@@ -49,7 +49,7 @@ Run `metricsreporter --help` to see CLI options. Use `metricsreporter metrics-re
 Add the `metricsreporter` source or rely on the repo `NuGet.Config`, then reference the package:
 ```xml
 <ItemGroup>
-  <PackageReference Include="MetricsReporter" Version="0.1.0" />
+  <PackageReference Include="MetricsReporter" Version="0.2.0" />
 </ItemGroup>
 ```
 Restore with `dotnet restore` and build as usual.

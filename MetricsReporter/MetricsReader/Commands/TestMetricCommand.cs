@@ -13,8 +13,9 @@ using MetricsReporter.Model;
 /// </summary>
 internal sealed class TestMetricCommand : MetricsReaderCommandBase<TestMetricSettings>
 {
-  protected override async Task<int> ExecuteAsync(CommandContext context, TestMetricSettings settings, CancellationToken cancellationToken)
+  public override async Task<int> ExecuteAsync(CommandContext context, TestMetricSettings settings)
   {
+    var cancellationToken = MetricsReaderCancellation.Token;
     var engine = await CreateEngineAsync(settings, cancellationToken).ConfigureAwait(false);
     var snapshot = engine.TryGetSymbol(settings.Symbol.Trim(), settings.ResolvedMetric);
 
