@@ -3,9 +3,9 @@
 MetricsReporter is a .NET 8 library and CLI for aggregating code metrics (AltCover, Roslyn, SARIF) into unified JSON/HTML reports. The CLI is shipped as a `dotnet tool` wrapper over the library so that consumers can either reference the package or run the tool directly.
 
 ## Projects
-- `src/MetricsReporter` — class library (`PackageId: MetricsReporter`).
-- `src/MetricsReporter.Tool` — CLI wrapper (`PackAsTool`, `PackageId: MetricsReporter.Tool`, `ToolCommandName: metricsreporter`).
-- `tests/MetricsReporter.Tests` — NUnit/FluentAssertions unit tests.
+- `MetricsReporter` — class library (`PackageId: MetricsReporter`).
+- `MetricsReporter.Tool` — CLI wrapper (`PackAsTool`, `PackageId: MetricsReporter.Tool`, `ToolCommandName: metricsreporter`).
+- `MetricsReporter.Tests` — NUnit/FluentAssertions unit tests.
 
 ## Prerequisites
 - .NET 8 SDK
@@ -29,10 +29,10 @@ New-Item -ItemType Directory -Force -Path C:\Users\baidakov\.nuget\local-feed | 
 ## Packing to the local feed
 ```pwsh
 # Library package
-dotnet pack src/MetricsReporter/MetricsReporter.csproj -c Release -o C:\Users\baidakov\.nuget\local-feed
+dotnet pack MetricsReporter/MetricsReporter.csproj -c Release -o C:\Users\baidakov\.nuget\local-feed
 
 # CLI dotnet tool package
-dotnet pack src/MetricsReporter.Tool/MetricsReporter.Tool.csproj -c Release -o C:\Users\baidakov\.nuget\local-feed
+dotnet pack MetricsReporter.Tool/MetricsReporter.Tool.csproj -c Release -o C:\Users\baidakov\.nuget\local-feed
 ```
 Packages will be versioned `0.1.0` by default (see `Directory.Build.props`).
 

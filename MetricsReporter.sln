@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsReporter", "MetricsReporter\MetricsReporter.csproj", "{958220DA-A9B2-4E0D-899D-D2B4AD3B5998}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsReporter", "src\MetricsReporter\MetricsReporter.csproj", "{958220DA-A9B2-4E0D-899D-D2B4AD3B5998}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsReporter.Tool", "MetricsReporter.Tool\MetricsReporter.Tool.csproj", "{7857286E-7552-4E48-BD94-A635C44AC5EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsReporter.Tool", "src\MetricsReporter.Tool\MetricsReporter.Tool.csproj", "{7857286E-7552-4E48-BD94-A635C44AC5EA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsReporter.Tests", "tests\MetricsReporter.Tests\MetricsReporter.Tests.csproj", "{68CA6B18-A7E2-4C37-8C77-7D995E6F644B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsReporter.Tests", "MetricsReporter.Tests\MetricsReporter.Tests.csproj", "{68CA6B18-A7E2-4C37-8C77-7D995E6F644B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,10 +58,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{958220DA-A9B2-4E0D-899D-D2B4AD3B5998} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{7857286E-7552-4E48-BD94-A635C44AC5EA} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{68CA6B18-A7E2-4C37-8C77-7D995E6F644B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

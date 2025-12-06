@@ -280,7 +280,9 @@ internal sealed class ConfigurationResolverTests
     // Assert
     result.Generate.Should().ContainSingle().Which.Should().Be("env-gen.ps1");
     result.ReadAny.Should().ContainSingle().Which.Should().Be("env-read.ps1");
-    result.ReadByMetric.Should().BeEmpty();
+    result.ReadByMetric.Should().ContainSingle();
+    result.ReadByMetric[0].Metrics.Should().ContainSingle().Which.Should().Be("FileMetric");
+    result.ReadByMetric[0].Path.Should().Be("file-metric.ps1");
   }
 
   [Test]
@@ -289,10 +291,10 @@ internal sealed class ConfigurationResolverTests
     // Arrange
     var envScripts = new ScriptsConfiguration
     {
-      Generate = Array.Empty<string>(),
+      Generate = null,
       Read = new ReadScriptsConfiguration
       {
-        Any = Array.Empty<string>(),
+        Any = null,
         ByMetric = Array.Empty<MetricScript>()
       }
     };
