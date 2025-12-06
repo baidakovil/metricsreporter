@@ -9,6 +9,11 @@ Introduce structured logging across the solution using `Microsoft.Extensions.Log
 - Capture exceptions with basic structured properties (command text, file paths); avoid logging secrets; no complex redaction/throttling.
 - Keep logging lightweight and linear; avoid global static loggers. Policies consistent across services/CLI.
 - Provide a short logging style guide (when to log, level mapping, simple truncation rule).
+- Remove legacy `FileLogger` usage; if file logs are needed, add a DI-registered `ILoggerProvider` with a file sink. Default setup: console only.
+
+## Validation and docs
+- After changes, run existing tests and add new ones if needed (e.g., logging config validation, truncation behavior).
+- Update or add documentation to reflect logging setup and options.
 
 ## Constraints
 - Nullable enabled; DI-first architecture.
@@ -16,6 +21,6 @@ Introduce structured logging across the solution using `Microsoft.Extensions.Log
 - Align with SOLID and patterns from `dotnet-design-pattern-review.mdc`.
 
 ## Options and validation alignment
-- Minimal typed options (`Microsoft.Extensions.Options` + validation): verbosity and log truncation limit. Populate from CLI/env/config file; defaults are fine otherwise.
+- Minimal typed options (`Microsoft.Extensions.Options` + validation): verbosity and log truncation limit from `MetricsReporterOptions.general` (documented in to-be-created `docs/refactor/options-schema.md`). Populate from CLI/env/config file; defaults are fine otherwise.
 - Shared schema: generation and reader commands consume the same basic logging settings.
 

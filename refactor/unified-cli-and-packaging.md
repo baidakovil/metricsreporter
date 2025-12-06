@@ -23,7 +23,7 @@ Rebuild a single Spectre.Console.Cli application with modern command surface; ba
 - Ensure CI builds/publishes the tool and updates install docs (`dotnet tool install -g metricsreporter`).
 
 ## Configuration and options alignment
-- Typed options (`Microsoft.Extensions.Options` + validation) with a shared minimal schema: inputs/outputs, thresholds, verbosity, timeout, script lists. Defaults for the rest.
+- Establish a single `MetricsReporterOptions` schema (document in `docs/options-schema.md` before implementation): sections `general` (verbosity, timeout, workingDirectory, logTruncationLimit), `paths` (report/thresholds/altcover/roslyn/sarif/output), `scripts` (generate list; read.any list; read.byMetric map). Defaults for the rest.
 - Config file: `.metricsreporter.json` resolved from CWD upward (no global file). Sources priority: CLI > env > config file > defaults.
 - Provide global options: verbosity, config path override, timeout defaults. No fancy log format switches.
 - Validation errors should be reported with Spectre validation messages before command execution.
@@ -31,4 +31,12 @@ Rebuild a single Spectre.Console.Cli application with modern command surface; ba
 
 ## Exit codes and UX
 - Keep consistent exit codes (0 OK, 1 parse error, 2 IO error, 3 validation error, etc.) and document them in `--help`.
-- Emit migration hints in error/help texts to map old command names/options to the new surface (no execution of legacy aliases).
+
+## Migration plan (old console host → Spectre CLI)
+- Replace manual parsing in MetricsReporterConsoleHost with Spectre commands: create `GenerateCommand : Command<GenerateSettings>`, `ReadCommand`, `ReadSarifCommand`, `TestCommand`; remove legacy `ParseArguments()` flow.
+- Convert `MetricsReporter.Tool` into the single Spectre-based CLI (dotnet tool); remove redundant/legacy console hosts.
+- Shared options: define global options (verbosity, config path, timeout) at root; per-command options in their `Settings`. Spectre will render global + command options for `--help`; branch commands are enough, no extra nesting needed beyond root + commands.
+
+## Validation and docs
+- After changes, run existing tests and add new ones if needed (CLI wiring, help output, config precedence).
+- Update or add documentation to reflect the new Spectre CLI, commands, and configuration file usage.
