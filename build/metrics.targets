@@ -1,0 +1,28 @@
+<Project>
+  <Target Name="PrepareMetricsDirectories"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <MakeDir Condition="'$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''"
+             Directories="$(SarifOutputDir)" />
+  </Target>
+
+  <Target Name="GenerateSolutionMetrics"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(RoslynMetricsEnabled)' == 'true' and '$(MSBuildProjectName)' == '$(MetricsTargetsAnchorProject)'">
+    <MakeDir Directories="$(RoslynOutputDir)" />
+    <MakeDir Condition="'$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''"
+             Directories="$(SarifOutputDir)" />
+    <Delete Files="$(RoslynSolutionMetricsOutputFile)" Condition="Exists('$(RoslynSolutionMetricsOutputFile)')" />
+    <Exec Command="&quot;$(RoslynMetricsToolExe)&quot; /solution:&quot;$(RoslynMetricsSolutionPath)&quot; /out:&quot;$(RoslynSolutionMetricsOutputFile)&quot; /quiet"
+          WorkingDirectory="$(RoslynMetricsToolDir)"
+          IgnoreExitCode="false" />
+  </Target>
+
+  <Target Name="SetSarifErrorLog"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''">
+    <PropertyGroup>
+      <ErrorLog>$(SarifOutputDir)\$(MSBuildProjectName).sarif,version=2.1</ErrorLog>
+    </PropertyGroup>
+  </Target>
+</Project>
+

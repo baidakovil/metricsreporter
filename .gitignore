@@ -7,8 +7,8 @@
 *bin/
 *temp/
 
-# Coverage reports
-/build/Metrics/
+# Coverage reports and generated metrics
+/Metrics/
 /build/_nupkg_inspect/
 
 # Generated metrics baselines

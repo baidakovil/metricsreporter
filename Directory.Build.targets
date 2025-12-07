@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)build\Targets\metrics.targets"
-          Condition="Exists('$(MSBuildThisFileDirectory)build\Targets\metrics.targets')" />
+  <Import Project="$(MSBuildThisFileDirectory)build\metrics.targets"
+          Condition="Exists('$(MSBuildThisFileDirectory)build\metrics.targets')" />
 </Project>
 

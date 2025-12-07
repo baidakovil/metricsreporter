@@ -1,6 +1,6 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)build\Props\common.props"
-          Condition="Exists('$(MSBuildThisFileDirectory)build\Props\common.props')" />
-  <Import Project="$(MSBuildThisFileDirectory)build\Props\metrics.props"
-          Condition="Exists('$(MSBuildThisFileDirectory)build\Props\metrics.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)build\common.props"
+          Condition="Exists('$(MSBuildThisFileDirectory)build\common.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)build\metrics.props"
+          Condition="Exists('$(MSBuildThisFileDirectory)build\metrics.props')" />
 </Project>

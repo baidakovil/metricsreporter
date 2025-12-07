@@ -5,26 +5,26 @@
     "logTruncationLimit": 4000
   },
   "paths": {
-    "metricsDir": "build/Metrics",
-    "report": "build/Metrics/Report/MetricsReport.g.json",
-    "readReport": "build/Metrics/Report/MetricsReport.g.json",
-    "baseline": "build/MetricsTemp/MetricsBaseline.g.json",
-    "suppressedSymbols": "build/MetricsTemp/SuppressedSymbols.g.json",
-    "thresholds": "build/MetricsRules/MetricsReporterThresholds.json",
+    "metricsDir": "Metrics",
+    "report": "Metrics/MetricsReport.g.json",
+    "readReport": "Metrics/MetricsReport.g.json",
+    "baseline": "Metrics/MetricsTemp/MetricsBaseline.g.json",
+    "suppressedSymbols": "Metrics/MetricsTemp/SuppressedSymbols.g.json",
+    "thresholds": "Metrics/MetricsRules/MetricsReporterThresholds.json",
     "solutionDirectory": ".",
     "sourceCodeFolders": [
       "MetricsReporter",
       "MetricsReporter.Tests",
       "MetricsReporter.Tool"
     ],
-    "outputHtml": "build/Metrics/Report/MetricsReport.html",
+    "outputHtml": "Metrics/MetricsReport.html",
     "roslyn": [
-      "build/Metrics/Roslyn/SolutionMetrics.g.xml"
+      "Metrics/Roslyn/SolutionMetrics.g.xml"
     ],
     "sarif": [
-      "build/Metrics/Sarif/MetricsReporter.sarif",
-      "build/Metrics/Sarif/MetricsReporter.Tool.sarif",
-      "build/Metrics/Sarif/MetricsReporter.Tests.sarif"
+      "Metrics/Sarif/MetricsReporter.sarif",
+      "Metrics/Sarif/MetricsReporter.Tool.sarif",
+      "Metrics/Sarif/MetricsReporter.Tests.sarif"
     ],
     "excludedAssemblies": "Tests",
     "solutionName": "metricsreporter",
@@ -33,7 +33,7 @@
   },
   "scripts": {
     "generate": [
-      "scripts/prepare-metrics.ps1"
+      "Metrics/scripts/prepare-metrics.ps1"
     ]
   }
 }
