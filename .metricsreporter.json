@@ -9,6 +9,13 @@
     "report": "build/Metrics/Report/MetricsReport.g.json",
     "readReport": "build/Metrics/Report/MetricsReport.g.json",
     "baseline": "build/MetricsTemp/MetricsBaseline.g.json",
+    "suppressedSymbols": "build/MetricsTemp/SuppressedSymbols.g.json",
+    "solutionDirectory": ".",
+    "sourceCodeFolders": [
+      "MetricsReporter",
+      "MetricsReporter.Tests",
+      "MetricsReporter.Tool"
+    ],
     "outputHtml": "build/Metrics/Report/MetricsReport.html",
     "roslyn": [
       "build/Metrics/Roslyn/SolutionMetrics.g.xml"
@@ -18,7 +25,8 @@
       "build/Metrics/Sarif/MetricsReporter.Tool.sarif",
       "build/Metrics/Sarif/MetricsReporter.Tests.sarif"
     ],
-    "solutionName": "metricsreporter"
+    "solutionName": "metricsreporter",
+    "analyzeSuppressedSymbols": true
   },
   "scripts": {
     "generate": [
