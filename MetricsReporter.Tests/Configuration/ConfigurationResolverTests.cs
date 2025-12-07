@@ -32,6 +32,8 @@ internal sealed class ConfigurationResolverTests
       cliTimeoutSeconds: null,
       cliWorkingDirectory: null,
       cliLogTruncation: null,
+      cliRunScripts: null,
+      cliAggregateAfterScripts: null,
       envConfig: _emptyConfig,
       fileConfig: _emptyConfig);
 
@@ -40,6 +42,8 @@ internal sealed class ConfigurationResolverTests
     result.Timeout.Should().Be(TimeSpan.FromSeconds(900));
     result.LogTruncationLimit.Should().Be(4000);
     result.WorkingDirectory.Should().Be(Path.GetFullPath(cwd));
+    result.RunScripts.Should().BeTrue();
+    result.AggregateAfterScripts.Should().BeTrue();
   }
 
   [Test]
@@ -73,6 +77,8 @@ internal sealed class ConfigurationResolverTests
       cliTimeoutSeconds: 30,
       cliWorkingDirectory: ".",
       cliLogTruncation: 30,
+      cliRunScripts: false,
+      cliAggregateAfterScripts: false,
       envConfig,
       fileConfig);
 
@@ -81,6 +87,8 @@ internal sealed class ConfigurationResolverTests
     result.Timeout.Should().Be(TimeSpan.FromSeconds(30));
     result.LogTruncationLimit.Should().Be(30);
     result.WorkingDirectory.Should().Be(Path.GetFullPath("."));
+    result.RunScripts.Should().BeFalse();
+    result.AggregateAfterScripts.Should().BeFalse();
   }
 
   [Test]
@@ -93,6 +101,8 @@ internal sealed class ConfigurationResolverTests
       cliTimeoutSeconds: 0,
       cliWorkingDirectory: null,
       cliLogTruncation: 0,
+      cliRunScripts: null,
+      cliAggregateAfterScripts: null,
       envConfig: _emptyConfig,
       fileConfig: _emptyConfig);
 
@@ -122,6 +132,8 @@ internal sealed class ConfigurationResolverTests
       cliTimeoutSeconds: null,
       cliWorkingDirectory: null,
       cliLogTruncation: null,
+      cliRunScripts: null,
+      cliAggregateAfterScripts: null,
       envConfig,
       _emptyConfig);
 
@@ -150,6 +162,8 @@ internal sealed class ConfigurationResolverTests
       cliTimeoutSeconds: null,
       cliWorkingDirectory: null,
       cliLogTruncation: null,
+      cliRunScripts: null,
+      cliAggregateAfterScripts: null,
       envConfig: _emptyConfig,
       fileConfig);
 
@@ -188,6 +202,8 @@ internal sealed class ConfigurationResolverTests
       cliTimeoutSeconds: null,
       cliWorkingDirectory: null,
       cliLogTruncation: null,
+      cliRunScripts: null,
+      cliAggregateAfterScripts: null,
       envConfig,
       fileConfig);
 
@@ -196,6 +212,46 @@ internal sealed class ConfigurationResolverTests
     result.Timeout.Should().Be(TimeSpan.FromSeconds(600));
     result.LogTruncationLimit.Should().Be(123);
     result.WorkingDirectory.Should().Be(Path.GetFullPath("envDir"));
+  }
+
+  [Test]
+  public void ResolveGeneral_RunAndAggregate_PrecedenceApplied()
+  {
+    // Arrange
+    var envConfig = new MetricsReporterConfiguration
+    {
+      General = new GeneralConfiguration
+      {
+        RunScripts = false,
+        AggregateAfterScripts = true,
+        WorkingDirectory = "env"
+      }
+    };
+    var fileConfig = new MetricsReporterConfiguration
+    {
+      General = new GeneralConfiguration
+      {
+        RunScripts = true,
+        AggregateAfterScripts = false,
+        WorkingDirectory = "file"
+      }
+    };
+
+    // Act
+    var result = ConfigurationResolver.ResolveGeneral(
+      cliVerbosity: null,
+      cliTimeoutSeconds: null,
+      cliWorkingDirectory: null,
+      cliLogTruncation: null,
+      cliRunScripts: null,
+      cliAggregateAfterScripts: null,
+      envConfig,
+      fileConfig);
+
+    // Assert
+    result.RunScripts.Should().BeFalse();
+    result.AggregateAfterScripts.Should().BeTrue();
+    result.WorkingDirectory.Should().Be(Path.GetFullPath("env"));
   }
 
   [Test]
@@ -212,6 +268,14 @@ internal sealed class ConfigurationResolverTests
         {
           new MetricScript { Metrics = new[] { "EnvMetric" }, Path = "env-metric.ps1" }
         }
+      },
+      Test = new ReadScriptsConfiguration
+      {
+        Any = new[] { "env-test.ps1" },
+        ByMetric = new[]
+        {
+          new MetricScript { Metrics = new[] { "EnvTestMetric" }, Path = "env-test-metric.ps1" }
+        }
       }
     };
     var fileScripts = new ScriptsConfiguration
@@ -224,6 +288,14 @@ internal sealed class ConfigurationResolverTests
         {
           new MetricScript { Metrics = new[] { "FileMetric" }, Path = "file-metric.ps1" }
         }
+      },
+      Test = new ReadScriptsConfiguration
+      {
+        Any = new[] { "file-test.ps1" },
+        ByMetric = new[]
+        {
+          new MetricScript { Metrics = new[] { "FileTestMetric" }, Path = "file-test-metric.ps1" }
+        }
       }
     };
 
@@ -232,6 +304,8 @@ internal sealed class ConfigurationResolverTests
       cliGenerate: new[] { "cli-gen.ps1" },
       cliReadAny: new[] { "cli-read.ps1" },
       cliMetricScripts: new[] { ("CliMetric", "cli-metric.ps1") },
+      cliTestAny: new[] { "cli-test.ps1" },
+      cliTestMetricScripts: new[] { ("CliTestMetric", "cli-test-metric.ps1") },
       envScripts,
       fileScripts);
 
@@ -241,6 +315,10 @@ internal sealed class ConfigurationResolverTests
     result.ReadByMetric.Should().ContainSingle();
     result.ReadByMetric[0].Metrics.Should().ContainSingle().Which.Should().Be("CliMetric");
     result.ReadByMetric[0].Path.Should().Be("cli-metric.ps1");
+    result.TestAny.Should().ContainSingle().Which.Should().Be("cli-test.ps1");
+    result.TestByMetric.Should().ContainSingle();
+    result.TestByMetric[0].Metrics.Should().ContainSingle().Which.Should().Be("CliTestMetric");
+    result.TestByMetric[0].Path.Should().Be("cli-test-metric.ps1");
   }
 
   [Test]
@@ -254,6 +332,11 @@ internal sealed class ConfigurationResolverTests
       {
         Any = new[] { "env-read.ps1" },
         ByMetric = Array.Empty<MetricScript>()
+      },
+      Test = new ReadScriptsConfiguration
+      {
+        Any = new[] { "env-test.ps1" },
+        ByMetric = Array.Empty<MetricScript>()
       }
     };
     var fileScripts = new ScriptsConfiguration
@@ -266,6 +349,14 @@ internal sealed class ConfigurationResolverTests
         {
           new MetricScript { Metrics = new[] { "FileMetric" }, Path = "file-metric.ps1" }
         }
+      },
+      Test = new ReadScriptsConfiguration
+      {
+        Any = new[] { "file-test.ps1" },
+        ByMetric = new[]
+        {
+          new MetricScript { Metrics = new[] { "FileTestMetric" }, Path = "file-test-metric.ps1" }
+        }
       }
     };
 
@@ -274,6 +365,8 @@ internal sealed class ConfigurationResolverTests
       cliGenerate: Array.Empty<string>(),
       cliReadAny: Array.Empty<string>(),
       cliMetricScripts: Array.Empty<(string Metric, string Path)>(),
+      cliTestAny: Array.Empty<string>(),
+      cliTestMetricScripts: Array.Empty<(string Metric, string Path)>(),
       envScripts,
       fileScripts);
 
@@ -283,6 +376,10 @@ internal sealed class ConfigurationResolverTests
     result.ReadByMetric.Should().ContainSingle();
     result.ReadByMetric[0].Metrics.Should().ContainSingle().Which.Should().Be("FileMetric");
     result.ReadByMetric[0].Path.Should().Be("file-metric.ps1");
+    result.TestAny.Should().ContainSingle().Which.Should().Be("env-test.ps1");
+    result.TestByMetric.Should().ContainSingle();
+    result.TestByMetric[0].Metrics.Should().ContainSingle().Which.Should().Be("FileTestMetric");
+    result.TestByMetric[0].Path.Should().Be("file-test-metric.ps1");
   }
 
   [Test]
@@ -293,6 +390,11 @@ internal sealed class ConfigurationResolverTests
     {
       Generate = null,
       Read = new ReadScriptsConfiguration
+      {
+        Any = null,
+        ByMetric = Array.Empty<MetricScript>()
+      },
+      Test = new ReadScriptsConfiguration
       {
         Any = null,
         ByMetric = Array.Empty<MetricScript>()
@@ -308,6 +410,14 @@ internal sealed class ConfigurationResolverTests
         {
           new MetricScript { Metrics = new[] { "FileMetric" }, Path = "file-metric.ps1" }
         }
+      },
+      Test = new ReadScriptsConfiguration
+      {
+        Any = new[] { "file-test.ps1" },
+        ByMetric = new[]
+        {
+          new MetricScript { Metrics = new[] { "FileTestMetric" }, Path = "file-test-metric.ps1" }
+        }
       }
     };
 
@@ -316,6 +426,8 @@ internal sealed class ConfigurationResolverTests
       cliGenerate: Array.Empty<string>(),
       cliReadAny: Array.Empty<string>(),
       cliMetricScripts: Array.Empty<(string Metric, string Path)>(),
+      cliTestAny: Array.Empty<string>(),
+      cliTestMetricScripts: Array.Empty<(string Metric, string Path)>(),
       envScripts,
       fileScripts);
 
@@ -324,6 +436,9 @@ internal sealed class ConfigurationResolverTests
     result.ReadAny.Should().ContainSingle().Which.Should().Be("file-read.ps1");
     result.ReadByMetric.Should().ContainSingle();
     result.ReadByMetric[0].Path.Should().Be("file-metric.ps1");
+    result.TestAny.Should().ContainSingle().Which.Should().Be("file-test.ps1");
+    result.TestByMetric.Should().ContainSingle();
+    result.TestByMetric[0].Path.Should().Be("file-test-metric.ps1");
   }
 
   [Test]
@@ -345,6 +460,8 @@ internal sealed class ConfigurationResolverTests
       cliGenerate: Array.Empty<string>(),
       cliReadAny: Array.Empty<string>(),
       cliMetricScripts: new[] { ("MetricA", "cli-a.ps1"), ("MetricB,MetricC", "cli-b.ps1") },
+      cliTestAny: Array.Empty<string>(),
+      cliTestMetricScripts: Array.Empty<(string Metric, string Path)>(),
       envScripts,
       _emptyConfig.Scripts);
 
@@ -354,6 +471,8 @@ internal sealed class ConfigurationResolverTests
     result.ReadByMetric[1].Metrics.Should().ContainSingle().Which.Should().Be("MetricB,MetricC");
     result.ReadByMetric[0].Path.Should().Be("cli-a.ps1");
     result.ReadByMetric[1].Path.Should().Be("cli-b.ps1");
+    result.TestAny.Should().BeEmpty();
+    result.TestByMetric.Should().BeEmpty();
   }
 }
 

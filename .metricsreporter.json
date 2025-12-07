@@ -1,5 +1,7 @@
 {
   "general": {
+    "runScripts": true,
+    "aggregateAfterScripts": true,
     "verbosity": "normal",
     "timeoutSeconds": 900,
     "logTruncationLimit": 4000
@@ -36,6 +38,11 @@
       "Metrics/scripts/prepare-metrics.ps1"
     ],
     "read": {
+      "any": [
+        "Metrics/scripts/prepare-metrics.ps1"
+      ]
+    },
+    "test": {
       "any": [
         "Metrics/scripts/prepare-metrics.ps1"
       ]

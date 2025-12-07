@@ -9,6 +9,7 @@ using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
 using MetricsReporter.Logging;
+using MetricsReporter.Services;
 using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
 using MetricsReporter.Services.Scripts;
@@ -61,6 +62,8 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
       settings.TimeoutSeconds,
       settings.WorkingDirectory,
       settings.LogTruncationLimit,
+      settings.RunScripts,
+      settings.AggregateAfterScripts,
       envConfig,
       configResult.Configuration);
 
@@ -86,25 +89,69 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
       Array.Empty<string>(),
       settings.Scripts,
       parsedMetricScripts,
+      Array.Empty<string>(),
+      Array.Empty<(string Metric, string Path)>(),
       envConfig.Scripts,
       configResult.Configuration.Scripts);
 
     var scriptsToRun = SelectScriptsForMetrics(
       scripts,
       new[] { resolvedMetric.ToString() });
+    var hasScripts = scriptsToRun.Length > 0;
 
     var readLogPath = Path.Combine(Path.GetDirectoryName(reportPath) ?? general.WorkingDirectory, "MetricsReporter.read.log");
     using (var fileLogger = new FileLogger(readLogPath))
     {
       var logger = new VerbosityAwareLogger(fileLogger, general.Verbosity);
-      var scriptResult = await _scriptExecutor.RunAsync(
-        scriptsToRun,
-        new ScriptExecutionContext(general.WorkingDirectory, general.Timeout, general.LogTruncationLimit, logger),
-        cancellationToken).ConfigureAwait(false);
-
-      if (!scriptResult.IsSuccess)
+      if (general.RunScripts && hasScripts)
       {
-        return (int)scriptResult.ExitCode;
+        var scriptResult = await _scriptExecutor.RunAsync(
+          scriptsToRun,
+          new ScriptExecutionContext(general.WorkingDirectory, general.Timeout, general.LogTruncationLimit, logger),
+          cancellationToken).ConfigureAwait(false);
+
+        if (!scriptResult.IsSuccess)
+        {
+          return (int)scriptResult.ExitCode;
+        }
+      }
+      else if (!general.RunScripts)
+      {
+        AnsiConsole.MarkupLine("[yellow]Scripts disabled (--run-scripts=false); skipping read scripts and aggregation.[/]");
+      }
+      else if (!hasScripts && general.AggregateAfterScripts)
+      {
+        AnsiConsole.MarkupLine("[yellow]No read scripts configured; skipping post-script aggregation.[/]");
+      }
+
+      var shouldAggregate = general.RunScripts && general.AggregateAfterScripts && hasScripts;
+      if (shouldAggregate)
+      {
+        var aggregationInputs = AggregationOptionsResolver.Resolve(
+          envConfig.Paths,
+          configResult.Configuration.Paths,
+          general.WorkingDirectory,
+          reportPath);
+        var aggregationValidation = AggregationOptionsResolver.Validate(aggregationInputs);
+        if (!aggregationValidation.Succeeded)
+        {
+          AnsiConsole.MarkupLine($"[red]{aggregationValidation.Error}[/]");
+          return (int)MetricsReporterExitCode.ValidationError;
+        }
+
+        var aggregationLogPath = AggregationOptionsResolver.BuildLogPath(aggregationInputs, general.WorkingDirectory);
+        var aggregationOptions = AggregationOptionsResolver.BuildOptions(aggregationInputs, aggregationLogPath);
+        var application = new MetricsReporterApplication();
+        var aggregationExit = await application.RunAsync(aggregationOptions, cancellationToken).ConfigureAwait(false);
+        if (aggregationExit != MetricsReporterExitCode.Success)
+        {
+          AnsiConsole.MarkupLine($"[red]Aggregation after scripts failed with exit code {(int)aggregationExit}.[/]");
+          return (int)aggregationExit;
+        }
+      }
+      else if (!general.AggregateAfterScripts && hasScripts)
+      {
+        AnsiConsole.MarkupLine("[yellow]Aggregation after scripts disabled (--aggregate-after-scripts=false).[/]");
       }
     }
 

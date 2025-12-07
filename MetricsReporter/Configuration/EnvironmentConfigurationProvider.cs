@@ -22,6 +22,8 @@ public static class EnvironmentConfigurationProvider
     {
       General = new GeneralConfiguration
       {
+        RunScripts = ReadBool("METRICSREPORTER_RUN_SCRIPTS"),
+        AggregateAfterScripts = ReadBool("METRICSREPORTER_AGGREGATE_AFTER_SCRIPTS"),
         Verbosity = ReadString("METRICSREPORTER_VERBOSITY"),
         TimeoutSeconds = ReadInt("METRICSREPORTER_TIMEOUT_SECONDS"),
         WorkingDirectory = ReadString("METRICSREPORTER_WORKING_DIRECTORY"),
@@ -60,6 +62,11 @@ public static class EnvironmentConfigurationProvider
         {
           Any = ReadList("METRICSREPORTER_SCRIPTS_READ_ANY"),
           ByMetric = ReadMetricScripts("METRICSREPORTER_SCRIPTS_READ_BYMETRIC")
+        },
+        Test = new ReadScriptsConfiguration
+        {
+          Any = ReadList("METRICSREPORTER_SCRIPTS_TEST_ANY"),
+          ByMetric = ReadMetricScripts("METRICSREPORTER_SCRIPTS_TEST_BYMETRIC")
         }
       }
     };

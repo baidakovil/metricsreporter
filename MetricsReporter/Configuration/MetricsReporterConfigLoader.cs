@@ -20,6 +20,8 @@ public sealed class MetricsReporterConfigLoader
   };
   private static readonly string[] GeneralSectionProperties =
   [
+    "runScripts",
+    "aggregateAfterScripts",
     "verbosity",
     "timeoutSeconds",
     "workingDirectory",
@@ -167,7 +169,7 @@ public sealed class MetricsReporterConfigLoader
 
     foreach (var property in scriptsElement.EnumerateObject())
     {
-      if (!property.NameEquals("generate") && !property.NameEquals("read"))
+      if (!property.NameEquals("generate") && !property.NameEquals("read") && !property.NameEquals("test"))
       {
         return $"Unknown property 'scripts.{property.Name}' in configuration.";
       }
@@ -219,6 +221,60 @@ public sealed class MetricsReporterConfigLoader
             if (metricToPath.TryGetValue(metricName, out var existingPath) && !string.Equals(existingPath, pathElement.GetString(), StringComparison.OrdinalIgnoreCase))
             {
               return $"Duplicate metric '{metricName}' in scripts.read.byMetric with different scripts.";
+            }
+
+            metricToPath[metricName] = pathElement.GetString()!;
+          }
+        }
+      }
+    }
+
+    if (scriptsElement.TryGetProperty("test", out var testElement))
+    {
+      if (testElement.ValueKind != JsonValueKind.Object)
+      {
+        return "scripts.test must be an object.";
+      }
+
+      foreach (var property in testElement.EnumerateObject())
+      {
+        if (!property.NameEquals("any") && !property.NameEquals("byMetric"))
+        {
+          return $"Unknown property 'scripts.test.{property.Name}' in configuration.";
+        }
+      }
+
+      if (testElement.TryGetProperty("byMetric", out var byMetricElement) && byMetricElement.ValueKind == JsonValueKind.Array)
+      {
+        var metricToPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in byMetricElement.EnumerateArray())
+        {
+          if (item.ValueKind != JsonValueKind.Object)
+          {
+            return "scripts.test.byMetric items must be objects.";
+          }
+
+          if (!item.TryGetProperty("metrics", out var metricsElement) || metricsElement.ValueKind != JsonValueKind.Array || metricsElement.GetArrayLength() == 0)
+          {
+            return "scripts.test.byMetric items must contain non-empty 'metrics' array.";
+          }
+
+          if (!item.TryGetProperty("path", out var pathElement) || pathElement.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(pathElement.GetString()))
+          {
+            return "scripts.test.byMetric items must contain a non-empty 'path' string.";
+          }
+
+          foreach (var metric in metricsElement.EnumerateArray())
+          {
+            if (metric.ValueKind != JsonValueKind.String)
+            {
+              return "scripts.test.byMetric metrics must be strings.";
+            }
+
+            var metricName = metric.GetString() ?? string.Empty;
+            if (metricToPath.TryGetValue(metricName, out var existingPath) && !string.Equals(existingPath, pathElement.GetString(), StringComparison.OrdinalIgnoreCase))
+            {
+              return $"Duplicate metric '{metricName}' in scripts.test.byMetric with different scripts.";
             }
 
             metricToPath[metricName] = pathElement.GetString()!;

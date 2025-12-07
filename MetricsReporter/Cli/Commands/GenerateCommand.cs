@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Cli.Configuration;
+using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
 using MetricsReporter.Logging;
@@ -61,6 +62,8 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
       settings.TimeoutSeconds,
       settings.WorkingDirectory,
       settings.LogTruncationLimit,
+      settings.RunScripts,
+      settings.AggregateAfterScripts,
       envConfig,
       configResult.Configuration);
 
@@ -82,21 +85,35 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
       settings.Scripts,
       Array.Empty<string>(),
       Array.Empty<(string Metric, string Path)>(),
+      Array.Empty<string>(),
+      Array.Empty<(string Metric, string Path)>(),
       envConfig.Scripts,
       configResult.Configuration.Scripts);
 
     using (var fileLogger = new FileLogger(logPath))
     {
       var logger = new VerbosityAwareLogger(fileLogger, general.Verbosity);
-      var scriptResult = await _scriptExecutor.RunAsync(
-        scripts.Generate,
-        new ScriptExecutionContext(general.WorkingDirectory, general.Timeout, general.LogTruncationLimit, logger),
-        cancellationToken).ConfigureAwait(false);
-
-      if (!scriptResult.IsSuccess)
+      if (general.RunScripts)
       {
-        return (int)scriptResult.ExitCode;
+        var scriptResult = await _scriptExecutor.RunAsync(
+          scripts.Generate,
+          new ScriptExecutionContext(general.WorkingDirectory, general.Timeout, general.LogTruncationLimit, logger),
+          cancellationToken).ConfigureAwait(false);
+
+        if (!scriptResult.IsSuccess)
+        {
+          return (int)scriptResult.ExitCode;
+        }
       }
+      else
+      {
+        AnsiConsole.MarkupLine("[yellow]Script execution disabled (--run-scripts=false); skipping generate scripts.[/]");
+      }
+    }
+
+    if (!general.AggregateAfterScripts)
+    {
+      AnsiConsole.MarkupLine("[yellow]--aggregate-after-scripts=false is ignored for generate; aggregation will still run.[/]");
     }
 
     var options = BuildOptions(resolved, logPath);
@@ -367,11 +384,3 @@ internal sealed record ResolvedGenerateInputs(
   string? SolutionDirectory,
   string[] SourceCodeFolders,
   bool MetricsDirProvided);
-
-internal sealed record ValidationOutcome(bool Succeeded, string? Error)
-{
-  public static ValidationOutcome Success() => new(true, null);
-
-  public static ValidationOutcome Fail(string message) => new(false, message);
-}
-

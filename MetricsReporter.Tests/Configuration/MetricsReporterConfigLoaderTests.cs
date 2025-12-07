@@ -82,9 +82,9 @@ internal sealed class MetricsReporterConfigLoaderTests
     var configPath = Path.Combine(_root, ".metricsreporter.json");
     File.WriteAllText(configPath, """
     {
-      "general": { "verbosity": "minimal", "timeoutSeconds": 10, "workingDirectory": "work", "logTruncationLimit": 99 },
+      "general": { "runScripts": false, "aggregateAfterScripts": true, "verbosity": "minimal", "timeoutSeconds": 10, "workingDirectory": "work", "logTruncationLimit": 99 },
       "paths": { "metricsDir": "build/Metrics" },
-      "scripts": { "generate": [ "scripts/run.ps1" ], "read": { "any": [], "byMetric": [] } }
+      "scripts": { "generate": [ "scripts/run.ps1" ], "read": { "any": [], "byMetric": [] }, "test": { "any": [ "scripts/test.ps1" ] } }
     }
     """);
 
@@ -94,9 +94,12 @@ internal sealed class MetricsReporterConfigLoaderTests
     // Assert
     result.IsSuccess.Should().BeTrue();
     result.Path.Should().Be(configPath);
+    result.Configuration.General.RunScripts.Should().BeFalse();
+    result.Configuration.General.AggregateAfterScripts.Should().BeTrue();
     result.Configuration.General.Verbosity.Should().Be("minimal");
     result.Configuration.Paths.MetricsDir.Should().Be("build/Metrics");
     result.Configuration.Scripts.Generate.Should().ContainSingle().Which.Should().Be("scripts/run.ps1");
+    result.Configuration.Scripts.Test.Any.Should().ContainSingle().Which.Should().Be("scripts/test.ps1");
   }
 
   [Test]
@@ -195,6 +198,59 @@ internal sealed class MetricsReporterConfigLoaderTests
     // Assert
     result.IsSuccess.Should().BeFalse();
     result.Errors.Should().ContainSingle(e => e.Contains("Duplicate metric 'RoslynClassCoupling'"));
+  }
+
+  [Test]
+  public void Load_WithInvalidTestByMetricEntry_ReturnsFailure()
+  {
+    // Arrange
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": {
+        "test": {
+          "byMetric": [ { "metrics": [], "path": "" } ]
+        }
+      }
+    }
+    """);
+
+    // Act
+    var result = _loader.Load(null, _root);
+
+    // Assert
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("scripts.test.byMetric items must contain non-empty 'metrics'"));
+  }
+
+  [Test]
+  public void Load_WithDuplicateTestMetricDifferentPaths_ReturnsFailure()
+  {
+    // Arrange
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": {
+        "test": {
+          "byMetric": [
+            { "metrics": [ "RoslynClassCoupling" ], "path": "scripts/first.ps1" },
+            { "metrics": [ "RoslynClassCoupling" ], "path": "scripts/second.ps1" }
+          ]
+        }
+      }
+    }
+    """);
+
+    // Act
+    var result = _loader.Load(null, _root);
+
+    // Assert
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("scripts.test.byMetric"));
   }
 
   [Test]

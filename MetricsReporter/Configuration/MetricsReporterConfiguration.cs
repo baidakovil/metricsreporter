@@ -30,6 +30,16 @@ public sealed class MetricsReporterConfiguration
 public sealed class GeneralConfiguration
 {
   /// <summary>
+  /// Gets a value indicating whether external scripts should run before command execution.
+  /// </summary>
+  public bool? RunScripts { get; init; }
+
+  /// <summary>
+  /// Gets a value indicating whether aggregation should run after scripts finish.
+  /// </summary>
+  public bool? AggregateAfterScripts { get; init; }
+
+  /// <summary>
   /// Gets the verbosity level for CLI output (quiet, minimal, normal, detailed).
   /// </summary>
   public string? Verbosity { get; init; }
@@ -185,6 +195,11 @@ public sealed class ScriptsConfiguration
   /// Gets scripts executed by read/readsarif/test commands.
   /// </summary>
   public ReadScriptsConfiguration Read { get; init; } = new();
+
+  /// <summary>
+  /// Gets scripts executed by the test command.
+  /// </summary>
+  public ReadScriptsConfiguration Test { get; init; } = new();
 }
 
 /// <summary>

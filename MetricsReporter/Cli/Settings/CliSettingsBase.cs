@@ -38,6 +38,20 @@ internal abstract class CliSettingsBase : CommandSettings
   public string? WorkingDirectory { get; init; }
 
   /// <summary>
+  /// Gets a value indicating whether to run configured scripts (true/false).
+  /// </summary>
+  [CommandOption("--run-scripts <true|false>")]
+  [Description("Controls execution of configured scripts. Defaults to true.")]
+  public bool? RunScripts { get; init; }
+
+  /// <summary>
+  /// Gets a value indicating whether aggregation should run after scripts complete (true/false).
+  /// </summary>
+  [CommandOption("--aggregate-after-scripts <true|false>")]
+  [Description("Controls aggregation after scripts. Defaults to true for read/test/readsarif; ignored for generate.")]
+  public bool? AggregateAfterScripts { get; init; }
+
+  /// <summary>
   /// Gets the maximum number of stdout/stderr characters to log when scripts fail.
   /// </summary>
   [CommandOption("--log-truncation-limit <INT>")]

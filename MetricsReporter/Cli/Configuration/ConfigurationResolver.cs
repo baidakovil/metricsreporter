@@ -23,6 +23,8 @@ internal static class ConfigurationResolver
     int? cliTimeoutSeconds,
     string? cliWorkingDirectory,
     int? cliLogTruncation,
+    bool? cliRunScripts,
+    bool? cliAggregateAfterScripts,
     MetricsReporterConfiguration envConfig,
     MetricsReporterConfiguration fileConfig)
   {
@@ -53,11 +55,23 @@ internal static class ConfigurationResolver
       truncationLimit = DefaultLogTruncationLimit;
     }
 
+    var runScripts = cliRunScripts
+                     ?? envConfig.General.RunScripts
+                     ?? fileConfig.General.RunScripts
+                     ?? true;
+
+    var aggregateAfterScripts = cliAggregateAfterScripts
+                                ?? envConfig.General.AggregateAfterScripts
+                                ?? fileConfig.General.AggregateAfterScripts
+                                ?? true;
+
     return new ResolvedGeneralOptions(
       Verbosity: (cliVerbosity ?? envConfig.General.Verbosity ?? fileConfig.General.Verbosity ?? DefaultVerbosity).Trim(),
       Timeout: TimeSpan.FromSeconds(timeoutSeconds),
       WorkingDirectory: Path.GetFullPath(workingDir),
-      LogTruncationLimit: truncationLimit);
+      LogTruncationLimit: truncationLimit,
+      RunScripts: runScripts,
+      AggregateAfterScripts: aggregateAfterScripts);
   }
 
   /// <summary>
@@ -67,6 +81,8 @@ internal static class ConfigurationResolver
     IReadOnlyList<string> cliGenerate,
     IReadOnlyList<string> cliReadAny,
     IReadOnlyList<(string Metric, string Path)> cliMetricScripts,
+    IReadOnlyList<string> cliTestAny,
+    IReadOnlyList<(string Metric, string Path)> cliTestMetricScripts,
     ScriptsConfiguration envScripts,
     ScriptsConfiguration fileScripts)
   {
@@ -87,7 +103,17 @@ internal static class ConfigurationResolver
         ? envScripts.Read.ByMetric
         : fileScripts.Read.ByMetric;
 
-    return new ResolvedScripts(generate, readAny, byMetric);
+    var testAny = cliTestAny.Count > 0
+      ? cliTestAny
+      : envScripts.Test.Any ?? fileScripts.Test.Any ?? Array.Empty<string>();
+
+    var testByMetric = cliTestMetricScripts.Count > 0
+      ? cliTestMetricScripts.Select(x => new MetricScript { Metrics = new[] { x.Metric }, Path = x.Path }).ToArray()
+      : envScripts.Test.ByMetric.Count > 0
+        ? envScripts.Test.ByMetric
+        : fileScripts.Test.ByMetric;
+
+    return new ResolvedScripts(generate, readAny, byMetric, testAny, testByMetric);
   }
 
   private static string? FirstNonEmpty(params string?[] values)
@@ -111,7 +137,9 @@ internal sealed record ResolvedGeneralOptions(
   string Verbosity,
   TimeSpan Timeout,
   string WorkingDirectory,
-  int LogTruncationLimit);
+  int LogTruncationLimit,
+  bool RunScripts,
+  bool AggregateAfterScripts);
 
 /// <summary>
 /// Resolved scripts after precedence is applied.
@@ -119,5 +147,7 @@ internal sealed record ResolvedGeneralOptions(
 internal sealed record ResolvedScripts(
   IReadOnlyList<string> Generate,
   IReadOnlyList<string> ReadAny,
-  IReadOnlyList<MetricScript> ReadByMetric);
+  IReadOnlyList<MetricScript> ReadByMetric,
+  IReadOnlyList<string> TestAny,
+  IReadOnlyList<MetricScript> TestByMetric);
 

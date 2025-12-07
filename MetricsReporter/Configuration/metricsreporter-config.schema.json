@@ -14,6 +14,16 @@
           "default": "normal",
           "description": "Controls informational logging. Errors are always logged."
         },
+        "runScripts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables execution of configured scripts before commands run."
+        },
+        "aggregateAfterScripts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables metrics aggregation after scripts complete."
+        },
         "timeoutSeconds": {
           "type": "integer",
           "minimum": 1,
@@ -118,6 +128,39 @@
               "description": "Metric-specific scripts executed only when requested metrics match."
             }
           }
+        },
+        "test": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Scripts executed for every test invocation."
+            },
+            "byMetric": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "metrics": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1,
+                    "description": "Metric identifiers that trigger the script."
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "PowerShell script path.",
+                    "minLength": 1
+                  }
+                },
+                "required": [ "metrics", "path" ]
+              },
+              "description": "Metric-specific scripts executed only when requested metrics match."
+            }
+          }
         }
       }
     }
@@ -137,6 +180,8 @@
           "type": "string",
           "enum": ["Information", "Warning", "Error"]
         },
+        "runScripts": { "type": "boolean" },
+        "aggregateAfterScripts": { "type": "boolean" },
         "timeoutSeconds": {
           "type": "integer",
           "minimum": 1,
@@ -196,6 +241,32 @@
           "items": { "type": "string" }
         },
         "read": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "byMetric": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "path": { "type": "string" },
+                  "metrics": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1
+                  }
+                },
+                "required": ["path", "metrics"]
+              }
+            }
+          }
+        },
+        "test": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
