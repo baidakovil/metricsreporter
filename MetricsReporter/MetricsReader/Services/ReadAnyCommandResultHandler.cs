@@ -54,21 +54,7 @@ internal sealed class ReadAnyCommandResultHandler : IReadAnyCommandResultHandler
 
   private static void WriteGroupedResponse(IReadOnlyList<SymbolMetricSnapshot> snapshots, ReadAnyCommandResultParameters parameters)
   {
-    var groups = BuildSymbolGroups(snapshots, parameters.GroupBy);
-    var totalGroups = groups.Count;
-    var limitedGroups = parameters.ShowAll ? groups : groups.Take(1).ToList();
-
-    var response = new GroupedViolationsResponseDto<GroupedViolationsGroupDto<SymbolMetricDto>>
-    {
-      Metric = parameters.Metric,
-      Namespace = parameters.Namespace,
-      SymbolKind = parameters.SymbolKind,
-      IncludeSuppressed = parameters.IncludeSuppressed,
-      GroupBy = parameters.GroupBy.ToWireValue(),
-      ViolationsGroupsCount = totalGroups,
-      ViolationsGroups = limitedGroups
-    };
-
+    var response = SymbolResponseBuilder.Build(snapshots, parameters);
     JsonConsoleWriter.Write(response);
   }
 
@@ -76,30 +62,13 @@ internal sealed class ReadAnyCommandResultHandler : IReadAnyCommandResultHandler
     IReadOnlyList<SymbolMetricSnapshot> snapshots,
     MetricsReaderGroupByOption groupBy)
   {
-    var buckets = new Dictionary<string, SymbolGroupAccumulator>(StringComparer.Ordinal);
-    var index = 0;
+    var buckets = new GroupedViolationsCollection(groupBy);
     foreach (var snapshot in snapshots)
     {
-      var metadata = SymbolMetadataParser.Parse(snapshot.Symbol, snapshot.Kind);
-      var key = ResolveGroupKey(snapshot, metadata, groupBy);
-      if (!buckets.TryGetValue(key, out var accumulator))
-      {
-        var dto = new GroupedViolationsGroupDto<SymbolMetricDto>();
-        AssignGroupKey(dto, groupBy, key);
-        accumulator = new SymbolGroupAccumulator(index, dto);
-        buckets[key] = accumulator;
-      }
-
-      accumulator.Dto.Violations.Add(SymbolMetricDto.FromSnapshot(snapshot));
-      accumulator.Dto.ViolationsCount = accumulator.Dto.Violations.Count;
-      index++;
+      buckets.Add(snapshot);
     }
 
-    return buckets
-      .Values
-      .OrderBy(acc => acc.Rank)
-      .Select(acc => acc.Dto)
-      .ToList();
+    return buckets.ToList();
   }
 
   private static void AssignGroupKey(
@@ -128,28 +97,89 @@ internal sealed class ReadAnyCommandResultHandler : IReadAnyCommandResultHandler
 
   private static string ResolveGroupKey(
     SymbolMetricSnapshot snapshot,
-    SymbolMetadata metadata,
     MetricsReaderGroupByOption option)
-    => option switch
+  {
+    if (option == MetricsReaderGroupByOption.Metric)
     {
-      MetricsReaderGroupByOption.Metric => snapshot.Metric.ToString(),
+      return snapshot.Metric.ToString();
+    }
+
+    var metadata = SymbolMetadataParser.Parse(snapshot.Symbol, snapshot.Kind);
+
+    return option switch
+    {
       MetricsReaderGroupByOption.Namespace => metadata.Namespace,
       MetricsReaderGroupByOption.Type => metadata.TypeName,
       MetricsReaderGroupByOption.Method => metadata.MethodName ?? metadata.TypeName,
       _ => snapshot.Symbol
     };
+  }
 
-  private sealed class SymbolGroupAccumulator
+  private static class SymbolResponseBuilder
   {
-    public SymbolGroupAccumulator(int rank, GroupedViolationsGroupDto<SymbolMetricDto> dto)
+    public static GroupedViolationsResponseDto<GroupedViolationsGroupDto<SymbolMetricDto>> Build(
+      IReadOnlyList<SymbolMetricSnapshot> snapshots,
+      ReadAnyCommandResultParameters parameters)
     {
-      Rank = rank;
-      Dto = dto;
+      var groups = BuildSymbolGroups(snapshots, parameters.GroupBy);
+      return new GroupedViolationsResponseDto<GroupedViolationsGroupDto<SymbolMetricDto>>
+      {
+        Metric = parameters.Metric,
+        Namespace = parameters.Namespace,
+        SymbolKind = parameters.SymbolKind,
+        IncludeSuppressed = parameters.IncludeSuppressed,
+        GroupBy = parameters.GroupBy.ToWireValue(),
+        ViolationsGroupsCount = groups.Count,
+        ViolationsGroups = LimitGroups(groups, parameters.ShowAll)
+      };
     }
 
-    public int Rank { get; }
+    private static List<GroupedViolationsGroupDto<SymbolMetricDto>> LimitGroups(
+      List<GroupedViolationsGroupDto<SymbolMetricDto>> groups,
+      bool includeAll)
+      => includeAll ? groups : groups.Take(1).ToList();
+  }
 
-    public GroupedViolationsGroupDto<SymbolMetricDto> Dto { get; }
+  /// <summary>
+  /// Maintains grouped violation DTOs while preserving the order in which groups appear.
+  /// </summary>
+  private sealed class GroupedViolationsCollection
+  {
+    private readonly MetricsReaderGroupByOption _groupBy;
+    private readonly Dictionary<string, GroupedViolationsGroupDto<SymbolMetricDto>> _buckets;
+    private readonly List<GroupedViolationsGroupDto<SymbolMetricDto>> _orderedGroups;
+
+    public GroupedViolationsCollection(MetricsReaderGroupByOption groupBy)
+    {
+      _groupBy = groupBy;
+      _buckets = new Dictionary<string, GroupedViolationsGroupDto<SymbolMetricDto>>(StringComparer.Ordinal);
+      _orderedGroups = new List<GroupedViolationsGroupDto<SymbolMetricDto>>();
+    }
+
+    public void Add(SymbolMetricSnapshot snapshot)
+    {
+      var group = GetOrCreateGroup(snapshot);
+      group.Violations.Add(SymbolMetricDto.FromSnapshot(snapshot));
+      group.ViolationsCount = group.Violations.Count;
+    }
+
+    public List<GroupedViolationsGroupDto<SymbolMetricDto>> ToList()
+      => new(_orderedGroups);
+
+    private GroupedViolationsGroupDto<SymbolMetricDto> GetOrCreateGroup(SymbolMetricSnapshot snapshot)
+    {
+      var key = ResolveGroupKey(snapshot, _groupBy);
+      if (_buckets.TryGetValue(key, out var existing))
+      {
+        return existing;
+      }
+
+      var dto = new GroupedViolationsGroupDto<SymbolMetricDto>();
+      AssignGroupKey(dto, _groupBy, key);
+      _buckets[key] = dto;
+      _orderedGroups.Add(dto);
+      return dto;
+    }
   }
 }
 

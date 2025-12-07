@@ -35,29 +35,7 @@ internal sealed class ReadSarifCommandResultHandler : IReadSarifCommandResultHan
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(groups);
 
-    var groupList = groups.ToList();
-    var groupBy = settings.EffectiveGroupBy;
-    var groupedDtos = groupBy == MetricsReaderGroupByOption.RuleId
-      ? BuildRuleIdGroups(groupList)
-      : BuildAggregatedGroups(groupList, groupBy);
-
-    var totalGroups = groupedDtos.Count;
-    var limitedGroups = settings.ShowAll
-      ? groupedDtos
-      : groupedDtos.Take(1).ToList();
-
-    var response = new GroupedViolationsResponseDto<GroupedViolationsGroupDto<SarifViolationDetailDto>>
-    {
-      Metric = settings.EffectiveMetricName,
-      Namespace = settings.Namespace.Trim(),
-      SymbolKind = settings.SymbolKind.ToString(),
-      IncludeSuppressed = settings.IncludeSuppressed,
-      GroupBy = groupBy.ToWireValue(),
-      ViolationsGroupsCount = totalGroups,
-      ViolationsGroups = limitedGroups,
-      RuleId = settings.RuleId
-    };
-
+    var response = SarifResponseBuilder.Build(settings, groups);
     JsonConsoleWriter.Write(response);
   }
   private static string BuildNoViolationsMessage(string metric, string @namespace, string? ruleId)
@@ -92,110 +70,13 @@ internal sealed class ReadSarifCommandResultHandler : IReadSarifCommandResultHan
     IReadOnlyList<SarifViolationGroup> groups,
     MetricsReaderGroupByOption groupBy)
   {
-    var buckets = new Dictionary<string, SarifGroupedAccumulator>(StringComparer.Ordinal);
-    var rankSeed = 0;
-
+    var builder = new SarifAggregatedGroupBuilder(groupBy);
     foreach (var group in groups)
     {
-      switch (groupBy)
-      {
-        case MetricsReaderGroupByOption.Metric:
-          AccumulateMetricBucket(buckets, group, ref rankSeed);
-          break;
-        case MetricsReaderGroupByOption.Namespace:
-        case MetricsReaderGroupByOption.Type:
-        case MetricsReaderGroupByOption.Method:
-          AccumulateSymbolBuckets(buckets, group, groupBy, ref rankSeed);
-          break;
-        default:
-          throw new InvalidOperationException($"Grouping '{groupBy}' is not supported for readsarif.");
-      }
+      builder.AddGroup(group);
     }
 
-    foreach (var accumulator in buckets.Values)
-    {
-      accumulator.Dto.ViolationsCount = accumulator.ViolationCount;
-    }
-
-    return buckets
-      .Values
-      .OrderBy(acc => acc.Rank)
-      .Select(acc => acc.Dto)
-      .ToList();
-  }
-
-  private static void AccumulateMetricBucket(
-    Dictionary<string, SarifGroupedAccumulator> buckets,
-    SarifViolationGroup group,
-    ref int rankSeed)
-  {
-    var key = group.Metric.ToString();
-    var accumulator = GetOrCreateAccumulator(buckets, key, MetricsReaderGroupByOption.Metric, ref rankSeed);
-    accumulator.AddCount(group.Count);
-
-    if (group.Violations.Count > 0)
-    {
-      accumulator.Dto.Violations.AddRange(group.Violations.Select(SarifViolationDetailDto.FromModel));
-    }
-  }
-
-  private static void AccumulateSymbolBuckets(
-    Dictionary<string, SarifGroupedAccumulator> buckets,
-    SarifViolationGroup group,
-    MetricsReaderGroupByOption groupBy,
-    ref int rankSeed)
-  {
-    foreach (var contribution in group.SymbolContributions)
-    {
-      var metadata = SymbolMetadataParser.Parse(contribution.Symbol, contribution.Kind);
-      var key = ResolveSymbolGroupKey(metadata, groupBy);
-      if (string.IsNullOrWhiteSpace(key))
-      {
-        continue;
-      }
-
-      var accumulator = GetOrCreateAccumulator(buckets, key, groupBy, ref rankSeed);
-      accumulator.AddCount(contribution.Count);
-    }
-
-    if (group.Violations.Count == 0)
-    {
-      return;
-    }
-
-    foreach (var violation in group.Violations)
-    {
-      var kind = InferKindFromSymbol(violation.Symbol);
-      var metadata = SymbolMetadataParser.Parse(violation.Symbol, kind);
-      var key = ResolveSymbolGroupKey(metadata, groupBy);
-      if (string.IsNullOrWhiteSpace(key))
-      {
-        continue;
-      }
-
-      if (buckets.TryGetValue(key, out var accumulator))
-      {
-        accumulator.Dto.Violations.Add(SarifViolationDetailDto.FromModel(violation));
-      }
-    }
-  }
-
-  private static SarifGroupedAccumulator GetOrCreateAccumulator(
-    Dictionary<string, SarifGroupedAccumulator> buckets,
-    string key,
-    MetricsReaderGroupByOption groupBy,
-    ref int rankSeed)
-  {
-    if (buckets.TryGetValue(key, out var accumulator))
-    {
-      return accumulator;
-    }
-
-    var dto = new GroupedViolationsGroupDto<SarifViolationDetailDto>();
-    AssignGroupKey(dto, groupBy, key);
-    accumulator = new SarifGroupedAccumulator(rankSeed++, dto);
-    buckets[key] = accumulator;
-    return accumulator;
+    return builder.Build();
   }
 
   private static void AssignGroupKey(
@@ -236,6 +117,183 @@ internal sealed class ReadSarifCommandResultHandler : IReadSarifCommandResultHan
     => string.IsNullOrWhiteSpace(symbol)
       ? CodeElementKind.Type
       : (symbol.Contains('(') ? CodeElementKind.Member : CodeElementKind.Type);
+
+  /// <summary>
+  /// Builds grouped SARIF response payloads.
+  /// </summary>
+  private static class SarifResponseBuilder
+  {
+    public static GroupedViolationsResponseDto<GroupedViolationsGroupDto<SarifViolationDetailDto>> Build(
+      SarifMetricSettings settings,
+      IEnumerable<SarifViolationGroup> groups)
+    {
+      var grouping = ResolveGroups(groups, settings.EffectiveGroupBy);
+      return CreatePayload(settings, grouping);
+    }
+
+    private static GroupedViolationsResponseDto<GroupedViolationsGroupDto<SarifViolationDetailDto>> CreatePayload(
+      SarifMetricSettings settings,
+      SarifGroupingResult grouping)
+      => new()
+      {
+        Metric = settings.EffectiveMetricName,
+        Namespace = settings.Namespace.Trim(),
+        SymbolKind = settings.SymbolKind.ToString(),
+        IncludeSuppressed = settings.IncludeSuppressed,
+        GroupBy = grouping.GroupBy.ToWireValue(),
+        ViolationsGroupsCount = grouping.Groups.Count,
+        ViolationsGroups = grouping.GetLimitedGroups(settings.ShowAll),
+        RuleId = settings.RuleId
+      };
+
+    private static SarifGroupingResult ResolveGroups(
+      IEnumerable<SarifViolationGroup> groups,
+      MetricsReaderGroupByOption groupBy)
+    {
+      var materialized = groups.ToList();
+      var groupedDtos = groupBy == MetricsReaderGroupByOption.RuleId
+        ? BuildRuleIdGroups(materialized)
+        : BuildAggregatedGroups(materialized, groupBy);
+      return new SarifGroupingResult(groupBy, groupedDtos);
+    }
+
+    private sealed record SarifGroupingResult(
+      MetricsReaderGroupByOption GroupBy,
+      List<GroupedViolationsGroupDto<SarifViolationDetailDto>> Groups)
+    {
+      public List<GroupedViolationsGroupDto<SarifViolationDetailDto>> GetLimitedGroups(bool includeAll)
+        => includeAll ? Groups : Groups.Take(1).ToList();
+    }
+  }
+
+  /// <summary>
+  /// Aggregates SARIF violation groups into DTOs for grouping modes other than rule id.
+  /// </summary>
+  private sealed class SarifAggregatedGroupBuilder
+  {
+    private readonly MetricsReaderGroupByOption _groupBy;
+    private readonly Dictionary<string, SarifGroupedAccumulator> _buckets;
+    private int _rankSeed;
+
+    public SarifAggregatedGroupBuilder(MetricsReaderGroupByOption groupBy)
+    {
+      _groupBy = groupBy;
+      _buckets = new Dictionary<string, SarifGroupedAccumulator>(StringComparer.Ordinal);
+    }
+
+    public void AddGroup(SarifViolationGroup group)
+    {
+      switch (_groupBy)
+      {
+        case MetricsReaderGroupByOption.Metric:
+          AccumulateMetricGroup(group);
+          break;
+        case MetricsReaderGroupByOption.Namespace:
+        case MetricsReaderGroupByOption.Type:
+        case MetricsReaderGroupByOption.Method:
+          AccumulateSymbolGroup(group);
+          break;
+        default:
+          throw new InvalidOperationException($"Grouping '{_groupBy}' is not supported for readsarif.");
+      }
+    }
+
+    public List<GroupedViolationsGroupDto<SarifViolationDetailDto>> Build()
+    {
+      foreach (var accumulator in _buckets.Values)
+      {
+        accumulator.Dto.ViolationsCount = accumulator.ViolationCount;
+      }
+
+      return _buckets
+        .Values
+        .OrderBy(acc => acc.Rank)
+        .Select(acc => acc.Dto)
+        .ToList();
+    }
+
+    private void AccumulateMetricGroup(SarifViolationGroup group)
+    {
+      var accumulator = GetOrCreate(group.Metric.ToString());
+      SarifMetricBucketAppender.Append(accumulator, group);
+    }
+
+    private void AccumulateSymbolGroup(SarifViolationGroup group)
+    {
+      foreach (var contribution in group.SymbolContributions)
+      {
+        var key = SarifSymbolGroupKey.FromContribution(contribution, _groupBy);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+          continue;
+        }
+
+        var accumulator = GetOrCreate(key);
+        accumulator.AddCount(contribution.Count);
+      }
+
+      if (group.Violations.Count == 0)
+      {
+        return;
+      }
+
+      foreach (var violation in group.Violations)
+      {
+        var key = SarifSymbolGroupKey.FromViolation(violation, _groupBy);
+        if (string.IsNullOrWhiteSpace(key) || !_buckets.TryGetValue(key, out var accumulator))
+        {
+          continue;
+        }
+
+        accumulator.Dto.Violations.Add(SarifViolationDetailDto.FromModel(violation));
+      }
+    }
+
+    private SarifGroupedAccumulator GetOrCreate(string key)
+    {
+      if (_buckets.TryGetValue(key, out var accumulator))
+      {
+        return accumulator;
+      }
+
+      var dto = new GroupedViolationsGroupDto<SarifViolationDetailDto>();
+      AssignGroupKey(dto, _groupBy, key);
+      accumulator = new SarifGroupedAccumulator(_rankSeed++, dto);
+      _buckets[key] = accumulator;
+      return accumulator;
+    }
+  }
+
+  private static class SarifSymbolGroupKey
+  {
+    public static string? FromContribution(SarifSymbolContribution contribution, MetricsReaderGroupByOption option)
+    {
+      var metadata = SymbolMetadataParser.Parse(contribution.Symbol, contribution.Kind);
+      return ResolveSymbolGroupKey(metadata, option);
+    }
+
+    public static string? FromViolation(SarifViolationRecord violation, MetricsReaderGroupByOption option)
+    {
+      var kind = InferKindFromSymbol(violation.Symbol);
+      var metadata = SymbolMetadataParser.Parse(violation.Symbol, kind);
+      return ResolveSymbolGroupKey(metadata, option);
+    }
+  }
+
+  private static class SarifMetricBucketAppender
+  {
+    public static void Append(SarifGroupedAccumulator accumulator, SarifViolationGroup group)
+    {
+      accumulator.AddCount(group.Count);
+
+      if (group.Violations.Count == 0)
+      {
+        return;
+      }
+
+      accumulator.Dto.Violations.AddRange(group.Violations.Select(SarifViolationDetailDto.FromModel));
+    }
+  }
 
   private sealed class SarifGroupedAccumulator
   {
