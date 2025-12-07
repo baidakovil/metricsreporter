@@ -1,23 +1,26 @@
+<!--
+  Metrics configuration: centralizes all paths and tool settings for Roslyn/SARIF
+  collection and report output. Adjust here to move artifacts or change the tool
+  location; scripts and targets consume these properties.
+-->
 <Project>
   <PropertyGroup>
+    <!-- Root for all metrics artifacts -->
     <MetricsDir>$(SolutionDir)Metrics</MetricsDir>
-    <MetricsTempDir>$(MetricsDir)\MetricsTemp</MetricsTempDir>
+    <!-- Roslyn metrics output -->
     <RoslynOutputDir>$(MetricsDir)\Roslyn</RoslynOutputDir>
+    <!-- SARIF output from compiler -->
     <SarifOutputDir>$(MetricsDir)\Sarif</SarifOutputDir>
-    <MetricsReportDir>$(MetricsDir)</MetricsReportDir>
-    <MetricsReportJson>$(MetricsReportDir)\MetricsReport.g.json</MetricsReportJson>
-    <MetricsReportHtml>$(MetricsReportDir)\MetricsReport.html</MetricsReportHtml>
-    <CodeMetricsRulesDir>$(MetricsDir)\MetricsRules</CodeMetricsRulesDir>
-    <MetricsThresholdsPath>$(CodeMetricsRulesDir)\MetricsReporterThresholds.json</MetricsThresholdsPath>
-    <CodeMetricsConfigFile>$(CodeMetricsRulesDir)\CodeMetricsConfig.txt</CodeMetricsConfigFile>
-    <MetricsSolutionName>metricsreporter</MetricsSolutionName>
+    <!-- Roslyn metrics inputs/outputs -->
     <RoslynSolutionMetricsOutputFile>$(RoslynOutputDir)\SolutionMetrics.g.xml</RoslynSolutionMetricsOutputFile>
     <RoslynMetricsSolutionPath>$(SolutionDir)MetricsReporter.sln</RoslynMetricsSolutionPath>
+    <!-- Metrics.exe location -->
     <RoslynMetricsToolDir>$(MSBuildThisFileDirectory)..\Resources\metrics\win-arm64</RoslynMetricsToolDir>
     <RoslynMetricsToolExe>$(RoslynMetricsToolDir)\Metrics.exe</RoslynMetricsToolExe>
+    <!-- Feature toggles -->
     <SarifMetricsEnabled Condition="'$(SarifMetricsEnabled)' == ''">false</SarifMetricsEnabled>
     <RoslynMetricsEnabled Condition="'$(RoslynMetricsEnabled)' == ''">true</RoslynMetricsEnabled>
-    <MetricsReporterExe Condition="'$(MetricsReporterExe)' == ''">dotnet tool run metricsreporter</MetricsReporterExe>
+    <!-- Anchor project to run GenerateSolutionMetrics once -->
     <MetricsTargetsAnchorProject Condition="'$(MetricsTargetsAnchorProject)' == ''">MetricsReporter</MetricsTargetsAnchorProject>
   </PropertyGroup>
 </Project>

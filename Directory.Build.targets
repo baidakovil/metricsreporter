@@ -1,3 +1,7 @@
+<!--
+  Central target orchestrator: imports build/metrics.targets to wire SARIF and
+  Roslyn metrics generation. Keep this file small to avoid import-order issues.
+-->
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)build\metrics.targets"
           Condition="Exists('$(MSBuildThisFileDirectory)build\metrics.targets')" />

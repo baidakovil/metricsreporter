@@ -1,3 +1,8 @@
+<!--
+  Central MSBuild orchestrator: imports shared build defaults and metrics-specific
+  properties that define paths and tooling for MetricsReporter. Keep this file
+  minimal—feature settings belong in the imported props files.
+-->
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)build\common.props"
           Condition="Exists('$(MSBuildThisFileDirectory)build\common.props')" />

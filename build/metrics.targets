@@ -1,4 +1,11 @@
+<!--
+  Metrics targets:
+  - PrepareMetricsDirectories: creates SARIF output directory when SARIF metrics are enabled.
+  - GenerateSolutionMetrics: runs Roslyn Metrics.exe once on the anchor project to produce SolutionMetrics.g.xml.
+  - SetSarifErrorLog: configures compiler SARIF output when enabled.
+-->
 <Project>
+  <!-- Ensure SARIF directory exists when SARIF logging is enabled -->
   <Target Name="PrepareMetricsDirectories"
           BeforeTargets="CoreCompile"
           Condition="'$(DesignTimeBuild)' != 'true'">
@@ -6,6 +13,7 @@
              Directories="$(SarifOutputDir)" />
   </Target>
 
+  <!-- Run Roslyn Metrics.exe once on the anchor project to produce SolutionMetrics.g.xml -->
   <Target Name="GenerateSolutionMetrics"
           Condition="'$(DesignTimeBuild)' != 'true' and '$(RoslynMetricsEnabled)' == 'true' and '$(MSBuildProjectName)' == '$(MetricsTargetsAnchorProject)'">
     <MakeDir Directories="$(RoslynOutputDir)" />
@@ -17,6 +25,7 @@
           IgnoreExitCode="false" />
   </Target>
 
+  <!-- Configure compiler SARIF output when enabled -->
   <Target Name="SetSarifErrorLog"
           BeforeTargets="CoreCompile"
           Condition="'$(DesignTimeBuild)' != 'true' and '$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''">

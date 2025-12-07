@@ -1,10 +1,20 @@
+<!--
+  Shared build defaults for all projects: target framework, nullable, implicit
+  usings, repo metadata, and packaging of the root README. Keep language/version
+  settings here so they stay consistent across projects.
+-->
 <Project>
   <PropertyGroup>
+    <!-- Target framework for all projects -->
     <TargetFramework>net8.0</TargetFramework>
+    <!-- Enable nullable reference types -->
     <Nullable>enable</Nullable>
+    <!-- Use SDK implicit usings -->
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Language and analyzer levels -->
     <LangVersion>latest</LangVersion>
     <AnalysisLevel>latest</AnalysisLevel>
+    <!-- Package metadata -->
     <Version>0.2.0</Version>
     <Authors>Baidakov</Authors>
     <Company>Baidakov</Company>
@@ -12,6 +22,7 @@
     <RepositoryUrl>https://github.com/baidakovil/metricsreporter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Emit XML docs for public APIs -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
