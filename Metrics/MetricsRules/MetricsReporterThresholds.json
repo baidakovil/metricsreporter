@@ -1,0 +1,303 @@
+{
+  "metrics": [
+    {
+      "name": "RoslynDepthOfInheritance",
+      "description": "Avoid excessive inheritance. CA1501 only applies to types.",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": null,
+          "error": null
+        },
+        "Namespace": {
+          "warning": null,
+          "error": null
+        },
+        "Type": {
+          "warning": 5,
+          "error": 7,
+          "notes": "Threshold level 5 or 6 is MS Advice."
+        },
+        "Member": {
+          "warning": null,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "RoslynCyclomaticComplexity",
+      "description": "Avoid excessive complexity",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 5000,
+          "error": 5001,
+          "notes": "Assembly complexity naturally accumulates; number has no reason here."
+        },
+        "Namespace": {
+          "warning": 5001,
+          "error": 5000,
+          "notes": "Same as for Assembly."
+        },
+        "Type": {
+          "warning": 100,
+          "error": 150,
+          "notes": "For Types there should be other metrics like CC/LOC or IQR of CC. 100 and 120 are informational only."
+        },
+        "Member": {
+          "warning": 15,
+          "error": 25,
+          "notes": "MS says 10 is good for projects with advantages, 15 good for others."
+        }
+      }
+    },
+    {
+      "name": "RoslynMaintainabilityIndex",
+      "description": "Maintain high maintainability index scores. 0-9: Red (low), 10-19: Yellow (moderate), 20-100: Green (good)",
+      "higherIsBetter": true,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 50,
+          "error": 10,
+          "notes": "Here and below numbers are MS Advice above + observation of current codebase that has almost all symbols MI>50."
+        },
+        "Namespace": {
+          "warning": 40,
+          "error": 10
+        },
+        "Type": {
+          "warning": 30,
+          "error": 10
+        },
+        "Member": {
+          "warning": 30,
+          "error": 10
+        }
+      }
+    },
+    {
+      "name": "RoslynClassCoupling",
+      "description": "Keep dependencies per artifact low to reduce coupling.",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 5000,
+          "error": 5001,
+          "notes": "Very relaxed - not actionable"
+        },
+        "Namespace": {
+          "warning": 500,
+          "error": 501,
+          "notes": "Relaxed - not actionable"
+        },
+        "Type": {
+          "warning": 40,
+          "error": 70,
+          "notes": "AI Advice was to rely on what you are coding: from 15 for core business service to 50 for adapter/facades/configurations."
+        },
+        "Member": {
+          "warning": 11,
+          "error": 20,
+          "notes": "Threshold level 9 is MS Advice."
+        }
+      }
+    },
+    {
+      "name": "AltCoverSequenceCoverage",
+      "description": "AltCover sequence coverage ratio across all symbols.",
+      "higherIsBetter": true,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 50,
+          "error": 10
+        },
+        "Namespace": {
+          "warning": 50,
+          "error": 10
+        },
+        "Type": {
+          "warning": 50,
+          "error": 25,
+          "notes": " for type is almost not informative."
+        },
+        "Member": {
+          "warning": 75,
+          "error": 50,
+          "notes": "Google has SC 60 as acceptable, 75 as commendable, 90 as exemplary."
+        }
+      }
+    },
+    {
+      "name": "AltCoverBranchCoverage",
+      "description": "AltCover branch coverage ratio across all symbols.",
+      "higherIsBetter": true,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 50,
+          "error": 10
+        },
+        "Namespace": {
+          "warning": 50,
+          "error": 10
+        },
+        "Type": {
+          "warning": 50,
+          "error": 25
+        },
+        "Member": {
+          "warning": 75,
+          "error": 50,
+          "notes": "Same rules as for Sequence Coverage."
+         }
+      }
+    },
+    {
+      "name": "AltCoverCyclomaticComplexity",
+      "description": "AltCover-reported cyclomatic complexity.",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 5000,
+          "error": 5001,
+          "notes": "Same as for RoslynCyclomaticComplexity"
+        },
+        "Namespace": {
+          "warning": 500,
+          "error": 501,
+          "notes": "Same as for Assembly."
+        },
+        "Type": {
+          "warning": 100,
+          "error": 150,
+          "notes": "For Types there should be other metrics like CC/LOC or IQR of CC. 100 and 120 are informational only."
+        },
+        "Member": {
+          "warning": 15,
+          "error": 25,
+          "notes": "MS says 10 is good for projects with advantages, 15 good for others."
+        }
+      }
+    },
+    {
+      "name": "AltCoverNPathComplexity",
+      "description": "AltCover-reported NPath complexity. Only applies to members in AltCover now.",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": null,
+          "error": null
+        },
+        "Namespace": {
+          "warning": null,
+          "error": null
+        },
+        "Type": {
+          "warning": null,
+          "error": null
+        },
+        "Member": {
+          "warning": 200,
+          "error": 400,
+          "notes": "Historical threshold for NPath on Earth is 200"
+        }
+      }
+    },
+    {
+      "name": "RoslynSourceLines",
+      "description": "Roslyn source lines metric. Uses for informational purposes only.",
+      "higherIsBetter": false,
+      "positiveDeltaNeutral": true,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": null,
+          "error": null
+        },
+        "Namespace": {
+          "warning": null,
+          "error": null
+        },
+        "Type": {
+          "warning": null,
+          "error": null
+        },
+        "Member": {
+          "warning": null,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "RoslynExecutableLines",
+      "description": "Roslyn executable lines metric. Thresholds are chosen as a average of common suggestions.",
+      "higherIsBetter": false,
+      "positiveDeltaNeutral": true,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": null,
+          "error": null
+        },
+        "Namespace": {
+          "warning": null,
+          "error": null
+        },
+        "Type": {
+          "warning": 300,
+          "error": 900
+        },
+        "Member": {
+          "warning": 50,
+          "error": 150
+        }
+      }
+    },
+    {
+      "name": "SarifCaRuleViolations",
+      "description": "SARIF CA rule violations count. Threshold chosen to attract attention where there is something to fix.",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 0,
+          "error": 24
+        },
+        "Namespace": {
+          "warning": 0,
+          "error": 12
+        },
+        "Type": {
+          "warning": 0,
+          "error": 6
+        },
+        "Member": {
+          "warning": 0,
+          "error": 3,
+          "notes": "Consider CA rules more strict than IDE rules."
+        }
+      }
+    },
+    {
+      "name": "SarifIdeRuleViolations",
+      "description": "SARIF IDE rule violations count. Threshold chosen to attract attention where there is something to fix.",
+      "higherIsBetter": false,
+      "symbolThresholds": {
+        "Assembly": {
+          "warning": 0,
+          "error": 48
+        },
+        "Namespace": {
+          "warning": 0,
+          "error": 24
+        },
+        "Type": {
+          "warning": 0,
+          "error": 12
+        },
+        "Member": {
+          "warning": 0,
+          "error": 6,
+          "notes": "Consider IDE rules less strict than CA rules."
+        }
+      }
+    }
+  ]
+}
+

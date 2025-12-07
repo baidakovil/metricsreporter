@@ -34,7 +34,12 @@
   "scripts": {
     "generate": [
       "Metrics/scripts/prepare-metrics.ps1"
-    ]
+    ],
+    "read": {
+      "any": [
+        "Metrics/scripts/prepare-metrics.ps1"
+      ]
+    }
   }
 }
 

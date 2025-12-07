@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <!-- Package root README so NuGet pack succeeds -->
-    <None Include="$(MSBuildThisFileDirectory)..\..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 </Project>
 

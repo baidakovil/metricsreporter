@@ -188,11 +188,21 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
 
   private static string BuildLogPath(ResolvedGenerateInputs inputs, string workingDirectory)
   {
+    // Prefer a temp/log location alongside the baseline when available.
+    if (!string.IsNullOrWhiteSpace(inputs.Baseline))
+    {
+      var baselineDir = Path.GetDirectoryName(inputs.Baseline);
+      if (!string.IsNullOrWhiteSpace(baselineDir))
+      {
+        Directory.CreateDirectory(baselineDir);
+        return Path.Combine(baselineDir, "MetricsReporter.log");
+      }
+    }
+
     if (!string.IsNullOrWhiteSpace(inputs.MetricsDir))
     {
-      var reportDir = Path.Combine(inputs.MetricsDir, "Report");
-      Directory.CreateDirectory(reportDir);
-      return Path.Combine(reportDir, "MetricsReporter.log");
+      Directory.CreateDirectory(inputs.MetricsDir);
+      return Path.Combine(inputs.MetricsDir, "MetricsReporter.log");
     }
 
     if (!string.IsNullOrWhiteSpace(inputs.OutputJson))

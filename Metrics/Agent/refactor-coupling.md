@@ -2,7 +2,7 @@ Refactor code in the given namespace to achieve the required Class Coupling metr
 
 ## Requirements
 
-- Use the `metrics-reader` utility to update and retrieve metric values for symbols requiring refactoring, one request at a time. Description and usage examples are provided in `@docs/Metrics-Reporter.md`.
+- Use the `metricsreporter` CLI to update and retrieve metric values for symbols requiring refactoring, one request at a time. Description and usage examples are provided in `@3.2 - metricsreporter-cli.md`.
 - Strictly follow the workflow described below to achieve the goal: reduce the metric for all symbols in the namespace mentioned above to acceptable limits.
 - When reducing Coupling, use decoupling techniques provided by C# and .NET: Interfaces, Dependency Injection, DTOs, splitting classes/methods into smaller classes/methods and creating new ones.
 - It is **forbidden to use "dummy" classes and methods**, i.e., delegation wrapper methods created solely to reduce the metric but lacking architectural meaning. Prefer suppression in case when there is no way to reduce metrics further.
@@ -13,17 +13,17 @@ Refactor code in the given namespace to achieve the required Class Coupling metr
 
 ### 1. Get problematic symbol
 
-Using the `metrics-reader readany` command, get the first "problematic" symbol that requires refactoring. A problematic symbol is one where the threshold is exceeded (`metrics-reader` handles this comparison automatically). Use `--symbol-kind Any` to first automatically get and refactor classes, as this is logical from an architectural perspective, and then automatically get methods. 
+Using the `metricsreporter read` command, get the first "problematic" symbol that requires refactoring. A problematic symbol is one where the threshold is exceeded (`metricsreporter` handles this comparison automatically). Use `--symbol-kind Any` to first automatically get and refactor classes, as this is logical from an architectural perspective, and then automatically get methods. 
 
-**IMPORTANT: Never use `--no-update` flag when calling `metrics-reader` commands.** The `--no-update` flag skips metric generation and returns stale data. Always let `metrics-reader` update metrics automatically to ensure you work with current values.
+**IMPORTANT: Never use `--no-update` flag when calling `metricsreporter` commands.** The `--no-update` flag skips metric generation and returns stale data. Always let `metricsreporter` update metrics automatically to ensure you work with current values.
 
-Example request to `metrics-reader` with the required options:
+Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter metrics-reader readany --namespace <given_namespace> --metric Coupling --symbol-kind Any
+dotnet tool run metricsreporter read --namespace <given_namespace> --metric Coupling --symbol-kind Any --all
 ```
 
-If you receive a message that no suitable symbols are found (instead of an object with fields `symbolFqn`, `symbolType`, `metric`, `value`, `threshold`, `delta`, `filePath`, `status`, `isSuppressed`), this means there are no problematic symbols: complete the task.
+If you receive a message that no suitable symbols are found (instead of an object with fields `symbolFqn`, `symbolType`, `metric`, `value`, `threshold`, `delta`, `filePath`, `status`, `isSuppressed`), this means there are no problematic symbols: complete the task. Provide `--report Metrics/MetricsReport.g.json` if you are not using the default config.
 
 ### 2. Analyze symbol
 
@@ -52,14 +52,14 @@ If refactoring is possible, proceed as follows:
 
 ### 4. Verify result
 
-Using the `metrics-reader test` command, verify that the symbol you worked on is fixed. 
+Using the `metricsreporter test` command, verify that the symbol you worked on is fixed. 
 
-**IMPORTANT: Never use `--no-update` flag when calling `metrics-reader` commands.** The `--no-update` flag skips metric generation and returns stale data. Always let `metrics-reader` update metrics automatically to ensure you work with current values.
+**IMPORTANT: Never use `--no-update` flag when calling `metricsreporter` commands.** The `--no-update` flag skips metric generation and returns stale data. Always let `metricsreporter` update metrics automatically to ensure you work with current values.
 
-Example request to `metrics-reader` with the required options:
+Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter metrics-reader test --symbol <symbol_been_refactored> --metric Coupling
+dotnet tool run metricsreporter test --symbol <symbol_been_refactored> --metric Coupling --report Metrics/MetricsReport.g.json
 ```
 
 If you see `"isOk": false` in the response, return to step 2 with this symbol. The number of additional refactoring attempts to achieve the required metric: 5 attempts per symbol (applies to both classes and methods). If after the fifth additional attempt the required metric is not achieved, then add a suppression attribute with a Justification message in English that fully explains the essence of the problem, if any (for example, that five attempts were insufficient for a proper refactoring), or simply a description of the reason why this symbol cannot be refactored (for example, that it is an orchestrator and therefore must maintain many references to other methods).

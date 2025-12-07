@@ -1,9 +1,7 @@
 # Perform SARIF-focused refactoring
 
 ## Requirements
-
-- Always run a full build with `dotnet build --no-incremental` before querying metrics. SARIF violation data are generated during builds; without rebuilding, the reporter sees stale data and will never show the latest violations.
-- Use the `metrics-reader` helper to update metrics and fetch SARIF violation data for the symbols that require refactoring. Refer to `@docs/Metrics-Reporter.md` for CLI syntax and examples.
+- Use the `metricsreporter` CLI to update metrics and fetch SARIF violation data for the symbols that require refactoring. Refer to `@3.2 - metricsreporter-cli.md` for CLI syntax and examples.
 - Follow the workflow below so that every analyzer violation reported within the provided namespace is either refactored or intentionally suppressed.
 - When you evaluate a violation, take guidance from the analyzer’s `message` and `shortDescription` and consult Microsoft’s documentation for the rule (for example, `https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/CAxxxx`).
 - Keep SOLID principles and the repository’s coding conventions front and center while modifying code.
@@ -12,17 +10,13 @@
 
 ### 1. Fetch the current violation group
 
-Always precede this step with `dotnet build --no-incremental` so the SARIF metrics reader can see updated violation counts; metrics are only refreshed during a build, and skipping it leaves the data stale.
-
-**IMPORTANT: Never use `--no-update` flag when calling `metrics-reader` commands.** The `--no-update` flag skips metric generation and returns stale data. Always let `metrics-reader` update metrics automatically to ensure you work with current values.
-
-Run `metrics-reader readsarif` for the target namespace to retrieve the first SARIF group. Because `--metric` defaults to `Any`, you do not need to specify it unless you want to focus on a single SARIF metric:
+Run `metricsreporter readsarif` for the target namespace to retrieve the first SARIF group. Because `--metric` defaults to `Any`, you do not need to specify it unless you want to focus on a single SARIF metric:
 
 ```powershell
-dotnet tool run metricsreporter metrics-reader readsarif --namespace <target_namespace>
+dotnet tool run metricsreporter readsarif --namespace <target_namespace>
 ```
 
-If the command responds with a human-readable message (instead of an object containing `ruleId`, `shortDescription`, `count`, and `violations`), there are no violations left in this namespace—stop.
+If the command responds with a human-readable message (instead of an object containing `ruleId`, `shortDescription`, `count`, and `violations`), there are no violations left in this namespace—stop; add `--report Metrics/MetricsReport.g.json` if not using the default config.
 
 ### 2. Study one violation
 
@@ -52,20 +46,17 @@ If refactoring is feasible:
 
 1. Plan the change in light of the analyzer’s recommendation.
 2. Implement the refactor.
-3. Run `dotnet build --no-incremental` (preferably the whole solution; focus on affected projects when time is constrained). Remember that only this build refreshes the SARIF violation data, so skip it only if you intentionally want to reuse already captured metrics.
+3. Run `dotnet build --no-incremental` (preferably the whole solution; focus on affected projects when time is constrained).
 4. Run `dotnet test --no-build` (solution-wide if possible; targeted tests are acceptable after localized changes) and fix any regressions.
 
 Steps 3 and 4 can cover an entire violation group once the required fixes are small.
 
 ### 4. Validate and repeat
 
-After you have addressed all violations in a group, rerun `metrics-reader readsarif` with the namespace and the group's `ruleId`. 
-
-**IMPORTANT: Never use `--no-update` flag when calling `metrics-reader` commands.** The `--no-update` flag skips metric generation and returns stale data. Always let `metrics-reader` update metrics automatically to ensure you work with current values.
+After you have addressed all violations in a group, rerun `metricsreporter readsarif` with the namespace and the group's `ruleId`. 
 
 ```powershell
-dotnet tool run metricsreporter metrics-reader readsarif --namespace <target_namespace> --ruleid <ruleId>
+dotnet tool run metricsreporter readsarif --namespace <target_namespace> --ruleid <ruleId>
 ```
 
 If the command reports no violations, move on to the next group (return to step 1). If violations persist, go back to step 2. Two refactoring passes are allowed per group; after the second unsuccessful attempt, document the remaining issues with a suppression (English justification) and proceed.
-
