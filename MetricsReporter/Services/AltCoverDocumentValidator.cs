@@ -27,34 +27,32 @@ internal static class AltCoverDocumentValidator
       return true;
     }
 
-    var symbolOrigins = new Dictionary<string, SymbolOrigin>(StringComparer.Ordinal);
+    var registry = new SymbolRegistry();
     for (var index = 0; index < documents.Count; index++)
     {
       var document = documents[index];
       var documentId = ResolveDocumentId(document, index);
 
-      foreach (var element in document.Elements)
+      if (!ValidateDocument(document, documentId, registry, logger))
       {
-        if (!IsAltCoverSymbol(element))
-        {
-          continue;
-        }
+        return false;
+      }
+    }
 
-        var symbolKey = element.FullyQualifiedName;
-        if (string.IsNullOrWhiteSpace(symbolKey))
-        {
-          continue;
-        }
+    return true;
+  }
 
-        if (symbolOrigins.TryGetValue(symbolKey, out var origin)
-            && !string.Equals(origin.DocumentId, documentId, StringComparison.OrdinalIgnoreCase))
-        {
-          logger.LogError(
-              $"Duplicate AltCover {DescribeKind(element.Kind)} '{symbolKey}' detected in '{origin.DocumentId}' and '{documentId}'. Ensure coverage XML inputs do not overlap.");
-          return false;
-        }
-
-        symbolOrigins[symbolKey] = new SymbolOrigin(documentId, element.Kind);
+  private static bool ValidateDocument(
+    ParsedMetricsDocument document,
+    string documentId,
+    SymbolRegistry registry,
+    ILogger logger)
+  {
+    foreach (var element in document.Elements)
+    {
+      if (!registry.TryAdd(element, documentId, logger))
+      {
+        return false;
       }
     }
 
@@ -83,7 +81,35 @@ internal static class AltCoverDocumentValidator
       _ => "symbol"
     };
 
-  private sealed record SymbolOrigin(string DocumentId, CodeElementKind Kind);
+  private sealed class SymbolRegistry
+  {
+    private readonly Dictionary<string, string> _origins = new(StringComparer.Ordinal);
+
+    public bool TryAdd(ParsedCodeElement element, string documentId, ILogger logger)
+    {
+      if (!IsAltCoverSymbol(element))
+      {
+        return true;
+      }
+
+      var symbolKey = element.FullyQualifiedName;
+      if (string.IsNullOrWhiteSpace(symbolKey))
+      {
+        return true;
+      }
+
+      if (_origins.TryGetValue(symbolKey, out var origin)
+          && !string.Equals(origin, documentId, StringComparison.OrdinalIgnoreCase))
+      {
+        logger.LogError(
+          $"Duplicate AltCover {DescribeKind(element.Kind)} '{symbolKey}' detected in '{origin}' and '{documentId}'. Ensure coverage XML inputs do not overlap.");
+        return false;
+      }
+
+      _origins[symbolKey] = documentId;
+      return true;
+    }
+  }
 }
 
 

@@ -17,43 +17,10 @@ public sealed class ProcessRunner : IProcessRunner
   {
     ArgumentNullException.ThrowIfNull(request);
 
-    using var process = CreateProcess(request);
-    var startedAt = DateTimeOffset.UtcNow;
-    var stdout = new StringBuilder();
-    var stderr = new StringBuilder();
-    var timedOut = false;
+    using var execution = ProcessExecutionScope.Start(request, cancellationToken);
+    var waitResult = await execution.WaitForExitAsync(request.Timeout, cancellationToken).ConfigureAwait(false);
 
-    if (!process.Start())
-    {
-      throw new InvalidOperationException($"Failed to start process '{request.FileName}'.");
-    }
-
-    var stdoutTask = ConsumeAsync(process.StandardOutput, stdout, cancellationToken);
-    var stderrTask = ConsumeAsync(process.StandardError, stderr, cancellationToken);
-
-    using var timeoutCts = new CancellationTokenSource(request.Timeout);
-    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-    try
-    {
-      await process.WaitForExitAsync(linkedCts.Token).ConfigureAwait(false);
-    }
-    catch (OperationCanceledException)
-    {
-      timedOut = timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested;
-      TryKill(process);
-    }
-
-    await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
-    var finishedAt = DateTimeOffset.UtcNow;
-
-    return new ProcessRunResult(
-      process.HasExited ? process.ExitCode : -1,
-      timedOut,
-      startedAt,
-      finishedAt,
-      stdout.ToString(),
-      stderr.ToString());
+    return execution.ToResult(waitResult);
   }
 
   private static Process CreateProcess(ProcessRunRequest request)
@@ -112,6 +79,89 @@ public sealed class ProcessRunner : IProcessRunner
     catch
     {
       // Best-effort cleanup; swallow exceptions to avoid masking the original timeout/cancellation.
+    }
+  }
+
+  private readonly record struct ProcessWaitResult(DateTimeOffset FinishedAt, bool TimedOut);
+
+  private sealed class ProcessExecutionScope : IDisposable
+  {
+    private readonly Process _process;
+    private readonly StringBuilder _stdout;
+    private readonly StringBuilder _stderr;
+    private readonly Task _stdoutTask;
+    private readonly Task _stderrTask;
+    private readonly DateTimeOffset _startedAt;
+
+    private ProcessExecutionScope(
+      Process process,
+      StringBuilder stdout,
+      StringBuilder stderr,
+      Task stdoutTask,
+      Task stderrTask,
+      DateTimeOffset startedAt)
+    {
+      _process = process;
+      _stdout = stdout;
+      _stderr = stderr;
+      _stdoutTask = stdoutTask;
+      _stderrTask = stderrTask;
+      _startedAt = startedAt;
+    }
+
+    public static ProcessExecutionScope Start(ProcessRunRequest request, CancellationToken cancellationToken)
+    {
+      var process = CreateProcess(request);
+      var startedAt = DateTimeOffset.UtcNow;
+
+      if (!process.Start())
+      {
+        throw new InvalidOperationException($"Failed to start process '{request.FileName}'.");
+      }
+
+      var stdout = new StringBuilder();
+      var stderr = new StringBuilder();
+      var stdoutTask = ConsumeAsync(process.StandardOutput, stdout, cancellationToken);
+      var stderrTask = ConsumeAsync(process.StandardError, stderr, cancellationToken);
+
+      return new ProcessExecutionScope(process, stdout, stderr, stdoutTask, stderrTask, startedAt);
+    }
+
+    public async Task<ProcessWaitResult> WaitForExitAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    {
+      using var timeoutCts = new CancellationTokenSource(timeout);
+      using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+      try
+      {
+        await _process.WaitForExitAsync(linkedCts.Token).ConfigureAwait(false);
+      }
+      catch (OperationCanceledException)
+      {
+        var timedOut = timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested;
+        TryKill(_process);
+        await Task.WhenAll(_stdoutTask, _stderrTask).ConfigureAwait(false);
+        return new ProcessWaitResult(DateTimeOffset.UtcNow, timedOut);
+      }
+
+      await Task.WhenAll(_stdoutTask, _stderrTask).ConfigureAwait(false);
+      return new ProcessWaitResult(DateTimeOffset.UtcNow, false);
+    }
+
+    public ProcessRunResult ToResult(ProcessWaitResult waitResult)
+    {
+      return new ProcessRunResult(
+        _process.HasExited ? _process.ExitCode : -1,
+        waitResult.TimedOut,
+        _startedAt,
+        waitResult.FinishedAt,
+        _stdout.ToString(),
+        _stderr.ToString());
+    }
+
+    public void Dispose()
+    {
+      _process.Dispose();
     }
   }
 }

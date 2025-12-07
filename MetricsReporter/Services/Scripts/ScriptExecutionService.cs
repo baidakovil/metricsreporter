@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Logging;
@@ -44,55 +41,78 @@ public sealed class ScriptExecutionService
     ArgumentNullException.ThrowIfNull(scripts);
     ArgumentNullException.ThrowIfNull(context);
 
-    foreach (var script in scripts.Where(s => !string.IsNullOrWhiteSpace(s)))
+    foreach (var script in scripts)
     {
-      var resolvedPath = ResolvePath(script, context.WorkingDirectory);
-      if (!File.Exists(resolvedPath))
+      if (string.IsNullOrWhiteSpace(script))
       {
-        return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, $"Script not found: {resolvedPath}");
+        continue;
       }
 
-      context.Logger.LogInformation($"Starting script '{resolvedPath}' in '{context.WorkingDirectory}'.");
-
-      var request = new ProcessRunRequest(
-        PowerShellExecutable,
-        $"-File \"{resolvedPath}\"",
-        context.WorkingDirectory,
-        context.Timeout,
-        environmentVariables: null);
-
-      ProcessRunResult result;
-      try
+      var failure = await ExecuteScriptAsync(script, context, cancellationToken).ConfigureAwait(false);
+      if (failure is not null)
       {
-        result = await _processRunner.RunAsync(request, cancellationToken).ConfigureAwait(false);
+        return failure;
       }
-      catch (Exception ex) when (ex is InvalidOperationException || ex is Win32Exception || ex is IOException)
-      {
-        context.Logger.LogError($"Failed to start script '{resolvedPath}'.", ex);
-        return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, ex.Message);
-      }
-
-      var duration = result.FinishedAt - result.StartedAt;
-      if (result.TimedOut)
-      {
-        var message = $"Script '{resolvedPath}' timed out after {duration.TotalSeconds:N0}s.";
-        context.Logger.LogError(message);
-        LogOutputOnFailure(context.Logger, result, context.LogTruncationLimit);
-        return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, message, result);
-      }
-
-      if (result.ExitCode != 0)
-      {
-        var message = $"Script '{resolvedPath}' failed with exit code {result.ExitCode} (duration {duration.TotalSeconds:N0}s).";
-        context.Logger.LogError(message);
-        LogOutputOnFailure(context.Logger, result, context.LogTruncationLimit);
-        return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, message, result);
-      }
-
-      context.Logger.LogInformation($"Script '{resolvedPath}' completed in {duration.TotalSeconds:N0}s with exit code {result.ExitCode}.");
     }
 
     return ScriptExecutionResult.Success();
+  }
+
+  private async Task<ScriptExecutionResult?> ExecuteScriptAsync(
+    string script,
+    ScriptExecutionContext context,
+    CancellationToken cancellationToken)
+  {
+    var resolvedPath = ResolvePath(script, context.WorkingDirectory);
+    var missingScript = ValidateScriptExists(resolvedPath);
+    if (missingScript is not null)
+    {
+      return missingScript;
+    }
+
+    context.Logger.LogInformation($"Starting script '{resolvedPath}' in '{context.WorkingDirectory}'.");
+
+    return await TryRunProcessAsync(resolvedPath, context, cancellationToken).ConfigureAwait(false);
+  }
+
+  private Task<ProcessRunResult> RunProcessAsync(
+    string resolvedPath,
+    ScriptExecutionContext context,
+    CancellationToken cancellationToken)
+  {
+    var request = new ProcessRunRequest(
+      PowerShellExecutable,
+      $"-File \"{resolvedPath}\"",
+      context.WorkingDirectory,
+      context.Timeout,
+      environmentVariables: null);
+
+    return _processRunner.RunAsync(request, cancellationToken);
+  }
+
+  private static ScriptExecutionResult? EvaluateRunResult(
+    string resolvedPath,
+    ProcessRunResult result,
+    ScriptExecutionContext context)
+  {
+    var duration = result.FinishedAt - result.StartedAt;
+    if (result.TimedOut)
+    {
+      var message = $"Script '{resolvedPath}' timed out after {duration.TotalSeconds:N0}s.";
+      context.Logger.LogError(message);
+      LogOutputOnFailure(context.Logger, result, context.LogTruncationLimit);
+      return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, message, result);
+    }
+
+    if (result.ExitCode != 0)
+    {
+      var message = $"Script '{resolvedPath}' failed with exit code {result.ExitCode} (duration {duration.TotalSeconds:N0}s).";
+      context.Logger.LogError(message);
+      LogOutputOnFailure(context.Logger, result, context.LogTruncationLimit);
+      return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, message, result);
+    }
+
+    return null;
   }
 
   private static string ResolvePath(string script, string workingDirectory)
@@ -131,6 +151,51 @@ public sealed class ScriptExecutionService
     }
 
     return value[..limit] + "...";
+  }
+
+  private static bool IsProcessStartFailure(Exception exception)
+    => exception is InvalidOperationException or Win32Exception or IOException;
+
+  private static ScriptExecutionResult? ValidateScriptExists(string resolvedPath)
+  {
+    if (File.Exists(resolvedPath))
+    {
+      return null;
+    }
+
+    return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, $"Script not found: {resolvedPath}");
+  }
+
+  private async Task<ScriptExecutionResult?> TryRunProcessAsync(
+    string resolvedPath,
+    ScriptExecutionContext context,
+    CancellationToken cancellationToken)
+  {
+    ProcessRunResult result;
+    try
+    {
+      result = await RunProcessAsync(resolvedPath, context, cancellationToken).ConfigureAwait(false);
+    }
+    catch (Exception ex) when (IsProcessStartFailure(ex))
+    {
+      context.Logger.LogError($"Failed to start script '{resolvedPath}'.", ex);
+      return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, ex.Message);
+    }
+
+    var failure = EvaluateRunResult(resolvedPath, result, context);
+    if (failure is not null)
+    {
+      return failure;
+    }
+
+    LogSuccess(context, resolvedPath, result);
+    return null;
+  }
+
+  private static void LogSuccess(ScriptExecutionContext context, string resolvedPath, ProcessRunResult result)
+  {
+    var duration = result.FinishedAt - result.StartedAt;
+    context.Logger.LogInformation($"Script '{resolvedPath}' completed in {duration.TotalSeconds:N0}s with exit code {result.ExitCode}.");
   }
 }
 
