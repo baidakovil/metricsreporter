@@ -10,6 +10,8 @@ namespace MetricsReporter.Configuration;
 /// </summary>
 public static class EnvironmentConfigurationProvider
 {
+  private static readonly char[] ListSeparators = [';', ','];
+
   /// <summary>
   /// Reads environment variables and returns a configuration snapshot.
   /// </summary>
@@ -88,7 +90,7 @@ public static class EnvironmentConfigurationProvider
     return bool.TryParse(value, out var parsed) ? parsed : null;
   }
 
-  private static IReadOnlyList<string>? ReadList(string name)
+  private static string[]? ReadList(string name)
   {
     var value = Environment.GetEnvironmentVariable(name);
     if (string.IsNullOrWhiteSpace(value))
@@ -97,7 +99,7 @@ public static class EnvironmentConfigurationProvider
     }
 
     return value
-      .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+      .Split(ListSeparators, StringSplitOptions.RemoveEmptyEntries)
       .Select(item => item.Trim())
       .Where(item => item.Length > 0)
       .ToArray();
@@ -111,7 +113,7 @@ public static class EnvironmentConfigurationProvider
       return Array.Empty<MetricScript>();
     }
 
-    var entries = value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+    var entries = value.Split(';', StringSplitOptions.RemoveEmptyEntries);
     var scripts = new List<MetricScript>();
     foreach (var entry in entries)
     {
@@ -122,7 +124,7 @@ public static class EnvironmentConfigurationProvider
       }
 
       var metrics = parts[0]
-        .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries)
         .Select(m => m.Trim())
         .Where(m => m.Length > 0)
         .ToArray();

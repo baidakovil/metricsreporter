@@ -18,6 +18,40 @@ public sealed class MetricsReporterConfigLoader
     ReadCommentHandling = JsonCommentHandling.Skip,
     AllowTrailingCommas = true
   };
+  private static readonly string[] GeneralSectionProperties =
+  [
+    "verbosity",
+    "timeoutSeconds",
+    "workingDirectory",
+    "logTruncationLimit"
+  ];
+
+  private static readonly string[] PathsSectionProperties =
+  [
+    "metricsDir",
+    "solutionName",
+    "baselineReference",
+    "report",
+    "readReport",
+    "thresholds",
+    "thresholdsInline",
+    "altcover",
+    "roslyn",
+    "sarif",
+    "baseline",
+    "outputHtml",
+    "inputJson",
+    "coverageHtmlDir",
+    "baselineStoragePath",
+    "suppressedSymbols",
+    "solutionDirectory",
+    "sourceCodeFolders",
+    "excludedMembers",
+    "excludedAssemblies",
+    "excludedTypes",
+    "analyzeSuppressedSymbols",
+    "replaceBaseline"
+  ];
 
   /// <summary>
   /// Loads configuration from disk and reports any parsing issues.
@@ -68,7 +102,7 @@ public sealed class MetricsReporterConfigLoader
   /// <param name="requestedPath">Optional path explicitly provided by the user.</param>
   /// <param name="workingDirectory">Working directory used for discovery.</param>
   /// <returns>Absolute path to the configuration file, or <see langword="null"/> if not found.</returns>
-  public string? ResolveConfigPath(string? requestedPath, string workingDirectory)
+  public static string? ResolveConfigPath(string? requestedPath, string workingDirectory)
   {
     if (!string.IsNullOrWhiteSpace(requestedPath))
     {
@@ -90,7 +124,7 @@ public sealed class MetricsReporterConfigLoader
     return null;
   }
 
-  private string? ValidateRawJson(string json)
+  private static string? ValidateRawJson(string json)
   {
     using var document = JsonDocument.Parse(json);
     if (document.RootElement.ValueKind != JsonValueKind.Object)
@@ -116,20 +150,12 @@ public sealed class MetricsReporterConfigLoader
       }
     }
 
-    if (!ValidateSection(root, "general", new[] { "verbosity", "timeoutSeconds", "workingDirectory", "logTruncationLimit" }))
+    if (!ValidateSection(root, "general", GeneralSectionProperties))
     {
       return "Invalid property in 'general' section.";
     }
 
-    var allowedPaths = new[]
-    {
-      "metricsDir", "solutionName", "baselineReference", "report", "readReport",
-      "thresholds", "thresholdsInline", "altcover", "roslyn", "sarif", "baseline",
-      "outputHtml", "inputJson", "coverageHtmlDir", "baselineStoragePath", "suppressedSymbols",
-      "solutionDirectory", "sourceCodeFolders", "excludedMembers", "excludedAssemblies", "excludedTypes",
-      "analyzeSuppressedSymbols", "replaceBaseline"
-    };
-    if (!ValidateSection(root, "paths", allowedPaths))
+    if (!ValidateSection(root, "paths", PathsSectionProperties))
     {
       return "Invalid property in 'paths' section.";
     }

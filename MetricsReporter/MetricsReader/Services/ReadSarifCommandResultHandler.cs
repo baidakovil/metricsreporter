@@ -70,7 +70,7 @@ internal sealed class ReadSarifCommandResultHandler : IReadSarifCommandResultHan
   }
 
   private static List<GroupedViolationsGroupDto<SarifViolationDetailDto>> BuildRuleIdGroups(
-    IReadOnlyList<SarifViolationGroup> groups)
+    List<SarifViolationGroup> groups)
   {
     var result = new List<GroupedViolationsGroupDto<SarifViolationDetailDto>>(groups.Count);
     foreach (var group in groups)

@@ -207,7 +207,7 @@ internal sealed class MetricsReporterConfigLoaderTests
     File.WriteAllText(configPath, "{}");
 
     // Act
-    var resolved = _loader.ResolveConfigPath(null, child.FullName);
+    var resolved = MetricsReporterConfigLoader.ResolveConfigPath(null, child.FullName);
 
     // Assert
     resolved.Should().Be(configPath);
@@ -220,7 +220,7 @@ internal sealed class MetricsReporterConfigLoaderTests
     var requested = Path.Combine(_root, "custom.json");
 
     // Act
-    var resolved = _loader.ResolveConfigPath(requested, _root);
+    var resolved = MetricsReporterConfigLoader.ResolveConfigPath(requested, _root);
 
     // Assert
     resolved.Should().Be(Path.GetFullPath(requested));

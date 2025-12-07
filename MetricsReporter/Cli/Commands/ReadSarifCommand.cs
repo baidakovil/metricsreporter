@@ -25,6 +25,7 @@ internal sealed class ReadSarifCommand : AsyncCommand<ReadSarifSettings>
 {
   private readonly MetricsReporterConfigLoader _configLoader;
   private readonly ScriptExecutionService _scriptExecutor;
+  private static readonly char[] MetricScriptSeparators = ['=', ':'];
 
   public ReadSarifCommand(MetricsReporterConfigLoader configLoader, ScriptExecutionService scriptExecutor)
   {
@@ -139,7 +140,7 @@ internal sealed class ReadSarifCommand : AsyncCommand<ReadSarifSettings>
     return new ReadSarifCommandExecutor(MetricsReaderCommandHelper.CreateEngineAsync, aggregator, sorter, filter, resultHandler);
   }
 
-  private static IReadOnlyList<string> SelectScriptsForMetrics(ResolvedScripts scripts, IEnumerable<string> metrics)
+  private static string[] SelectScriptsForMetrics(ResolvedScripts scripts, IEnumerable<string> metrics)
   {
     var metricSet = new HashSet<string>(metrics, StringComparer.OrdinalIgnoreCase);
     var metricScripts = scripts.ReadByMetric
@@ -150,7 +151,7 @@ internal sealed class ReadSarifCommand : AsyncCommand<ReadSarifSettings>
     return scripts.ReadAny.Concat(metricScripts).ToArray();
   }
 
-  private static IReadOnlyList<(string Metric, string Path)> ParseMetricScripts(IEnumerable<string> inputs)
+  private static List<(string Metric, string Path)> ParseMetricScripts(IEnumerable<string> inputs)
   {
     var result = new List<(string Metric, string Path)>();
     foreach (var input in inputs)
@@ -160,7 +161,7 @@ internal sealed class ReadSarifCommand : AsyncCommand<ReadSarifSettings>
         continue;
       }
 
-      var parts = input.Split(new[] { '=', ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
+      var parts = input.Split(MetricScriptSeparators, 2, StringSplitOptions.RemoveEmptyEntries);
       if (parts.Length != 2)
       {
         continue;

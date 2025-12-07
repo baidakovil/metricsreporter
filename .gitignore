@@ -14,6 +14,7 @@
 /Metrics/Roslyn/
 /Metrics/Sarif/
 /build/_nupkg_inspect/
+/Metrics/MetricsReporter.read.log
 
 # Generated metrics baselines
 *.g.json

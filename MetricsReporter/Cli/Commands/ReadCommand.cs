@@ -24,6 +24,7 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
 {
   private readonly MetricsReporterConfigLoader _configLoader;
   private readonly ScriptExecutionService _scriptExecutor;
+  private static readonly char[] MetricScriptSeparators = ['=', ':'];
 
   /// <summary>
   /// Initializes a new instance of the <see cref="ReadCommand"/> class.
@@ -140,7 +141,7 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
     return new ReadAnyCommandExecutor(MetricsReaderCommandHelper.CreateEngineAsync, queryService, orderer, resultHandler);
   }
 
-  private static IReadOnlyList<string> SelectScriptsForMetrics(ResolvedScripts scripts, IEnumerable<string> metrics)
+  private static string[] SelectScriptsForMetrics(ResolvedScripts scripts, IEnumerable<string> metrics)
   {
     var metricSet = new HashSet<string>(metrics, StringComparer.OrdinalIgnoreCase);
     var metricScripts = scripts.ReadByMetric
@@ -151,7 +152,7 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
     return scripts.ReadAny.Concat(metricScripts).ToArray();
   }
 
-  private static IReadOnlyList<(string Metric, string Path)> ParseMetricScripts(IEnumerable<string> inputs)
+  private static List<(string Metric, string Path)> ParseMetricScripts(IEnumerable<string> inputs)
   {
     var result = new List<(string Metric, string Path)>();
     foreach (var input in inputs)
@@ -161,7 +162,7 @@ internal sealed class ReadCommand : AsyncCommand<ReadSettings>
         continue;
       }
 
-      var parts = input.Split(new[] { '=', ':' }, 2, StringSplitOptions.RemoveEmptyEntries);
+      var parts = input.Split(MetricScriptSeparators, 2, StringSplitOptions.RemoveEmptyEntries);
       if (parts.Length != 2)
       {
         continue;

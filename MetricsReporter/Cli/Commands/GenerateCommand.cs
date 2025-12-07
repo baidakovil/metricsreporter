@@ -22,6 +22,7 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
 {
   private readonly MetricsReporterConfigLoader _configLoader;
   private readonly ScriptExecutionService _scriptExecutor;
+  private static readonly char[] FolderSeparators = [',', ';'];
 
   /// <summary>
   /// Initializes a new instance of the <see cref="GenerateCommand"/> class.
@@ -224,9 +225,9 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
     {
       SolutionName = inputs.SolutionName ?? "Solution",
       MetricsDirectory = inputs.MetricsDir ?? string.Empty,
-      AltCoverPaths = inputs.AltCover.ToArray(),
-      RoslynPaths = inputs.Roslyn.ToArray(),
-      SarifPaths = inputs.Sarif.ToArray(),
+      AltCoverPaths = inputs.AltCover,
+      RoslynPaths = inputs.Roslyn,
+      SarifPaths = inputs.Sarif,
       BaselinePath = inputs.Baseline,
       BaselineReference = inputs.BaselineReference,
       ThresholdsJson = inputs.ThresholdsInline,
@@ -248,8 +249,8 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
     };
   }
 
-  private static IReadOnlyList<string> ResolveList(
-    IReadOnlyList<string> cli,
+  private static string[] ResolveList(
+    List<string> cli,
     IReadOnlyList<string>? env,
     IReadOnlyList<string>? file,
     string workingDirectory)
@@ -284,7 +285,7 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
     return Array.Empty<string>();
   }
 
-  private static IReadOnlyList<string> ResolveFolders(
+  private static string[] ResolveFolders(
     string? cliFolders,
     IReadOnlyList<string>? envFolders,
     IReadOnlyList<string>? fileFolders)
@@ -296,21 +297,21 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
 
     if (envFolders is { Count: > 0 })
     {
-      return envFolders;
+      return envFolders as string[] ?? envFolders.ToArray();
     }
 
     if (fileFolders is { Count: > 0 })
     {
-      return fileFolders;
+      return fileFolders as string[] ?? fileFolders.ToArray();
     }
 
     return Array.Empty<string>();
   }
 
-  private static IReadOnlyList<string> SplitFolders(string value)
+  private static string[] SplitFolders(string value)
   {
     return value
-      .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+      .Split(FolderSeparators, StringSplitOptions.RemoveEmptyEntries)
       .Select(folder => folder.Trim())
       .Where(folder => folder.Length > 0)
       .ToArray();
@@ -345,9 +346,9 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
 internal sealed record ResolvedGenerateInputs(
   string? SolutionName,
   string? MetricsDir,
-  IReadOnlyList<string> AltCover,
-  IReadOnlyList<string> Roslyn,
-  IReadOnlyList<string> Sarif,
+  string[] AltCover,
+  string[] Roslyn,
+  string[] Sarif,
   string? Baseline,
   string? BaselineReference,
   string? OutputJson,
@@ -364,7 +365,7 @@ internal sealed record ResolvedGenerateInputs(
   bool AnalyzeSuppressedSymbols,
   string? SuppressedSymbols,
   string? SolutionDirectory,
-  IReadOnlyList<string> SourceCodeFolders,
+  string[] SourceCodeFolders,
   bool MetricsDirProvided);
 
 internal sealed record ValidationOutcome(bool Succeeded, string? Error)
