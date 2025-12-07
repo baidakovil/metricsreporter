@@ -1,0 +1,17 @@
+<Project>
+  <Target Name="PrepareMetricsDirectories"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <MakeDir Condition="'$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''"
+             Directories="$(SarifOutputDir)" />
+  </Target>
+
+  <Target Name="SetSarifErrorLog"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''">
+    <PropertyGroup>
+      <ErrorLog>$(SarifOutputDir)\$(MSBuildProjectName).sarif,version=2.1</ErrorLog>
+    </PropertyGroup>
+  </Target>
+</Project>
+

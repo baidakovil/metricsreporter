@@ -8,7 +8,8 @@
 *temp/
 
 # Coverage reports
-/build/Metrics/*
+/build/Metrics/
+/build/_nupkg_inspect/
 
 # Generated metrics baselines
 *.g.json

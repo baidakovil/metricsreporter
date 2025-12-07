@@ -1,0 +1,29 @@
+{
+  "general": {
+    "verbosity": "normal",
+    "timeoutSeconds": 900,
+    "logTruncationLimit": 4000
+  },
+  "paths": {
+    "metricsDir": "build/Metrics",
+    "report": "build/Metrics/Report/MetricsReport.g.json",
+    "readReport": "build/Metrics/Report/MetricsReport.g.json",
+    "baseline": "build/MetricsTemp/MetricsBaseline.g.json",
+    "outputHtml": "build/Metrics/Report/MetricsReport.html",
+    "roslyn": [
+      "build/Metrics/Roslyn/SolutionMetrics.g.xml"
+    ],
+    "sarif": [
+      "build/Metrics/Sarif/MetricsReporter.sarif",
+      "build/Metrics/Sarif/MetricsReporter.Tool.sarif",
+      "build/Metrics/Sarif/MetricsReporter.Tests.sarif"
+    ],
+    "solutionName": "metricsreporter"
+  },
+  "scripts": {
+    "generate": [
+      "scripts/prepare-metrics.ps1"
+    ]
+  }
+}
+

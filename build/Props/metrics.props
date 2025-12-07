@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <MetricsDir>$(MSBuildThisFileDirectory)..\Metrics</MetricsDir>
+    <MetricsTempDir>$(MSBuildThisFileDirectory)..\MetricsTemp</MetricsTempDir>
+    <RoslynOutputDir>$(MetricsDir)\Roslyn</RoslynOutputDir>
+    <SarifOutputDir>$(MetricsDir)\Sarif</SarifOutputDir>
+    <MetricsReportDir>$(MetricsDir)\Report</MetricsReportDir>
+    <MetricsReportJson>$(MetricsReportDir)\MetricsReport.g.json</MetricsReportJson>
+    <MetricsReportHtml>$(MetricsReportDir)\MetricsReport.html</MetricsReportHtml>
+    <MetricsSolutionName>metricsreporter</MetricsSolutionName>
+    <RoslynSolutionMetricsOutputFile>$(RoslynOutputDir)\SolutionMetrics.g.xml</RoslynSolutionMetricsOutputFile>
+    <RoslynMetricsSolutionPath>$(SolutionDir)MetricsReporter.sln</RoslynMetricsSolutionPath>
+    <RoslynMetricsToolDir>$(MSBuildThisFileDirectory)..\Resources\metrics\win-arm64</RoslynMetricsToolDir>
+    <RoslynMetricsToolExe>$(RoslynMetricsToolDir)\Metrics.exe</RoslynMetricsToolExe>
+    <SarifMetricsEnabled Condition="'$(SarifMetricsEnabled)' == ''">false</SarifMetricsEnabled>
+    <RoslynMetricsEnabled Condition="'$(RoslynMetricsEnabled)' == ''">true</RoslynMetricsEnabled>
+    <MetricsReporterExe Condition="'$(MetricsReporterExe)' == ''">dotnet tool run metricsreporter</MetricsReporterExe>
+  </PropertyGroup>
+</Project>
+
