@@ -10,6 +10,7 @@
     "readReport": "build/Metrics/Report/MetricsReport.g.json",
     "baseline": "build/MetricsTemp/MetricsBaseline.g.json",
     "suppressedSymbols": "build/MetricsTemp/SuppressedSymbols.g.json",
+    "thresholds": "build/MetricsRules/MetricsReporterThresholds.json",
     "solutionDirectory": ".",
     "sourceCodeFolders": [
       "MetricsReporter",
@@ -25,8 +26,10 @@
       "build/Metrics/Sarif/MetricsReporter.Tool.sarif",
       "build/Metrics/Sarif/MetricsReporter.Tests.sarif"
     ],
+    "excludedAssemblies": "Tests",
     "solutionName": "metricsreporter",
-    "analyzeSuppressedSymbols": true
+    "analyzeSuppressedSymbols": true,
+    "replaceBaseline": true
   },
   "scripts": {
     "generate": [

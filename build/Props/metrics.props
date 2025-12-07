@@ -7,6 +7,9 @@
     <MetricsReportDir>$(MetricsDir)\Report</MetricsReportDir>
     <MetricsReportJson>$(MetricsReportDir)\MetricsReport.g.json</MetricsReportJson>
     <MetricsReportHtml>$(MetricsReportDir)\MetricsReport.html</MetricsReportHtml>
+    <CodeMetricsRulesDir>$(MSBuildThisFileDirectory)..\MetricsRules</CodeMetricsRulesDir>
+    <MetricsThresholdsPath>$(CodeMetricsRulesDir)\MetricsReporterThresholds.json</MetricsThresholdsPath>
+    <CodeMetricsConfigFile>$(CodeMetricsRulesDir)\CodeMetricsConfig.txt</CodeMetricsConfigFile>
     <MetricsSolutionName>metricsreporter</MetricsSolutionName>
     <RoslynSolutionMetricsOutputFile>$(RoslynOutputDir)\SolutionMetrics.g.xml</RoslynSolutionMetricsOutputFile>
     <RoslynMetricsSolutionPath>$(SolutionDir)MetricsReporter.sln</RoslynMetricsSolutionPath>
