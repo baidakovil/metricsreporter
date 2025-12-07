@@ -11,6 +11,7 @@ using MetricsReporter.Logging;
 using MetricsReporter.Services.Processes;
 using MetricsReporter.Services.Scripts;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 
 [TestFixture]
@@ -142,6 +143,62 @@ internal sealed class ScriptExecutionServiceTests
     var context = CreateContext(logTruncationLimit: 5);
     _processRunner.RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>())
       .Returns(CreateResult(exitCode: 1, stdout: "ABCDEFGHIJ", stderr: "KLMNOPQRST"));
+
+    // Act
+    _ = await _service.RunAsync(new[] { script }, context, CancellationToken.None).ConfigureAwait(false);
+
+    // Assert
+    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("stdout (truncated)") && m.Contains("...")), null);
+    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("stderr (truncated)") && m.Contains("...")), null);
+  }
+
+  [Test]
+  public async Task RunAsync_WhenProcessStartThrows_ReturnsValidationError()
+  {
+    // Arrange
+    var script = CreateScriptFile("scripts/fail-fast.ps1");
+    var context = CreateContext();
+    var exception = new InvalidOperationException("start failed");
+    _processRunner.RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>())
+      .Throws(exception);
+
+    // Act
+    var result = await _service.RunAsync(new[] { script }, context, CancellationToken.None).ConfigureAwait(false);
+
+    // Assert
+    result.IsSuccess.Should().BeFalse();
+    result.ExitCode.Should().Be(MetricsReporterExitCode.ValidationError);
+    result.ErrorMessage.Should().Be(exception.Message);
+    await _processRunner.Received(1).RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>());
+    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("Failed to start script")), exception);
+  }
+
+  [Test]
+  public async Task RunAsync_WithWhitespaceEntries_SkipsEmptyScripts()
+  {
+    // Arrange
+    var validScript = CreateScriptFile("scripts/valid.ps1");
+    var context = CreateContext();
+    _processRunner.RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>())
+      .Returns(CreateResult(exitCode: 0));
+
+    // Act
+    var result = await _service.RunAsync(new[] { "  ", validScript }, context, CancellationToken.None).ConfigureAwait(false);
+
+    // Assert
+    result.IsSuccess.Should().BeTrue();
+    await _processRunner.Received(1).RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>());
+  }
+
+  [Test]
+  public async Task RunAsync_LogTruncationLimitNotPositive_UsesDefaultLimit()
+  {
+    // Arrange
+    var script = CreateScriptFile("scripts/overflow.ps1");
+    var context = CreateContext(logTruncationLimit: 0);
+    var longOutput = new string('A', 4005);
+    _processRunner.RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>())
+      .Returns(CreateResult(exitCode: 1, stdout: longOutput, stderr: longOutput));
 
     // Act
     _ = await _service.RunAsync(new[] { script }, context, CancellationToken.None).ConfigureAwait(false);

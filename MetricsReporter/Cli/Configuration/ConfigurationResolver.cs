@@ -31,42 +31,15 @@ internal static class ConfigurationResolver
     ArgumentNullException.ThrowIfNull(envConfig);
     ArgumentNullException.ThrowIfNull(fileConfig);
 
-    var workingDir = FirstNonEmpty(
-        cliWorkingDirectory,
-        envConfig.General.WorkingDirectory,
-        fileConfig.General.WorkingDirectory,
-        Environment.CurrentDirectory)!;
-
-    var timeoutSeconds = cliTimeoutSeconds
-                         ?? envConfig.General.TimeoutSeconds
-                         ?? fileConfig.General.TimeoutSeconds
-                         ?? DefaultTimeoutSeconds;
-    if (timeoutSeconds <= 0)
-    {
-      timeoutSeconds = DefaultTimeoutSeconds;
-    }
-
-    var truncationLimit = cliLogTruncation
-                          ?? envConfig.General.LogTruncationLimit
-                          ?? fileConfig.General.LogTruncationLimit
-                          ?? DefaultLogTruncationLimit;
-    if (truncationLimit <= 0)
-    {
-      truncationLimit = DefaultLogTruncationLimit;
-    }
-
-    var runScripts = cliRunScripts
-                     ?? envConfig.General.RunScripts
-                     ?? fileConfig.General.RunScripts
-                     ?? true;
-
-    var aggregateAfterScripts = cliAggregateAfterScripts
-                                ?? envConfig.General.AggregateAfterScripts
-                                ?? fileConfig.General.AggregateAfterScripts
-                                ?? true;
+    var workingDir = ResolveWorkingDirectory(cliWorkingDirectory, envConfig, fileConfig);
+    var timeoutSeconds = ResolveTimeoutSeconds(cliTimeoutSeconds, envConfig, fileConfig);
+    var truncationLimit = ResolveTruncationLimit(cliLogTruncation, envConfig, fileConfig);
+    var runScripts = ResolveRunScripts(cliRunScripts, envConfig, fileConfig);
+    var aggregateAfterScripts = ResolveAggregateAfterScripts(cliAggregateAfterScripts, envConfig, fileConfig);
+    var verbosity = ResolveVerbosity(cliVerbosity, envConfig, fileConfig);
 
     return new ResolvedGeneralOptions(
-      Verbosity: (cliVerbosity ?? envConfig.General.Verbosity ?? fileConfig.General.Verbosity ?? DefaultVerbosity).Trim(),
+      Verbosity: verbosity,
       Timeout: TimeSpan.FromSeconds(timeoutSeconds),
       WorkingDirectory: Path.GetFullPath(workingDir),
       LogTruncationLimit: truncationLimit,
@@ -114,6 +87,75 @@ internal static class ConfigurationResolver
         : fileScripts.Test.ByMetric;
 
     return new ResolvedScripts(generate, readAny, byMetric, testAny, testByMetric);
+  }
+
+  private static string ResolveWorkingDirectory(
+    string? cliWorkingDirectory,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    return FirstNonEmpty(
+             cliWorkingDirectory,
+             envConfig.General.WorkingDirectory,
+             fileConfig.General.WorkingDirectory,
+             Environment.CurrentDirectory)
+           ?? Environment.CurrentDirectory;
+  }
+
+  private static int ResolveTimeoutSeconds(
+    int? cliTimeoutSeconds,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    var timeoutSeconds = cliTimeoutSeconds
+                         ?? envConfig.General.TimeoutSeconds
+                         ?? fileConfig.General.TimeoutSeconds
+                         ?? DefaultTimeoutSeconds;
+
+    return timeoutSeconds > 0 ? timeoutSeconds : DefaultTimeoutSeconds;
+  }
+
+  private static int ResolveTruncationLimit(
+    int? cliLogTruncation,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    var truncationLimit = cliLogTruncation
+                          ?? envConfig.General.LogTruncationLimit
+                          ?? fileConfig.General.LogTruncationLimit
+                          ?? DefaultLogTruncationLimit;
+
+    return truncationLimit > 0 ? truncationLimit : DefaultLogTruncationLimit;
+  }
+
+  private static bool ResolveRunScripts(
+    bool? cliRunScripts,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    return cliRunScripts
+           ?? envConfig.General.RunScripts
+           ?? fileConfig.General.RunScripts
+           ?? true;
+  }
+
+  private static bool ResolveAggregateAfterScripts(
+    bool? cliAggregateAfterScripts,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    return cliAggregateAfterScripts
+           ?? envConfig.General.AggregateAfterScripts
+           ?? fileConfig.General.AggregateAfterScripts
+           ?? true;
+  }
+
+  private static string ResolveVerbosity(
+    string? cliVerbosity,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    return (cliVerbosity ?? envConfig.General.Verbosity ?? fileConfig.General.Verbosity ?? DefaultVerbosity).Trim();
   }
 
   private static string? FirstNonEmpty(params string?[] values)

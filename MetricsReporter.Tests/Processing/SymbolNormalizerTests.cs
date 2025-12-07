@@ -295,12 +295,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  [Ignore("Constraints are not present in real metric sources - this is an edge case that doesn't occur in practice")]
   public void ExtractMethodName_GenericMethodWithConstraints_ReturnsMethodName()
   {
     // Arrange
-    // Note: constraints after parameters are not typically in method signatures from metric sources
-    // This test is ignored as it represents an edge case that doesn't occur in real data
     var input = "Method<T>() where T : class";
     var expected = "Method";
 
@@ -390,14 +387,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  [Ignore("Complex generic parameters with commas are not typically present in real metric sources - this edge case doesn't occur in practice")]
   public void ExtractMethodName_MultipleGenericParameters_ReturnsMethodName()
   {
     // Arrange
-    // Note: This tests extraction of method name with multiple generic type parameters separated by commas
-    // Real metric sources (AltCover, Roslyn) typically don't expose such complex generic method signatures
-    // This test is ignored as it represents an edge case that doesn't occur in real data
-    // The normalization logic focuses on real-world scenarios from AltCover and Roslyn metrics
     var input = "Method<TKey, TValue>(System.String)";
     var expected = "Method";
 

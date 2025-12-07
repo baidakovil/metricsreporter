@@ -56,10 +56,88 @@ public sealed class AltCoverDocumentValidatorTests
         .Which.Should().Contain(duplicateSymbol);
   }
 
-  private static ParsedMetricsDocument CreateDocument(string sourcePath, params ParsedCodeElement[] elements)
+  [Test]
+  public void TryValidateUniqueSymbols_DuplicateWithinSameDocument_Ignored()
+  {
+    // Arrange
+    var duplicateSymbol = "Namespace.TypeA.MethodA(...)";
+    var documents = new List<ParsedMetricsDocument>
+    {
+      CreateDocument("coverage-one.xml",
+        new ParsedCodeElement(CodeElementKind.Member, "MethodA", duplicateSymbol),
+        new ParsedCodeElement(CodeElementKind.Member, "MethodA", duplicateSymbol))
+    };
+    var logger = new TestLogger();
+
+    // Act
+    var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
+
+    // Assert
+    result.Should().BeTrue();
+    logger.Errors.Should().BeEmpty();
+  }
+
+  [Test]
+  public void TryValidateUniqueSymbols_NonAltCoverSymbol_Ignored()
+  {
+    // Arrange
+    var documents = new List<ParsedMetricsDocument>
+    {
+      CreateDocument("coverage-one.xml", new ParsedCodeElement(CodeElementKind.Namespace, "NamespaceA", "NamespaceA"))
+    };
+    var logger = new TestLogger();
+
+    // Act
+    var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
+
+    // Assert
+    result.Should().BeTrue();
+    logger.Errors.Should().BeEmpty();
+  }
+
+  [Test]
+  public void TryValidateUniqueSymbols_MissingSourcePath_UsesFallbackDocumentIdInError()
+  {
+    // Arrange
+    var duplicateSymbol = "Namespace.TypeA";
+    var documents = new List<ParsedMetricsDocument>
+    {
+      CreateDocument(string.Empty, new ParsedCodeElement(CodeElementKind.Type, "TypeA", duplicateSymbol)),
+      CreateDocument("coverage-two.xml", new ParsedCodeElement(CodeElementKind.Type, "TypeA", duplicateSymbol))
+    };
+    var logger = new TestLogger();
+
+    // Act
+    var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
+
+    // Assert
+    result.Should().BeFalse();
+    logger.Errors.Should().ContainSingle()
+      .Which.Should().Contain("AltCoverDocument#1").And.Contain("coverage-two.xml");
+  }
+
+  [Test]
+  public void TryValidateUniqueSymbols_EmptyFullyQualifiedName_Ignored()
+  {
+    // Arrange
+    var documents = new List<ParsedMetricsDocument>
+    {
+      CreateDocument("coverage-one.xml", new ParsedCodeElement(CodeElementKind.Member, "MethodA", "   "))
+    };
+    var logger = new TestLogger();
+
+    // Act
+    var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
+
+    // Assert
+    result.Should().BeTrue();
+    logger.Errors.Should().BeEmpty();
+  }
+
+  private static ParsedMetricsDocument CreateDocument(string? sourcePath, params ParsedCodeElement[] elements)
     => new()
     {
-      SourcePath = sourcePath,
+      SourcePath = sourcePath ?? string.Empty,
       Elements = new List<ParsedCodeElement>(elements)
     };
 

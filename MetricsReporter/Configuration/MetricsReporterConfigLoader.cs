@@ -129,157 +129,139 @@ public sealed class MetricsReporterConfigLoader
   private static string? ValidateRawJson(string json)
   {
     using var document = JsonDocument.Parse(json);
-    if (document.RootElement.ValueKind != JsonValueKind.Object)
+    var root = document.RootElement;
+
+    return ValidateRootElement(root)
+           ?? ValidateRequiredSections(root)
+           ?? ValidateSectionProperties(root, "general", GeneralSectionProperties)
+           ?? ValidateSectionProperties(root, "paths", PathsSectionProperties)
+           ?? ValidateScriptsSection(root);
+  }
+
+  private static string? ValidateRootElement(JsonElement root)
+  {
+    if (root.ValueKind != JsonValueKind.Object)
     {
       return "Configuration root must be a JSON object.";
     }
 
-    var root = document.RootElement;
-    var requiredRoot = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "general", "paths", "scripts" };
+    var allowedRoot = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "general", "paths", "scripts" };
     foreach (var property in root.EnumerateObject())
     {
-      if (!requiredRoot.Contains(property.Name))
+      if (!allowedRoot.Contains(property.Name))
       {
         return $"Unknown root property '{property.Name}' in configuration.";
       }
     }
 
-    foreach (var required in requiredRoot)
+    return null;
+  }
+
+  private static string? ValidateRequiredSections(JsonElement root)
+  {
+    var requiredSections = new[] { "general", "paths", "scripts" };
+    foreach (var section in requiredSections)
     {
-      if (!root.TryGetProperty(required, out _))
+      if (!root.TryGetProperty(section, out _))
       {
-        return $"Missing required section '{required}' in configuration.";
+        return $"Missing required section '{section}' in configuration.";
       }
     }
 
-    if (!ValidateSection(root, "general", GeneralSectionProperties))
-    {
-      return "Invalid property in 'general' section.";
-    }
+    return null;
+  }
 
-    if (!ValidateSection(root, "paths", PathsSectionProperties))
-    {
-      return "Invalid property in 'paths' section.";
-    }
+  private static string? ValidateSectionProperties(JsonElement root, string sectionName, IEnumerable<string> allowedProperties)
+  {
+    return ValidateSection(root, sectionName, allowedProperties)
+      ? null
+      : $"Invalid property in '{sectionName}' section.";
+  }
 
+  private static string? ValidateScriptsSection(JsonElement root)
+  {
     if (!root.TryGetProperty("scripts", out var scriptsElement) || scriptsElement.ValueKind != JsonValueKind.Object)
     {
       return "Missing required section 'scripts' in configuration.";
     }
 
+    var allowedScriptProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "generate", "read", "test" };
     foreach (var property in scriptsElement.EnumerateObject())
     {
-      if (!property.NameEquals("generate") && !property.NameEquals("read") && !property.NameEquals("test"))
+      if (!allowedScriptProperties.Contains(property.Name))
       {
         return $"Unknown property 'scripts.{property.Name}' in configuration.";
       }
     }
 
-    if (scriptsElement.TryGetProperty("read", out var readElement))
+    return ValidateScriptGroup(scriptsElement, "read")
+           ?? ValidateScriptGroup(scriptsElement, "test");
+  }
+
+  private static string? ValidateScriptGroup(JsonElement scriptsElement, string groupName)
+  {
+    if (!scriptsElement.TryGetProperty(groupName, out var groupElement))
     {
-      if (readElement.ValueKind != JsonValueKind.Object)
+      return null;
+    }
+
+    if (groupElement.ValueKind != JsonValueKind.Object)
+    {
+      return $"scripts.{groupName} must be an object.";
+    }
+
+    var allowedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "any", "byMetric" };
+    foreach (var property in groupElement.EnumerateObject())
+    {
+      if (!allowedProperties.Contains(property.Name))
       {
-        return "scripts.read must be an object.";
-      }
-
-      foreach (var property in readElement.EnumerateObject())
-      {
-        if (!property.NameEquals("any") && !property.NameEquals("byMetric"))
-        {
-          return $"Unknown property 'scripts.read.{property.Name}' in configuration.";
-        }
-      }
-
-      if (readElement.TryGetProperty("byMetric", out var byMetricElement) && byMetricElement.ValueKind == JsonValueKind.Array)
-      {
-        var metricToPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in byMetricElement.EnumerateArray())
-        {
-          if (item.ValueKind != JsonValueKind.Object)
-          {
-            return "scripts.read.byMetric items must be objects.";
-          }
-
-          if (!item.TryGetProperty("metrics", out var metricsElement) || metricsElement.ValueKind != JsonValueKind.Array || metricsElement.GetArrayLength() == 0)
-          {
-            return "scripts.read.byMetric items must contain non-empty 'metrics' array.";
-          }
-
-          if (!item.TryGetProperty("path", out var pathElement) || pathElement.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(pathElement.GetString()))
-          {
-            return "scripts.read.byMetric items must contain a non-empty 'path' string.";
-          }
-
-          foreach (var metric in metricsElement.EnumerateArray())
-          {
-            if (metric.ValueKind != JsonValueKind.String)
-            {
-              return "scripts.read.byMetric metrics must be strings.";
-            }
-
-            var metricName = metric.GetString() ?? string.Empty;
-            if (metricToPath.TryGetValue(metricName, out var existingPath) && !string.Equals(existingPath, pathElement.GetString(), StringComparison.OrdinalIgnoreCase))
-            {
-              return $"Duplicate metric '{metricName}' in scripts.read.byMetric with different scripts.";
-            }
-
-            metricToPath[metricName] = pathElement.GetString()!;
-          }
-        }
+        return $"Unknown property 'scripts.{groupName}.{property.Name}' in configuration.";
       }
     }
 
-    if (scriptsElement.TryGetProperty("test", out var testElement))
+    if (groupElement.TryGetProperty("byMetric", out var byMetricElement) && byMetricElement.ValueKind == JsonValueKind.Array)
     {
-      if (testElement.ValueKind != JsonValueKind.Object)
+      return ValidateByMetricEntries(byMetricElement, groupName);
+    }
+
+    return null;
+  }
+
+  private static string? ValidateByMetricEntries(JsonElement byMetricElement, string groupName)
+  {
+    var metricToPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var item in byMetricElement.EnumerateArray())
+    {
+      if (item.ValueKind != JsonValueKind.Object)
       {
-        return "scripts.test must be an object.";
+        return $"scripts.{groupName}.byMetric items must be objects.";
       }
 
-      foreach (var property in testElement.EnumerateObject())
+      if (!item.TryGetProperty("metrics", out var metricsElement) || metricsElement.ValueKind != JsonValueKind.Array || metricsElement.GetArrayLength() == 0)
       {
-        if (!property.NameEquals("any") && !property.NameEquals("byMetric"))
-        {
-          return $"Unknown property 'scripts.test.{property.Name}' in configuration.";
-        }
+        return $"scripts.{groupName}.byMetric items must contain non-empty 'metrics' array.";
       }
 
-      if (testElement.TryGetProperty("byMetric", out var byMetricElement) && byMetricElement.ValueKind == JsonValueKind.Array)
+      if (!item.TryGetProperty("path", out var pathElement) || pathElement.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(pathElement.GetString()))
       {
-        var metricToPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in byMetricElement.EnumerateArray())
+        return $"scripts.{groupName}.byMetric items must contain a non-empty 'path' string.";
+      }
+
+      var pathValue = pathElement.GetString()!;
+      foreach (var metric in metricsElement.EnumerateArray())
+      {
+        if (metric.ValueKind != JsonValueKind.String)
         {
-          if (item.ValueKind != JsonValueKind.Object)
-          {
-            return "scripts.test.byMetric items must be objects.";
-          }
-
-          if (!item.TryGetProperty("metrics", out var metricsElement) || metricsElement.ValueKind != JsonValueKind.Array || metricsElement.GetArrayLength() == 0)
-          {
-            return "scripts.test.byMetric items must contain non-empty 'metrics' array.";
-          }
-
-          if (!item.TryGetProperty("path", out var pathElement) || pathElement.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(pathElement.GetString()))
-          {
-            return "scripts.test.byMetric items must contain a non-empty 'path' string.";
-          }
-
-          foreach (var metric in metricsElement.EnumerateArray())
-          {
-            if (metric.ValueKind != JsonValueKind.String)
-            {
-              return "scripts.test.byMetric metrics must be strings.";
-            }
-
-            var metricName = metric.GetString() ?? string.Empty;
-            if (metricToPath.TryGetValue(metricName, out var existingPath) && !string.Equals(existingPath, pathElement.GetString(), StringComparison.OrdinalIgnoreCase))
-            {
-              return $"Duplicate metric '{metricName}' in scripts.test.byMetric with different scripts.";
-            }
-
-            metricToPath[metricName] = pathElement.GetString()!;
-          }
+          return $"scripts.{groupName}.byMetric metrics must be strings.";
         }
+
+        var metricName = metric.GetString() ?? string.Empty;
+        if (metricToPath.TryGetValue(metricName, out var existingPath) && !string.Equals(existingPath, pathValue, StringComparison.OrdinalIgnoreCase))
+        {
+          return $"Duplicate metric '{metricName}' in scripts.{groupName}.byMetric with different scripts.";
+        }
+
+        metricToPath[metricName] = pathValue;
       }
     }
 

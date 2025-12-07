@@ -115,13 +115,39 @@ public static class SymbolNormalizer
 
   private static int FindMethodNameStart(string methodSignature)
   {
-    var spaceIndex = methodSignature.IndexOf(' ');
-    return spaceIndex >= 0 ? spaceIndex + 1 : 0;
+    var paramStart = methodSignature.LastIndexOf('(');
+    if (paramStart > 0)
+    {
+      var angleDepth = 0;
+      var lastSpaceAtDepthZero = -1;
+      for (var i = 0; i < paramStart; i++)
+      {
+        switch (methodSignature[i])
+        {
+          case '<':
+            angleDepth++;
+            break;
+          case '>':
+            angleDepth = Math.Max(0, angleDepth - 1);
+            break;
+          case ' ' when angleDepth == 0:
+            lastSpaceAtDepthZero = i;
+            break;
+        }
+      }
+
+      if (lastSpaceAtDepthZero >= 0)
+      {
+        return lastSpaceAtDepthZero + 1;
+      }
+    }
+
+    return 0;
   }
 
   private static int FindMethodNameEnd(string methodSignature, int nameStart)
   {
-    var paramStart = methodSignature.IndexOf('(', nameStart);
+    var paramStart = methodSignature.LastIndexOf('(');
     var whereIndex = methodSignature.IndexOf(" where ", StringComparison.Ordinal);
 
     var methodNameEnd = methodSignature.Length;
