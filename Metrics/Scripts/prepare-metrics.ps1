@@ -12,7 +12,7 @@ $repoRoot = (Resolve-Path (Join-Path $scriptDir "..")).Path
 $solutionPath = Join-Path $repoRoot "MetricsReporter.sln"
 
 $msbuildArgs = @(
-  "/t:GenerateSolutionMetrics",
+  "/t:Rebuild;GenerateSolutionMetrics",
   "/p:RoslynMetricsEnabled=true",
   "/p:SarifMetricsEnabled=true"
 )
