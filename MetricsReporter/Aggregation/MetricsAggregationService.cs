@@ -225,7 +225,8 @@ public sealed class MetricsAggregationService
           CreateLineIndexProcessor(state, assemblyFilter),
           CreateSarifProcessor(state, assemblyFilter),
           CreateBaselineProcessor(state),
-          CreateReconciliationProcessor(state));
+          CreateReconciliationProcessor(state),
+          CreateTypeBranchCoverageApplicabilityProcessor(state));
     }
 
     private static AggregationDocumentProcessor CreateDocumentProcessor(
@@ -251,6 +252,10 @@ public sealed class MetricsAggregationService
     private static AggregationReconciliationProcessor CreateReconciliationProcessor(AggregationWorkspaceState state)
         => new AggregationReconciliationProcessor(state);
 
+    private static TypeBranchCoverageApplicabilityProcessor CreateTypeBranchCoverageApplicabilityProcessor(
+        AggregationWorkspaceState state)
+        => new TypeBranchCoverageApplicabilityProcessor(state);
+
     private static AggregationWorkspaceWorkflow AssembleWorkflow(
         AggregationWorkspaceState state,
         WorkflowProcessors processors)
@@ -269,7 +274,7 @@ public sealed class MetricsAggregationService
       [SuppressMessage(
           "Microsoft.Maintainability",
           "CA1506:AvoidExcessiveClassCoupling",
-          Justification = "This factory method must access all five processor properties from the WorkflowProcessors record to construct the AggregationWorkspaceWorkflow. The coupling is inherent to the factory pattern's responsibility of coordinating multiple dependencies. Further reduction would require either dummy wrapper methods or scattering the workflow construction logic, which would harm maintainability.")]
+          Justification = "This factory method must access all six processor properties from the WorkflowProcessors record to construct the AggregationWorkspaceWorkflow. The coupling is inherent to the factory pattern's responsibility of coordinating multiple dependencies. Further reduction would require either dummy wrapper methods or scattering the workflow construction logic, which would harm maintainability.")]
       public static AggregationWorkspaceWorkflow Create(AggregationWorkspaceState state, WorkflowProcessors processors)
       {
         return new AggregationWorkspaceWorkflow(
@@ -278,7 +283,8 @@ public sealed class MetricsAggregationService
             processors.LineIndexProcessor,
             processors.SarifProcessor,
             processors.BaselineProcessor,
-            processors.ReconciliationProcessor);
+            processors.ReconciliationProcessor,
+            processors.BranchCoverageProcessor);
       }
     }
 
@@ -287,7 +293,8 @@ public sealed class MetricsAggregationService
         AggregationLineIndexProcessor LineIndexProcessor,
         AggregationSarifProcessor SarifProcessor,
         AggregationBaselineAndThresholdProcessor BaselineProcessor,
-        AggregationReconciliationProcessor ReconciliationProcessor);
+        AggregationReconciliationProcessor ReconciliationProcessor,
+        TypeBranchCoverageApplicabilityProcessor BranchCoverageProcessor);
   }
 
   private sealed class AggregationWorkspaceState
@@ -350,7 +357,10 @@ public sealed class MetricsAggregationService
     void ReconcileIteratorStateMachineMetrics();
 
     void ReconcilePlainNestedTypeMetrics();
+  }
 
+  private interface ITypeBranchCoverageApplicabilityProcessor
+  {
     void ReconcileTypeBranchCoverageApplicability();
   }
 
@@ -494,50 +504,6 @@ public sealed class MetricsAggregationService
             _state.Members,
             RemoveIteratorTypeFromHierarchy);
 
-    /// <summary>
-    /// Ensures that AltCover branch coverage on type nodes is only kept when at least one
-    /// member on that type has AltCover branch coverage. This prevents misleading 0% branch
-    /// coverage on helper or compiler-generated types whose methods do not expose meaningful
-    /// branch points in the report.
-    /// </summary>
-    public void ReconcileTypeBranchCoverageApplicability()
-    {
-      if (_state.Types.Count == 0)
-      {
-        return;
-      }
-
-      foreach (var typeEntry in _state.Types.Values)
-      {
-        var typeMetrics = typeEntry.Node.Metrics;
-        if (!typeMetrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var typeBranchMetric))
-        {
-          continue;
-        }
-
-        var hasMemberBranchCoverage = false;
-        foreach (var member in typeEntry.Node.Members)
-        {
-          if (member.Metrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var branchMetric) &&
-              branchMetric.Value.HasValue)
-          {
-            hasMemberBranchCoverage = true;
-            break;
-          }
-        }
-
-        // WHY: We only remove type-level branch coverage when it represents a purely
-        // synthetic "0%" value with no corresponding member-level branch metrics.
-        // Non-zero branch coverage remains valuable even if individual methods do
-        // not expose branch metrics (for example, after nested-type reconciliation).
-        if (!hasMemberBranchCoverage &&
-            (!typeBranchMetric.Value.HasValue || typeBranchMetric.Value.Value == 0))
-        {
-          typeMetrics.Remove(MetricIdentifier.AltCoverBranchCoverage);
-        }
-      }
-    }
-
     private void RemoveIteratorTypeFromHierarchy(string iteratorTypeKey, TypeEntry iteratorTypeEntry)
     {
       _state.Types.Remove(iteratorTypeKey);
@@ -553,6 +519,7 @@ public sealed class MetricsAggregationService
         }
       }
     }
+
   }
 
   private sealed class AggregationWorkspaceWorkflow
@@ -563,6 +530,7 @@ public sealed class MetricsAggregationService
     private readonly IAggregationSarifProcessor _sarifProcessor;
     private readonly IAggregationBaselineAndThresholdProcessor _baselineProcessor;
     private readonly IAggregationReconciliationProcessor _reconciliationProcessor;
+    private readonly ITypeBranchCoverageApplicabilityProcessor _branchCoverageProcessor;
 
     public AggregationWorkspaceWorkflow(
         AggregationWorkspaceState state,
@@ -570,7 +538,8 @@ public sealed class MetricsAggregationService
         IAggregationLineIndexProcessor lineIndexProcessor,
         IAggregationSarifProcessor sarifProcessor,
         IAggregationBaselineAndThresholdProcessor baselineProcessor,
-        IAggregationReconciliationProcessor reconciliationProcessor)
+        IAggregationReconciliationProcessor reconciliationProcessor,
+        ITypeBranchCoverageApplicabilityProcessor branchCoverageProcessor)
     {
       _state = state ?? throw new ArgumentNullException(nameof(state));
       _documentProcessor = documentProcessor ?? throw new ArgumentNullException(nameof(documentProcessor));
@@ -578,6 +547,7 @@ public sealed class MetricsAggregationService
       _sarifProcessor = sarifProcessor ?? throw new ArgumentNullException(nameof(sarifProcessor));
       _baselineProcessor = baselineProcessor ?? throw new ArgumentNullException(nameof(baselineProcessor));
       _reconciliationProcessor = reconciliationProcessor ?? throw new ArgumentNullException(nameof(reconciliationProcessor));
+      _branchCoverageProcessor = branchCoverageProcessor ?? throw new ArgumentNullException(nameof(branchCoverageProcessor));
     }
 
     public void MergeStructuralElements(ParsedMetricsDocument document)
@@ -612,7 +582,7 @@ public sealed class MetricsAggregationService
       ProcessDocuments(input);
       _reconciliationProcessor.ReconcileIteratorStateMachineMetrics();
       _reconciliationProcessor.ReconcilePlainNestedTypeMetrics();
-      _reconciliationProcessor.ReconcileTypeBranchCoverageApplicability();
+      _branchCoverageProcessor.ReconcileTypeBranchCoverageApplicability();
       _baselineProcessor.ApplyBaselineAndThresholds(input.Baseline, input.Thresholds);
     }
 
@@ -632,6 +602,9 @@ public sealed class MetricsAggregationService
 
     public void ReconcilePlainNestedTypeMetrics()
         => _reconciliationProcessor.ReconcilePlainNestedTypeMetrics();
+
+    public void ReconcileTypeBranchCoverageApplicability()
+        => _branchCoverageProcessor.ReconcileTypeBranchCoverageApplicability();
   }
 
   private static void MergeMetric(MetricsNode node, MetricIdentifier identifier, MetricValue value, bool aggregate)
@@ -682,6 +655,71 @@ public sealed class MetricsAggregationService
         Breakdown = SarifBreakdownHelper.Clone(value.Breakdown)
       };
     }
+  }
+
+  /// <summary>
+  /// Normalizes AltCover branch coverage at the type level so compiler-generated helper types
+  /// do not introduce misleading 0% coverage when their members lack branch metrics.
+  /// </summary>
+  private sealed class TypeBranchCoverageApplicabilityProcessor : ITypeBranchCoverageApplicabilityProcessor
+  {
+    private readonly AggregationWorkspaceState _state;
+
+    public TypeBranchCoverageApplicabilityProcessor(AggregationWorkspaceState state)
+    {
+      _state = state ?? throw new ArgumentNullException(nameof(state));
+    }
+
+    public void ReconcileTypeBranchCoverageApplicability()
+    {
+      if (_state.Types.Count == 0)
+      {
+        return;
+      }
+
+      foreach (var typeEntry in _state.Types.Values)
+      {
+        EnsureTypeCoverageIsApplicable(typeEntry);
+      }
+    }
+
+    private static void EnsureTypeCoverageIsApplicable(TypeEntry typeEntry)
+    {
+      var typeMetrics = typeEntry.Node.Metrics;
+      if (!typeMetrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var typeBranchMetric))
+      {
+        return;
+      }
+
+      if (HasMemberBranchCoverage(typeEntry.Node.Members))
+      {
+        return;
+      }
+
+      // WHY: AltCover reports 0% coverage for helper types that never expose branch metrics.
+      // Removing the metric entirely keeps the report actionable and avoids false alarms.
+      if (IsSyntheticZeroCoverage(typeBranchMetric))
+      {
+        typeMetrics.Remove(MetricIdentifier.AltCoverBranchCoverage);
+      }
+    }
+
+    private static bool HasMemberBranchCoverage(IList<MemberMetricsNode> members)
+    {
+      foreach (var member in members)
+      {
+        if (member.Metrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var branchMetric) &&
+            branchMetric.Value.HasValue)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    private static bool IsSyntheticZeroCoverage(MetricValue metric)
+      => !metric.Value.HasValue || metric.Value.Value == 0;
   }
 
 
