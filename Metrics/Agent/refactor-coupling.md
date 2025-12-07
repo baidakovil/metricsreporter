@@ -20,7 +20,7 @@ Using the `metricsreporter read` command, get the first "problematic" symbol tha
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter read --namespace <given_namespace> --metric Coupling --symbol-kind Any --all
+dotnet tool run metricsreporter read --namespace <given_namespace> --metric Coupling --symbol-kind Any
 ```
 
 If you receive a message that no suitable symbols are found (instead of an object with fields `symbolFqn`, `symbolType`, `metric`, `value`, `threshold`, `delta`, `filePath`, `status`, `isSuppressed`), this means there are no problematic symbols: complete the task. Provide `--report Metrics/MetricsReport.g.json` if you are not using the default config.
