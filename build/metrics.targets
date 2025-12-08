@@ -5,12 +5,30 @@
   - SetSarifErrorLog: configures compiler SARIF output when enabled.
 -->
 <Project>
+  <!-- Computed AltCover arguments -->
+  <PropertyGroup>
+    <AltCoverFormatArg Condition="'$(AltCoverUseOpenCover)' == 'true'"> --reportFormat=OpenCover</AltCoverFormatArg>
+    <AltCoverAssemblyFilterArg Condition="'$(AltCoverAssemblyFilter)' != ''"> --assemblyFilter="$(AltCoverAssemblyFilter)"</AltCoverAssemblyFilterArg>
+    <AltCoverTypeFilterArg Condition="'$(AltCoverTypeFilter)' != ''"> --typeFilter="$(AltCoverTypeFilter)"</AltCoverTypeFilterArg>
+    <AltCoverMethodFilterArg Condition="'$(AltCoverMethodFilter)' != ''"> --methodFilter="$(AltCoverMethodFilter)"</AltCoverMethodFilterArg>
+    <AltCoverAttributeFilterArg Condition="'$(AltCoverAttributeFilter)' != ''"> --attributeFilter="$(AltCoverAttributeFilter)"</AltCoverAttributeFilterArg>
+    <AltCoverAdditionalArgs Condition="'$(AltCoverAdditionalInstrumentationArgs)' != ''"> $(AltCoverAdditionalInstrumentationArgs)</AltCoverAdditionalArgs>
+  </PropertyGroup>
+
   <!-- Ensure SARIF directory exists when SARIF logging is enabled -->
   <Target Name="PrepareMetricsDirectories"
           BeforeTargets="CoreCompile"
           Condition="'$(DesignTimeBuild)' != 'true'">
     <MakeDir Condition="'$(SarifMetricsEnabled)' == 'true' and '$(SarifOutputDir)' != ''"
              Directories="$(SarifOutputDir)" />
+  </Target>
+
+  <!-- Ensure AltCover directories exist when instrumentation/collection/reporting is enabled -->
+  <Target Name="PrepareAltCoverDirectories"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DesignTimeBuild)' != 'true' and ( '$(AltCoverInstrumentationEnabled)' == 'true' or '$(AltCoverCollectionEnabled)' == 'true' or '$(AltCoverHtmlReportEnabled)' == 'true')">
+    <MakeDir Directories="$(AltCoverOutputDir)" />
+    <MakeDir Condition="'$(AltCoverHtmlReportEnabled)' == 'true'" Directories="$(AltCoverHtmlOutputDir)" />
   </Target>
 
   <!-- Run Roslyn Metrics.exe once on the anchor project to produce SolutionMetrics.g.xml -->
@@ -32,6 +50,77 @@
     <PropertyGroup>
       <ErrorLog>$(SarifOutputDir)\$(MSBuildProjectName).sarif,version=2.1</ErrorLog>
     </PropertyGroup>
+  </Target>
+
+  <!-- Instrument primary projects in-place with AltCover -->
+  <Target Name="InstrumentWithAltCover"
+          AfterTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(AltCoverInstrumentationEnabled)' == 'true' and '@(AltCoverProject->AnyHaveMetadataValue(''ProjectName'', ''$(MSBuildProjectName)''))' == 'true'">
+    <ItemGroup>
+      <_CurrentAltCoverProject Include="@(AltCoverProject)" Condition="'%(ProjectName)' == '$(MSBuildProjectName)'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_AltCoverInputDir>%(_CurrentAltCoverProject.ProjectOutputDir)</_AltCoverInputDir>
+      <_AltCoverSavedDir>$(_AltCoverInputDir)\__Saved</_AltCoverSavedDir>
+      <_AltCoverTemplateFile>%(_CurrentAltCoverProject.TemplateCoverageFile)</_AltCoverTemplateFile>
+      <_AltCoverReportFile>%(_CurrentAltCoverProject.CoverageFile)</_AltCoverReportFile>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(AltCoverOutputDir)" />
+    <Delete Files="$(_AltCoverTemplateFile)" Condition="Exists('$(_AltCoverTemplateFile)')" />
+    <RemoveDir Directories="$(_AltCoverSavedDir)" Condition="Exists('$(_AltCoverSavedDir)')" />
+    <Message Text="Instrumenting $(_AltCoverInputDir) with AltCover; output $(_AltCoverTemplateFile)." Importance="High" Condition="'$(AltCoverVerbose)' == 'true'" />
+
+    <Exec Command='$(AltCoverToolCommand) --inputDirectory="$(_AltCoverInputDir)" --inplace --save$(AltCoverFormatArg) --report="$(_AltCoverTemplateFile)"$(AltCoverAssemblyFilterArg)$(AltCoverTypeFilterArg)$(AltCoverMethodFilterArg)$(AltCoverAttributeFilterArg)$(AltCoverAdditionalArgs)'
+          ContinueOnError="false" />
+  </Target>
+
+  <!-- Collect coverage once after tests complete (anchored on test project) -->
+  <Target Name="CollectAltCoverCoverage"
+          AfterTargets="Test;VSTest"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(AltCoverCollectionEnabled)' == 'true' and '$(MSBuildProjectName)' == '$(AltCoverCollectorAnchorProject)'">
+    <PropertyGroup>
+      <AltCoverQuietFlags Condition="'$(AltCoverVerbose)' != 'true'">-q</AltCoverQuietFlags>
+      <AltCoverQuietFlags Condition="'$(AltCoverVerbose)' == 'true'"></AltCoverQuietFlags>
+      <ReportGeneratorVerbosity Condition="'$(AltCoverVerbose)' != 'true'">Error</ReportGeneratorVerbosity>
+      <ReportGeneratorVerbosity Condition="'$(AltCoverVerbose)' == 'true'">Info</ReportGeneratorVerbosity>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_AltCoverCollector Include="@(AltCoverProject)">
+        <RecorderDir>%(ProjectOutputDir)</RecorderDir>
+        <CoverageFile>%(CoverageFile)</CoverageFile>
+        <ProjectFile>%(ProjectFile)</ProjectFile>
+        <ProjectName>%(ProjectName)</ProjectName>
+      </_AltCoverCollector>
+    </ItemGroup>
+
+    <Message Text="Collecting coverage from %(_AltCoverCollector.RecorderDir) into %(_AltCoverCollector.CoverageFile)." Importance="High" Condition="'$(AltCoverVerbose)' == 'true'" />
+
+    <!-- Ensure dependent projects are built (and instrumented) before collection -->
+    <MSBuild Projects="%(_AltCoverCollector.ProjectFile)"
+             Targets="Build"
+             Properties="AltCoverInstrumentationEnabled=$(AltCoverInstrumentationEnabled);AltCoverCollectionEnabled=false;AltCoverHtmlReportEnabled=false"
+             Condition="Exists('%(_AltCoverCollector.ProjectFile)')" />
+
+    <Delete Files="%(_AltCoverCollector.CoverageFile)" Condition="Exists('%(_AltCoverCollector.CoverageFile)')" />
+
+    <Exec Command='$(AltCoverToolCommand) runner --collect --recorderDirectory="%(_AltCoverCollector.RecorderDir)" --outputFile="%(_AltCoverCollector.CoverageFile)" $(AltCoverQuietFlags)'
+          ContinueOnError="false"
+          Condition="Exists('%(_AltCoverCollector.RecorderDir)') and Exists('%(_AltCoverCollector.RecorderDir)\AltCover.Recorder.g.dll')" />
+
+    <ItemGroup>
+      <_CollectedCoverage Include="%(_AltCoverCollector.CoverageFile)" Condition="Exists('%(_AltCoverCollector.CoverageFile)')" />
+    </ItemGroup>
+
+    <Error Text="AltCover coverage files were not produced under $(AltCoverOutputDir). Ensure instrumentation ran and tests executed against instrumented assemblies."
+           Condition="'@(_CollectedCoverage)' == ''" />
+
+    <MakeDir Directories="$(AltCoverHtmlOutputDir)" Condition="'$(AltCoverHtmlReportEnabled)' == 'true'" />
+    <Exec Command="$(ReportGeneratorToolCommand) -reports:&quot;@(_CollectedCoverage->'%(FullPath)', ';')&quot; -targetdir:&quot;$(AltCoverHtmlOutputDir)&quot; -reporttypes:Html -verbosity:$(ReportGeneratorVerbosity)"
+          ContinueOnError="false"
+          Condition="'$(AltCoverHtmlReportEnabled)' == 'true' and '@(_CollectedCoverage)' != ''" />
   </Target>
 </Project>
 

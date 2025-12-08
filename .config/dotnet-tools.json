@@ -8,6 +8,20 @@
         "metricsreporter"
       ],
       "rollForward": false
+    },
+    "dotnet-reportgenerator-globaltool": {
+      "version": "5.5.1",
+      "commands": [
+        "reportgenerator"
+      ],
+      "rollForward": false
+    },
+    "altcover.global": {
+      "version": "9.0.102",
+      "commands": [
+        "altcover"
+      ],
+      "rollForward": false
     }
   }
 }

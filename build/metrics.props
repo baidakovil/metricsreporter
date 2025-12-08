@@ -4,16 +4,22 @@
   location; scripts and targets consume these properties.
 -->
 <Project>
+  <!-- Determine repository root even when SolutionDir is not provided (e.g., dotnet test project) -->
+  <PropertyGroup>
+    <_MetricsRoot Condition="'$(SolutionDir)' != ''">$([System.String]::Copy('$(SolutionDir)').TrimEnd('\'))</_MetricsRoot>
+    <_MetricsRoot Condition="'$(SolutionDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</_MetricsRoot>
+  </PropertyGroup>
+
   <PropertyGroup>
     <!-- Root for all metrics artifacts -->
-    <MetricsDir>$(SolutionDir)Metrics</MetricsDir>
+    <MetricsDir>$(_MetricsRoot)\Metrics</MetricsDir>
     <!-- Roslyn metrics output -->
     <RoslynOutputDir>$(MetricsDir)\Roslyn</RoslynOutputDir>
     <!-- SARIF output from compiler -->
     <SarifOutputDir>$(MetricsDir)\Sarif</SarifOutputDir>
     <!-- Roslyn metrics inputs/outputs -->
     <RoslynSolutionMetricsOutputFile>$(RoslynOutputDir)\SolutionMetrics.g.xml</RoslynSolutionMetricsOutputFile>
-    <RoslynMetricsSolutionPath>$(SolutionDir)MetricsReporter.sln</RoslynMetricsSolutionPath>
+    <RoslynMetricsSolutionPath>$(_MetricsRoot)\MetricsReporter.sln</RoslynMetricsSolutionPath>
     <!-- Metrics.exe location -->
     <RoslynMetricsToolDir>$(MSBuildThisFileDirectory)..\Resources\metrics\win-arm64</RoslynMetricsToolDir>
     <RoslynMetricsToolExe>$(RoslynMetricsToolDir)\Metrics.exe</RoslynMetricsToolExe>
@@ -23,5 +29,48 @@
     <!-- Anchor project to run GenerateSolutionMetrics once -->
     <MetricsTargetsAnchorProject Condition="'$(MetricsTargetsAnchorProject)' == ''">MetricsReporter</MetricsTargetsAnchorProject>
   </PropertyGroup>
+
+  <!-- AltCover coverage configuration -->
+  <PropertyGroup>
+    <!-- Output locations -->
+    <AltCoverOutputDir Condition="'$(AltCoverOutputDir)' == ''">$(MetricsDir)\AltCover</AltCoverOutputDir>
+    <AltCoverHtmlOutputDir Condition="'$(AltCoverHtmlOutputDir)' == ''">$(AltCoverOutputDir)\Html</AltCoverHtmlOutputDir>
+    <!-- Feature flags -->
+    <AltCoverInstrumentationEnabled Condition="'$(AltCoverInstrumentationEnabled)' == ''">false</AltCoverInstrumentationEnabled>
+    <AltCoverCollectionEnabled Condition="'$(AltCoverCollectionEnabled)' == ''">false</AltCoverCollectionEnabled>
+    <AltCoverHtmlReportEnabled Condition="'$(AltCoverHtmlReportEnabled)' == ''">false</AltCoverHtmlReportEnabled>
+    <AltCoverVerbose Condition="'$(AltCoverVerbose)' == ''">false</AltCoverVerbose>
+    <AltCoverInstrumentedTargetFramework Condition="'$(AltCoverInstrumentedTargetFramework)' == ''">net8.0</AltCoverInstrumentedTargetFramework>
+    <!-- Tool commands -->
+    <AltCoverToolCommand Condition="'$(AltCoverToolCommand)' == ''">dotnet tool run altcover</AltCoverToolCommand>
+    <ReportGeneratorToolCommand Condition="'$(ReportGeneratorToolCommand)' == ''">dotnet tool run reportgenerator</ReportGeneratorToolCommand>
+    <!-- Filters and formatting -->
+    <AltCoverAssemblyFilter Condition="'$(AltCoverAssemblyFilter)' == ''">Spectre</AltCoverAssemblyFilter>
+    <AltCoverTypeFilter Condition="'$(AltCoverTypeFilter)' == ''"></AltCoverTypeFilter>
+    <AltCoverMethodFilter Condition="'$(AltCoverMethodFilter)' == ''"></AltCoverMethodFilter>
+    <AltCoverAttributeFilter Condition="'$(AltCoverAttributeFilter)' == ''"></AltCoverAttributeFilter>
+    <AltCoverUseOpenCover Condition="'$(AltCoverUseOpenCover)' == ''">true</AltCoverUseOpenCover>
+    <AltCoverAdditionalInstrumentationArgs Condition="'$(AltCoverAdditionalInstrumentationArgs)' == ''"></AltCoverAdditionalInstrumentationArgs>
+    <!-- Collection anchor (runs once after tests) -->
+    <AltCoverCollectorAnchorProject Condition="'$(AltCoverCollectorAnchorProject)' == ''">MetricsReporter.Tests</AltCoverCollectorAnchorProject>
+  </PropertyGroup>
+
+  <!-- Item group describing instrumented projects and their coverage outputs (explicit entries, no Identity usage) -->
+  <ItemGroup>
+    <AltCoverProject Include="MetricsReporter">
+      <ProjectName>MetricsReporter</ProjectName>
+      <ProjectOutputDir>$(_MetricsRoot)\MetricsReporter\bin\$(Configuration)\$(AltCoverInstrumentedTargetFramework)</ProjectOutputDir>
+      <CoverageFile>$(AltCoverOutputDir)\MetricsReporter.coverage.xml</CoverageFile>
+      <TemplateCoverageFile>$(AltCoverOutputDir)\MetricsReporter.coverage.template.xml</TemplateCoverageFile>
+      <ProjectFile>$(_MetricsRoot)\MetricsReporter\MetricsReporter.csproj</ProjectFile>
+    </AltCoverProject>
+    <AltCoverProject Include="MetricsReporter.Tool">
+      <ProjectName>MetricsReporter.Tool</ProjectName>
+      <ProjectOutputDir>$(_MetricsRoot)\MetricsReporter.Tool\bin\$(Configuration)\$(AltCoverInstrumentedTargetFramework)</ProjectOutputDir>
+      <CoverageFile>$(AltCoverOutputDir)\MetricsReporter.Tool.coverage.xml</CoverageFile>
+      <TemplateCoverageFile>$(AltCoverOutputDir)\MetricsReporter.Tool.coverage.template.xml</TemplateCoverageFile>
+      <ProjectFile>$(_MetricsRoot)\MetricsReporter.Tool\MetricsReporter.Tool.csproj</ProjectFile>
+    </AltCoverProject>
+  </ItemGroup>
 </Project>
 
