@@ -20,10 +20,10 @@ Summary of my test work:
 - Coverage completeness verdict 1–5 (1=poor, 5=excellent)
 
 ### 2. Rules and Best Practices Compliance
-**Question:** Do the tests comply with `MetricsReporter.Tests/.cursor/rules/csharp-nunit.prompt.mdc`, `@refactor-coverage.md` (branch coverage targets, 2–5 scenarios, meaningful names, edge/exception cases), and MS/NUnit recommendations?
+**Question:** Do the tests comply with `MetricsReporter.Tests/.cursor/rules/csharp-nunit.prompt.mdc`, `@refactor-coverage.md` (branch coverage targets, 2–5 scenarios, meaningful names, edge/exception cases, a 1–4 line pre-test description of intent), and MS/NUnit recommendations?
 **Answer format:**
 - If professional: one line with advantages (e.g., "Clear AAA, focused asserts, boundary mocks").
-- If there are issues: one line per problem or `.mdc` non-compliance (AAA broken, missing edge/exception cases, weak isolation, duplicate Arrange/Act, missing FluentAssertions, nullable contract ignored, vague names, shallow asserts, etc.).
+- If there are issues: one line per problem or `.mdc` non-compliance (AAA broken, missing edge/exception cases, weak isolation, duplicate Arrange/Act, missing FluentAssertions, nullable contract ignored, vague names, missing 1–4 line intent description before the test, shallow asserts, etc.).
 
 ### 3. Improvement Recommendations
 **Question:** How can the test be improved or removed if needed?

@@ -27,6 +27,7 @@ Your goal is to help me write effective unit tests with NUnit for a Revit add-in
 - Apply `[TestFixture]` attribute to test classes
 - Use `[Test]` attribute for test methods
 - Follow the Arrange-Act-Assert (AAA) pattern
+- Precede each test with a 1–4 line description of the intent: what behavior/scenario it verifies and why it matters
 - Name tests using the pattern `MethodName_Scenario_ExpectedBehavior`
 - Use `[SetUp]` and `[TearDown]` for per-test setup and teardown
 - Use `[OneTimeSetUp]` and `[OneTimeTearDown]` for per-class setup and teardown

@@ -11,6 +11,7 @@
 	•	Follow requirements from `MetricsReporter.Tests/.cursor/rules/csharp-nunit.prompt.mdc`
 	•	Use mock objects (NSubstitute) for dependency isolation
 	•	Use meaningful test names that reflect the scenario being tested (pattern: `MethodName_Scenario_ExpectedBehavior`)
+	•	Add a 1–4 line description before each test explaining what it verifies and why it matters
 	•	Test both successful and failure scenarios
 	•	Check boundary conditions and edge cases
 	•	Do not ignore exceptions, nullable annotations, or complex states
@@ -85,6 +86,7 @@ If tests should be written, proceed as follows:
    - **Arrange**: Set up test data, mocks, and initial state
    - **Act**: Execute the method under test
    - **Assert**: Verify the expected outcome using FluentAssertions
+   - Precede the test with a 1–4 line description of the scenario and its purpose
 3. Use meaningful test names following the pattern `MethodName_Scenario_ExpectedBehavior`
 4. Ensure tests follow all requirements from `@tests/.cursor/rules/csharp-nunit.prompt.mdc`
 5. Verify that the solution build is successful: `dotnet build --no-incremental`. If the build fails, fix the code until the build is green.
