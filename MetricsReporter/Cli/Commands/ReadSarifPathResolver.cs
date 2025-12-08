@@ -10,7 +10,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves paths required by the readsarif command.
 /// </summary>
-internal sealed class ReadSarifPathResolver
+internal static class ReadSarifPathResolver
 {
   /// <summary>
   /// Resolves report and thresholds paths using CLI, environment, and configuration values.
@@ -18,7 +18,7 @@ internal sealed class ReadSarifPathResolver
   /// <param name="settings">Readsarif CLI settings.</param>
   /// <param name="configuration">Previously resolved configuration.</param>
   /// <returns>Path resolution result.</returns>
-  public PathResolutionResult Resolve(ReadSarifSettings settings, ConfigurationLoadResult configuration)
+  public static PathResolutionResult Resolve(ReadSarifSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

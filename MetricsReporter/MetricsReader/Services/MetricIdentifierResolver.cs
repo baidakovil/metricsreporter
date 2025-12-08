@@ -84,7 +84,7 @@ internal sealed class MetricIdentifierResolver
     return $"Unknown metric identifier or alias '{input}'. Known identifiers: {knownIdentifiers}.{aliasText}";
   }
 
-  private static IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> NormalizeAliases(
+  private static Dictionary<MetricIdentifier, IReadOnlyList<string>> NormalizeAliases(
     IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> aliases)
   {
     if (aliases.Count == 0)
@@ -96,7 +96,7 @@ internal sealed class MetricIdentifierResolver
     foreach (var (identifier, values) in aliases)
     {
       var cleaned = CollectAliases(identifier, values);
-      if (cleaned.Count > 0)
+      if (cleaned.Length > 0)
       {
         normalized[identifier] = cleaned;
       }
@@ -105,7 +105,7 @@ internal sealed class MetricIdentifierResolver
     return normalized;
   }
 
-  private static IReadOnlyList<string> CollectAliases(MetricIdentifier identifier, IReadOnlyList<string>? values)
+  private static string[] CollectAliases(MetricIdentifier identifier, IReadOnlyList<string>? values)
   {
     var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     var aliases = values ?? Array.Empty<string>();

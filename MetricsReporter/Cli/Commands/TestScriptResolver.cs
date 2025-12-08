@@ -9,7 +9,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves scripts for the test command using configuration precedence.
 /// </summary>
-internal sealed class TestScriptResolver
+internal static class TestScriptResolver
 {
   /// <summary>
   /// Resolves scripts to run around the test pipeline.
@@ -21,7 +21,7 @@ internal sealed class TestScriptResolver
     "Microsoft.Maintainability",
     "CA1506:AvoidExcessiveClassCoupling",
     Justification = "Script resolution coordinates CLI, environment, and configuration sources to honor precedence.")]
-  public ScriptResolutionResult Resolve(TestSettings settings, ConfigurationLoadResult configuration)
+  public static ScriptResolutionResult Resolve(TestSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

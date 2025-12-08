@@ -10,7 +10,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves scripts for the generate command using configuration precedence.
 /// </summary>
-internal sealed class GenerateScriptResolver
+internal static class GenerateScriptResolver
 {
   private static readonly IReadOnlyList<string> NoScripts = Array.Empty<string>();
   private static readonly IReadOnlyList<(string Metric, string Path)> NoMetricScripts = Array.Empty<(string Metric, string Path)>();
@@ -21,7 +21,7 @@ internal sealed class GenerateScriptResolver
   /// <param name="settings">Generate CLI settings.</param>
   /// <param name="configuration">Resolved configuration.</param>
   /// <returns>Script resolution result.</returns>
-  public ScriptResolutionResult Resolve(GenerateSettings settings, ConfigurationLoadResult configuration)
+  public static ScriptResolutionResult Resolve(GenerateSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

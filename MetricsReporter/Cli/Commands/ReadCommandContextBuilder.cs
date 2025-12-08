@@ -15,8 +15,6 @@ namespace MetricsReporter.Cli.Commands;
 internal sealed class ReadCommandContextBuilder
 {
   private readonly ReadConfigurationProvider _configurationProvider;
-  private readonly ReadPathResolver _pathResolver;
-  private readonly ReadScriptResolver _scriptResolver;
   private readonly ReadSettingsAssembler _settingsAssembler;
 
   public ReadCommandContextBuilder(MetricsReporterConfigLoader configLoader)
@@ -24,8 +22,6 @@ internal sealed class ReadCommandContextBuilder
     ArgumentNullException.ThrowIfNull(configLoader);
 
     _configurationProvider = new ReadConfigurationProvider(configLoader);
-    _pathResolver = new ReadPathResolver();
-    _scriptResolver = new ReadScriptResolver();
     _settingsAssembler = new ReadSettingsAssembler();
   }
 
@@ -48,13 +44,13 @@ internal sealed class ReadCommandContextBuilder
       return BuildReadContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var paths = _pathResolver.Resolve(settings, configuration);
+    var paths = ReadPathResolver.Resolve(settings, configuration);
     if (!paths.Succeeded || string.IsNullOrWhiteSpace(paths.ReportPath))
     {
       return BuildReadContextResult.CreateFailure(paths.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = _scriptResolver.Resolve(settings, configuration);
+    var scripts = ReadScriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildReadContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);

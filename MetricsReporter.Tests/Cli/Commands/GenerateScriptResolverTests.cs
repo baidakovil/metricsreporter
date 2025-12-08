@@ -21,10 +21,9 @@ public sealed class GenerateScriptResolverTests
   [Test]
   public void Resolve_WithNullSettings_Throws()
   {
-    var resolver = new GenerateScriptResolver();
     var configuration = CreateConfiguration(envGenerate: Array.Empty<string>(), fileGenerate: Array.Empty<string>());
 
-    Action act = () => resolver.Resolve(null!, configuration);
+    Action act = () => GenerateScriptResolver.Resolve(null!, configuration);
 
     act.Should().Throw<ArgumentNullException>();
   }
@@ -32,13 +31,12 @@ public sealed class GenerateScriptResolverTests
   [Test]
   public void Resolve_WithCliScripts_OverridesEnvAndFile()
   {
-    var resolver = new GenerateScriptResolver();
     var settings = new GenerateSettings { Scripts = new List<string> { "cli.ps1" } };
     var configuration = CreateConfiguration(
       envGenerate: new[] { "env.ps1" },
       fileGenerate: new[] { "file.ps1" });
 
-    var result = resolver.Resolve(settings, configuration);
+    var result = GenerateScriptResolver.Resolve(settings, configuration);
 
     result.Succeeded.Should().BeTrue();
     result.Scripts!.Generate.Should().BeEquivalentTo("cli.ps1");
@@ -51,13 +49,12 @@ public sealed class GenerateScriptResolverTests
   [Test]
   public void Resolve_WhenCliEmpty_UsesEnvironmentGenerateScripts()
   {
-    var resolver = new GenerateScriptResolver();
     var settings = new GenerateSettings();
     var configuration = CreateConfiguration(
       envGenerate: new[] { "env.ps1" },
       fileGenerate: new[] { "file.ps1" });
 
-    var result = resolver.Resolve(settings, configuration);
+    var result = GenerateScriptResolver.Resolve(settings, configuration);
 
     result.Succeeded.Should().BeTrue();
     result.Scripts!.Generate.Should().BeEquivalentTo("env.ps1");
@@ -66,13 +63,12 @@ public sealed class GenerateScriptResolverTests
   [Test]
   public void Resolve_WhenCliAndEnvironmentEmpty_FallsBackToFileScripts()
   {
-    var resolver = new GenerateScriptResolver();
     var settings = new GenerateSettings();
     var configuration = CreateConfiguration(
       envGenerate: null,
       fileGenerate: new[] { "file.ps1" });
 
-    var result = resolver.Resolve(settings, configuration);
+    var result = GenerateScriptResolver.Resolve(settings, configuration);
 
     result.Succeeded.Should().BeTrue();
     result.Scripts!.Generate.Should().BeEquivalentTo("file.ps1");
@@ -81,11 +77,10 @@ public sealed class GenerateScriptResolverTests
   [Test]
   public void Resolve_WhenNoSourcesPresent_ReturnsEmptyGenerateScripts()
   {
-    var resolver = new GenerateScriptResolver();
     var settings = new GenerateSettings();
     var configuration = CreateConfiguration(envGenerate: Array.Empty<string>(), fileGenerate: Array.Empty<string>());
 
-    var result = resolver.Resolve(settings, configuration);
+    var result = GenerateScriptResolver.Resolve(settings, configuration);
 
     result.Succeeded.Should().BeTrue();
     result.Scripts!.Generate.Should().BeEmpty();

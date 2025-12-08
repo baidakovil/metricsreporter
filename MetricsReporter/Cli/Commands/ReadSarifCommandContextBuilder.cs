@@ -15,8 +15,6 @@ namespace MetricsReporter.Cli.Commands;
 internal sealed class ReadSarifCommandContextBuilder
 {
   private readonly ReadSarifConfigurationProvider _configurationProvider;
-  private readonly ReadSarifPathResolver _pathResolver;
-  private readonly ReadSarifScriptResolver _scriptResolver;
   private readonly SarifSettingsAssembler _settingsAssembler;
 
   public ReadSarifCommandContextBuilder(MetricsReporterConfigLoader configLoader)
@@ -24,8 +22,6 @@ internal sealed class ReadSarifCommandContextBuilder
     ArgumentNullException.ThrowIfNull(configLoader);
 
     _configurationProvider = new ReadSarifConfigurationProvider(configLoader);
-    _pathResolver = new ReadSarifPathResolver();
-    _scriptResolver = new ReadSarifScriptResolver();
     _settingsAssembler = new SarifSettingsAssembler();
   }
 
@@ -48,13 +44,13 @@ internal sealed class ReadSarifCommandContextBuilder
       return BuildSarifContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var paths = _pathResolver.Resolve(settings, configuration);
+    var paths = ReadSarifPathResolver.Resolve(settings, configuration);
     if (!paths.Succeeded || string.IsNullOrWhiteSpace(paths.ReportPath))
     {
       return BuildSarifContextResult.CreateFailure(paths.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = _scriptResolver.Resolve(settings, configuration);
+    var scripts = ReadSarifScriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildSarifContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);

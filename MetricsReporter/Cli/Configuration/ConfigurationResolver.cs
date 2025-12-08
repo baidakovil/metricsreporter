@@ -218,7 +218,7 @@ internal static class ConfigurationResolver
       }
 
       var normalizedAliases = NormalizeAliases(aliases);
-      if (normalizedAliases.Count == 0)
+      if (normalizedAliases.Length == 0)
       {
         target.Remove(identifier);
         continue;
@@ -228,7 +228,7 @@ internal static class ConfigurationResolver
     }
   }
 
-  private static IReadOnlyList<string> NormalizeAliases(IEnumerable<string>? aliases)
+  private static string[] NormalizeAliases(IEnumerable<string>? aliases)
   {
     if (aliases is null)
     {

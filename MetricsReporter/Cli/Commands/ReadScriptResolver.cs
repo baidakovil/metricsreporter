@@ -9,7 +9,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves scripts for the read command using configuration precedence.
 /// </summary>
-internal sealed class ReadScriptResolver
+internal static class ReadScriptResolver
 {
   /// <summary>
   /// Resolves scripts to run for the read pipeline.
@@ -21,7 +21,7 @@ internal sealed class ReadScriptResolver
     "Microsoft.Maintainability",
     "CA1506:AvoidExcessiveClassCoupling",
     Justification = "Script resolution coordinates CLI, environment, and configuration sources to honor precedence.")]
-  public ScriptResolutionResult Resolve(ReadSettings settings, ConfigurationLoadResult configuration)
+  public static ScriptResolutionResult Resolve(ReadSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

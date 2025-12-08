@@ -15,8 +15,6 @@ namespace MetricsReporter.Cli.Commands;
 internal sealed class TestCommandContextBuilder
 {
   private readonly TestConfigurationProvider _configurationProvider;
-  private readonly TestPathResolver _pathResolver;
-  private readonly TestScriptResolver _scriptResolver;
   private readonly TestSettingsAssembler _settingsAssembler;
 
   public TestCommandContextBuilder(MetricsReporterConfigLoader configLoader)
@@ -24,8 +22,6 @@ internal sealed class TestCommandContextBuilder
     ArgumentNullException.ThrowIfNull(configLoader);
 
     _configurationProvider = new TestConfigurationProvider(configLoader);
-    _pathResolver = new TestPathResolver();
-    _scriptResolver = new TestScriptResolver();
     _settingsAssembler = new TestSettingsAssembler();
   }
 
@@ -48,13 +44,13 @@ internal sealed class TestCommandContextBuilder
       return BuildTestContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var paths = _pathResolver.Resolve(settings, configuration);
+    var paths = TestPathResolver.Resolve(settings, configuration);
     if (!paths.Succeeded || string.IsNullOrWhiteSpace(paths.ReportPath))
     {
       return BuildTestContextResult.CreateFailure(paths.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = _scriptResolver.Resolve(settings, configuration);
+    var scripts = TestScriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildTestContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);

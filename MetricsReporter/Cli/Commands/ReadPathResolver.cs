@@ -10,7 +10,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves report and thresholds paths for the read command.
 /// </summary>
-internal sealed class ReadPathResolver
+internal static class ReadPathResolver
 {
   /// <summary>
   /// Resolves report and thresholds paths using CLI, environment, and configuration values.
@@ -18,7 +18,7 @@ internal sealed class ReadPathResolver
   /// <param name="settings">Read CLI settings.</param>
   /// <param name="configuration">Previously resolved configuration.</param>
   /// <returns>Path resolution result.</returns>
-  public PathResolutionResult Resolve(ReadSettings settings, ConfigurationLoadResult configuration)
+  public static PathResolutionResult Resolve(ReadSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

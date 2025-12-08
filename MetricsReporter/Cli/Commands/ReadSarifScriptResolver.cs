@@ -9,7 +9,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves scripts for the readsarif command using configuration precedence.
 /// </summary>
-internal sealed class ReadSarifScriptResolver
+internal static class ReadSarifScriptResolver
 {
   /// <summary>
   /// Resolves scripts to run for the readsarif pipeline.
@@ -21,7 +21,7 @@ internal sealed class ReadSarifScriptResolver
     "Microsoft.Maintainability",
     "CA1506:AvoidExcessiveClassCoupling",
     Justification = "Script resolution coordinates CLI, environment, and configuration sources to honor precedence.")]
-  public ScriptResolutionResult Resolve(ReadSarifSettings settings, ConfigurationLoadResult configuration)
+  public static ScriptResolutionResult Resolve(ReadSarifSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

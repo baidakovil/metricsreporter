@@ -10,7 +10,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves report and thresholds paths for the test command.
 /// </summary>
-internal sealed class TestPathResolver
+internal static class TestPathResolver
 {
   /// <summary>
   /// Resolves paths using CLI, environment, and configuration values.
@@ -18,7 +18,7 @@ internal sealed class TestPathResolver
   /// <param name="settings">Test CLI settings.</param>
   /// <param name="configuration">Previously resolved configuration.</param>
   /// <returns>Path resolution result.</returns>
-  public PathResolutionResult Resolve(TestSettings settings, ConfigurationLoadResult configuration)
+  public static PathResolutionResult Resolve(TestSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);

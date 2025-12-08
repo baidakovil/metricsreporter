@@ -12,7 +12,7 @@ namespace MetricsReporter.Cli.Commands;
 /// <summary>
 /// Resolves generate command inputs and builds the log path based on sources precedence.
 /// </summary>
-internal sealed class GenerateInputResolver
+internal static class GenerateInputResolver
 {
   private static readonly char[] FolderSeparators = [',', ';'];
 
@@ -22,7 +22,7 @@ internal sealed class GenerateInputResolver
   /// <param name="settings">Generate CLI settings.</param>
   /// <param name="configuration">Previously resolved configuration.</param>
   /// <returns>Input resolution result including the log path.</returns>
-  public GenerateInputResolutionResult Resolve(GenerateSettings settings, ConfigurationLoadResult configuration)
+  public static GenerateInputResolutionResult Resolve(GenerateSettings settings, ConfigurationLoadResult configuration)
   {
     ArgumentNullException.ThrowIfNull(settings);
     ArgumentNullException.ThrowIfNull(configuration);
@@ -42,7 +42,7 @@ internal sealed class GenerateInputResolver
   /// </summary>
   /// <param name="inputs">Resolved generate inputs.</param>
   /// <returns>Validation outcome.</returns>
-  public ValidationOutcome Validate(ResolvedGenerateInputs inputs)
+  public static ValidationOutcome Validate(ResolvedGenerateInputs inputs)
   {
     if (!string.IsNullOrWhiteSpace(inputs.InputJson))
     {

@@ -16,16 +16,12 @@ namespace MetricsReporter.Cli.Commands;
 internal sealed class GenerateCommandContextBuilder
 {
   private readonly GenerateConfigurationProvider _configurationProvider;
-  private readonly GenerateInputResolver _inputResolver;
-  private readonly GenerateScriptResolver _scriptResolver;
 
   public GenerateCommandContextBuilder(MetricsReporterConfigLoader configLoader)
   {
     ArgumentNullException.ThrowIfNull(configLoader);
 
     _configurationProvider = new GenerateConfigurationProvider(configLoader);
-    _inputResolver = new GenerateInputResolver();
-    _scriptResolver = new GenerateScriptResolver();
   }
 
   /// <summary>
@@ -47,7 +43,7 @@ internal sealed class GenerateCommandContextBuilder
       return BuildGenerateContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var inputs = _inputResolver.Resolve(settings, configuration);
+    var inputs = GenerateInputResolver.Resolve(settings, configuration);
     if (!inputs.Succeeded || inputs.Inputs is null || inputs.LogPath is null)
     {
       return BuildGenerateContextResult.CreateFailure(inputs.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
@@ -56,14 +52,14 @@ internal sealed class GenerateCommandContextBuilder
     var resolvedInputs = inputs.Inputs;
     var logPath = inputs.LogPath;
 
-    var validation = _inputResolver.Validate(resolvedInputs);
+    var validation = GenerateInputResolver.Validate(resolvedInputs);
     if (!validation.Succeeded)
     {
       AnsiConsole.MarkupLine($"[red]{validation.Error}[/]");
       return BuildGenerateContextResult.CreateFailure((int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = _scriptResolver.Resolve(settings, configuration);
+    var scripts = GenerateScriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildGenerateContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
