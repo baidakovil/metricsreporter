@@ -31,11 +31,7 @@ internal static class MetricsReaderCommandHelper
 
   private static MetricsReaderEngine CreateEngine(MetricsReaderContext context)
   {
-    var nodeEnumerator = new MetricsNodeEnumerator(context.Report);
-    var snapshotBuilder = new SymbolSnapshotBuilder(context.ThresholdProvider, context.SuppressedSymbolIndex);
-    var violationAggregator = new SarifViolationAggregator(context.SuppressedSymbolIndex);
-    var violationOrderer = new SarifViolationOrderer();
-    return new MetricsReaderEngine(nodeEnumerator, snapshotBuilder, violationAggregator, violationOrderer, context.Report);
+    return MetricsReaderEngineBuilder.Build(context);
   }
 }
 

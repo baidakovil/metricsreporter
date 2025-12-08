@@ -15,13 +15,18 @@ internal sealed class TestMetricCommand : MetricsReaderCommandBase<TestMetricSet
 {
   public override async Task<int> ExecuteAsync(CommandContext context, TestMetricSettings settings)
   {
+    var result = await EvaluateAsync(settings).ConfigureAwait(false);
+    JsonConsoleWriter.Write(result);
+    return 0;
+  }
+
+  private static async Task<MetricTestResultDto> EvaluateAsync(TestMetricSettings settings)
+  {
     var cancellationToken = MetricsReaderCancellation.Token;
     var engine = await CreateEngineAsync(settings, cancellationToken).ConfigureAwait(false);
     var snapshot = engine.TryGetSymbol(settings.Symbol.Trim(), settings.ResolvedMetric);
 
-    var result = CreateResult(snapshot, settings.IncludeSuppressed);
-    JsonConsoleWriter.Write(result);
-    return 0;
+    return CreateResult(snapshot, settings.IncludeSuppressed);
   }
 
   private static MetricTestResultDto CreateResult(SymbolMetricSnapshot? snapshot, bool includeSuppressed)

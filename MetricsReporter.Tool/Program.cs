@@ -7,41 +7,73 @@ using MetricsReporter.Services.Scripts;
 using MetricsReporter.Tool.Infrastructure;
 using Spectre.Console.Cli;
 
-var services = new ServiceCollection();
-services.AddSingleton<MetricsReporterConfigLoader>();
-services.AddSingleton<IProcessRunner, ProcessRunner>();
-services.AddSingleton<ScriptExecutionService>();
-services.AddSingleton<GenerateCommand>();
-services.AddSingleton<ReadCommand>();
-services.AddSingleton<ReadSarifCommand>();
-services.AddSingleton<TestCommand>();
+namespace MetricsReporter.Tool;
 
-var registrar = new ServiceCollectionTypeRegistrar(services);
-var app = new CommandApp(registrar);
-app.Configure(config =>
+/// <summary>
+/// Application entry point and composition root for the metricsreporter CLI.
+/// </summary>
+internal static class Program
 {
-  config.SetApplicationName("metricsreporter");
-  config.ValidateExamples();
+  /// <summary>
+  /// Application entry point.
+  /// </summary>
+  /// <param name="args">Command-line arguments.</param>
+  /// <returns>Exit code produced by Spectre.Console command execution.</returns>
+  public static async Task<int> Main(string[] args)
+  {
+    var services = ServiceCollectionFactory.Create();
+    var registrar = new ServiceCollectionTypeRegistrar(services);
+    var app = new CommandApp(registrar);
 
-  config.AddCommand<GenerateCommand>("generate")
-    .WithDescription("Aggregates metrics from AltCover/Roslyn/SARIF inputs and produces metrics-report.json/metrics-report.html.")
-    .WithExample("generate", "--metrics-dir", "build/Metrics", "--altcover", "coverage.xml", "--roslyn", "metrics.xml", "--sarif", "analyzers.sarif", "--output-json", "build/Metrics/Report/MetricsReport.g.json")
-    .WithExample("generate", "--input-json", "build/Metrics/Report/MetricsReport.g.json", "--output-html", "build/Metrics/Report/MetricsReport.html");
+    CommandAppConfigurator.Configure(app);
 
-  config.AddCommand<ReadCommand>("read")
-    .WithDescription("Reads metric violations for a namespace. Returns the most severe violation by default; use --all for full listing.")
-    .WithExample("read", "--report", "build/Metrics/Report/MetricsReport.g.json", "--namespace", "Sample.Loader", "--metric", "Complexity");
+    return await app.RunAsync(args).ConfigureAwait(false);
+  }
+}
 
-  config.AddCommand<ReadSarifCommand>("readsarif")
-    .WithDescription("Aggregates SARIF-based metrics (SarifCaRuleViolations, SarifIdeRuleViolations) by rule ID for the specified namespace.")
-    .WithExample("readsarif", "--report", "build/Metrics/Report/MetricsReport.g.json", "--namespace", "Sample.Loader")
-    .WithExample("readsarif", "--report", "build/Metrics/Report/MetricsReport.g.json", "--namespace", "Sample.Loader", "--metric", "SarifIdeRuleViolations", "--all");
+internal static class ServiceCollectionFactory
+{
+  public static ServiceCollection Create()
+  {
+    var services = new ServiceCollection();
+    services.AddSingleton<MetricsReporterConfigLoader>();
+    services.AddSingleton<IProcessRunner, ProcessRunner>();
+    services.AddSingleton<ScriptExecutionService>();
+    services.AddSingleton<GenerateCommand>();
+    services.AddSingleton<ReadCommand>();
+    services.AddSingleton<ReadSarifCommand>();
+    services.AddSingleton<TestCommand>();
 
-  config.AddCommand<TestCommand>("test")
-    .WithDescription("Checks whether a symbol satisfies the specified metric after refactoring.")
-    .WithExample("test", "--report", "build/Metrics/Report/MetricsReport.g.json", "--symbol", "Sample.Loader.SomeType.SomeMethod(...)", "--metric", "Complexity");
-});
+    return services;
+  }
+}
 
-return await app.RunAsync(args).ConfigureAwait(false);
+internal static class CommandAppConfigurator
+{
+  public static void Configure(CommandApp app)
+  {
+    app.Configure(config =>
+    {
+      config.SetApplicationName("metricsreporter");
+      config.ValidateExamples();
 
+      config.AddCommand<GenerateCommand>("generate")
+        .WithDescription("Aggregates metrics from AltCover/Roslyn/SARIF inputs and produces metrics-report.json/metrics-report.html.")
+        .WithExample("generate", "--metrics-dir", "build/Metrics", "--altcover", "coverage.xml", "--roslyn", "metrics.xml", "--sarif", "analyzers.sarif", "--output-json", "build/Metrics/Report/MetricsReport.g.json")
+        .WithExample("generate", "--input-json", "build/Metrics/Report/MetricsReport.g.json", "--output-html", "build/Metrics/Report/MetricsReport.html");
 
+      config.AddCommand<ReadCommand>("read")
+        .WithDescription("Reads metric violations for a namespace. Returns the most severe violation by default; use --all for full listing.")
+        .WithExample("read", "--report", "build/Metrics/Report/MetricsReport.g.json", "--namespace", "Sample.Loader", "--metric", "Complexity");
+
+      config.AddCommand<ReadSarifCommand>("readsarif")
+        .WithDescription("Aggregates SARIF-based metrics (SarifCaRuleViolations, SarifIdeRuleViolations) by rule ID for the specified namespace.")
+        .WithExample("readsarif", "--report", "build/Metrics/Report/MetricsReport.g.json", "--namespace", "Sample.Loader")
+        .WithExample("readsarif", "--report", "build/Metrics/Report/MetricsReport.g.json", "--namespace", "Sample.Loader", "--metric", "SarifIdeRuleViolations", "--all");
+
+      config.AddCommand<TestCommand>("test")
+        .WithDescription("Checks whether a symbol satisfies the specified metric after refactoring.")
+        .WithExample("test", "--report", "build/Metrics/Report/MetricsReport.g.json", "--symbol", "Sample.Loader.SomeType.SomeMethod(...)", "--metric", "Complexity");
+    });
+  }
+}
