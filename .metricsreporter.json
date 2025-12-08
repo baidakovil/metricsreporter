@@ -19,6 +19,11 @@
       "MetricsReporter.Tests",
       "MetricsReporter.Tool"
     ],
+    "altcover": [
+      "Metrics/AltCover/MetricsReporter.coverage.xml",
+      "Metrics/AltCover/MetricsReporter.Tool.coverage.xml"
+    ],
+    "coverageHtmlDir": "Metrics/AltCover/Html",
     "outputHtml": "Metrics/MetricsReport.html",
     "roslyn": [
       "Metrics/Roslyn/SolutionMetrics.g.xml"
@@ -28,10 +33,12 @@
       "Metrics/Sarif/MetricsReporter.Tool.sarif",
       "Metrics/Sarif/MetricsReporter.Tests.sarif"
     ],
+    "excludedMembers": "*b__*,<Create>*,*<Main>*,<Clone>$,ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync,Deconstruct,GetHashCode,ToString,Equals,PrintMembers,op_Equality,op_Inequality",
+    "excludedTypes": "<>c,<-ctor>",
     "excludedAssemblies": "Tests",
     "solutionName": "metricsreporter",
     "analyzeSuppressedSymbols": true,
-    "replaceBaseline": false
+    "replaceBaseline": true
   },
   "scripts": {
     "generate": [
@@ -40,6 +47,15 @@
     "read": {
       "any": [
         "Metrics/scripts/prepare-metrics.ps1"
+      ],
+      "byMetric": [
+        {
+          "metrics": [
+            "AltCoverBranchCoverage",
+            "AltCoverSequenceCoverage"
+          ],
+          "path": "Metrics/scripts/collect-altcover.ps1"
+        }
       ]
     },
     "test": {

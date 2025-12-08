@@ -39,7 +39,7 @@
     <AltCoverInstrumentationEnabled Condition="'$(AltCoverInstrumentationEnabled)' == ''">false</AltCoverInstrumentationEnabled>
     <AltCoverCollectionEnabled Condition="'$(AltCoverCollectionEnabled)' == ''">false</AltCoverCollectionEnabled>
     <AltCoverHtmlReportEnabled Condition="'$(AltCoverHtmlReportEnabled)' == ''">false</AltCoverHtmlReportEnabled>
-    <AltCoverVerbose Condition="'$(AltCoverVerbose)' == ''">false</AltCoverVerbose>
+    <AltCoverVerbose Condition="'$(AltCoverVerbose)' == ''">true</AltCoverVerbose>
     <AltCoverInstrumentedTargetFramework Condition="'$(AltCoverInstrumentedTargetFramework)' == ''">net8.0</AltCoverInstrumentedTargetFramework>
     <!-- Tool commands -->
     <AltCoverToolCommand Condition="'$(AltCoverToolCommand)' == ''">dotnet tool run altcover</AltCoverToolCommand>
