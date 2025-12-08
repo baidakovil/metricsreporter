@@ -115,6 +115,65 @@ public sealed class ThresholdsParserTests
   }
 
   [Test]
+  public void Parse_InvalidMetricEntries_AreIgnored()
+  {
+    // Arrange
+    const string json = """
+        {
+          "metrics": [
+            { "description": "missing name entry" },
+            { "name": "   " },
+            { "name": "UnknownMetric", "symbolThresholds": { "Type": { "warning": 10, "error": 1 } } }
+          ]
+        }
+        """;
+
+    // Act
+    var result = ThresholdsParser.Parse(json);
+
+    // Assert
+    result.Should().HaveCount(Enum.GetValues<MetricIdentifier>().Length);
+    result[MetricIdentifier.AltCoverBranchCoverage].Levels[MetricSymbolLevel.Type].Warning.Should().Be(70);
+    result[MetricIdentifier.AltCoverBranchCoverage].Levels[MetricSymbolLevel.Type].Error.Should().Be(55);
+  }
+
+  [Test]
+  public void Parse_NumericMetricIdentifier_AddsNewDefinitionUsingFallbackMetadata()
+  {
+    // Arrange
+    const string json = """
+        {
+          "metrics": [
+            {
+              "name": "999",
+              "higherIsBetter": false,
+              "positiveDeltaNeutral": true,
+              "symbolThresholds": {
+                "Member": { "warning": 2, "error": 3 }
+              }
+            }
+          ]
+        }
+        """;
+
+    // Act
+    var result = ThresholdsParser.Parse(json);
+
+    // Assert
+    var customIdentifier = (MetricIdentifier)999;
+    result.Should().ContainKey(customIdentifier);
+
+    var definition = result[customIdentifier];
+    definition.Levels.Should().HaveCount(Enum.GetValues<MetricSymbolLevel>().Length);
+    definition.Levels[MetricSymbolLevel.Member].Warning.Should().Be(2);
+    definition.Levels[MetricSymbolLevel.Member].Error.Should().Be(3);
+    definition.Levels[MetricSymbolLevel.Member].HigherIsBetter.Should().BeFalse();
+    definition.Levels[MetricSymbolLevel.Member].PositiveDeltaNeutral.Should().BeTrue();
+    definition.Levels[MetricSymbolLevel.Solution].HigherIsBetter.Should().BeFalse();
+    definition.Levels[MetricSymbolLevel.Solution].PositiveDeltaNeutral.Should().BeTrue();
+  }
+
+  [Test]
   public void Parse_InvalidJson_ThrowsInvalidOperationException()
   {
     // Arrange

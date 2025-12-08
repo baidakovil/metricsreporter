@@ -148,6 +148,48 @@ internal sealed class MetricsReporterConfigLoaderTests
   }
 
   [Test]
+  public void Load_WithInvalidGeneralProperty_ReturnsFailure()
+  {
+    // Arrange
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": { "unexpected": true },
+      "paths": {},
+      "scripts": {}
+    }
+    """);
+
+    // Act
+    var result = _loader.Load(null, _root);
+
+    // Assert
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("Invalid property in 'general' section."));
+  }
+
+  [Test]
+  public void Load_WithNonObjectPathsSection_ReturnsFailure()
+  {
+    // Arrange
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": "not-an-object",
+      "scripts": {}
+    }
+    """);
+
+    // Act
+    var result = _loader.Load(null, _root);
+
+    // Assert
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("Invalid property in 'paths' section."));
+  }
+
+  [Test]
   public void Load_WithInvalidByMetricEntry_ReturnsFailure()
   {
     // Arrange

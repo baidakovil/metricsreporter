@@ -150,6 +150,41 @@ public sealed class SymbolThresholdProcessorTests
     definition.Levels[MetricSymbolLevel.Type].Warning.Should().BeNull();
     definition.Levels[MetricSymbolLevel.Type].Error.Should().BeNull();
   }
+
+  [Test]
+  public void ApplySymbolThresholds_WithMissingErrorValue_UsesNull()
+  {
+    // Arrange
+    var json = """
+      {
+        "symbolThresholds": {
+          "Type": { "warning": 25 }
+        }
+      }
+      """;
+    var element = JsonDocument.Parse(json).RootElement;
+    var definition = new MetricThresholdDefinition
+    {
+      Levels = new Dictionary<MetricSymbolLevel, MetricThreshold>()
+    };
+    MetricThreshold CreateThreshold(decimal? warning, decimal? error)
+    {
+      return new MetricThreshold
+      {
+        Warning = warning,
+        Error = error,
+        HigherIsBetter = true,
+        PositiveDeltaNeutral = false
+      };
+    }
+
+    // Act
+    SymbolThresholdProcessor.ApplySymbolThresholds(element, definition, CreateThreshold);
+
+    // Assert
+    definition.Levels[MetricSymbolLevel.Type].Warning.Should().Be(25);
+    definition.Levels[MetricSymbolLevel.Type].Error.Should().BeNull();
+  }
   [Test]
   public void ApplySymbolThresholds_WithInvalidLevel_IgnoresInvalidLevel()
   {
