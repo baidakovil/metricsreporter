@@ -45,9 +45,6 @@
       "Metrics/scripts/prepare-metrics.ps1"
     ],
     "read": {
-      "any": [
-        "Metrics/scripts/prepare-metrics.ps1"
-      ],
       "byMetric": [
         {
           "metrics": [
@@ -55,6 +52,22 @@
             "AltCoverSequenceCoverage"
           ],
           "path": "Metrics/scripts/collect-altcover.ps1"
+        },
+        {
+          "metrics": [
+            "RoslynCyclomaticComplexity",
+            "RoslynClassCoupling",
+            "RoslynMaintainabilityIndex",
+            "RoslynDepthOfInheritance",
+            "RoslynLinesOfCode",
+            "AltCoverCyclomaticComplexity",
+            "AltCoverNPathComplexity",
+            "AltCoverNPathComplexity",
+            "SarifCaRuleViolations",
+            "SarifIdeRuleViolations",
+            "Any"
+          ],
+          "path": "Metrics/scripts/prepare-metrics.ps1"
         }
       ]
     },
