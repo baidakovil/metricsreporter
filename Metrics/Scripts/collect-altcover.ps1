@@ -25,14 +25,7 @@ New-Item -ItemType Directory -Path $altCoverDir -Force | Out-Null
 if (Test-Path $reportJson) { Remove-Item $reportJson -Force -ErrorAction SilentlyContinue }
 if (Test-Path $reportHtml) { Remove-Item $reportHtml -Force -ErrorAction SilentlyContinue }
 
-Write-Host "Building solution with AltCover instrumentation..." -ForegroundColor Cyan
-dotnet build `
-    /p:AltCoverInstrumentationEnabled=true `
-    /p:AltCoverCollectionEnabled=false `
-    /p:AltCoverHtmlReportEnabled=false `
-    | Write-Output
-
-Write-Host "Running tests with coverage collection..." -ForegroundColor Cyan
+Write-Host "Running tests with AltCover instrumentation and coverage collection..." -ForegroundColor Cyan
 dotnet test MetricsReporter.Tests/MetricsReporter.Tests.csproj `
     /p:AltCoverInstrumentationEnabled=true `
     /p:AltCoverCollectionEnabled=true `
