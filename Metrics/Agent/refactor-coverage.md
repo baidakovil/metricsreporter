@@ -1,14 +1,14 @@
 # Increase test coverage for branch coverage metric
 
--Refactor code in the given namespace to achieve the required AltCoverBranchCoverage metric: all methods in classes must have sufficient branch coverage. The goal is to ensure comprehensive test coverage for all code paths, including edge cases and error conditions.
+- Refactor code in the given namespace to achieve the required AltCoverBranchCoverage metric: all methods in classes must have sufficient branch coverage 75 for methods and 50 for classes. The goal is to ensure comprehensive test coverage for all code paths, including edge cases and error conditions.
 
 ## Requirements
 
-- Use the `metricsreporter` CLI to update and retrieve metric values for symbols requiring test coverage improvement, one class at a time. Description and usage examples are provided in `@3.2 - metricsreporter-cli.md`.
+- Use the `metricsreporter` CLI to update and retrieve metric values for symbols requiring test coverage improvement, one class at a time. Description and usage examples are provided in `docs/3-reference/3.2 - metricsreporter-cli.md`.
 - Strictly follow the workflow described below to achieve the goal: increase branch coverage for all methods in all classes within the namespace mentioned above to acceptable levels.
 - When writing tests, follow the testing best practices:
 	•	Use Arrange-Act-Assert (AAA) pattern for test structure
-	•	Follow requirements from `@tests/.cursor/rules/csharp-nunit.prompt.mdc`
+	•	Follow requirements from `MetricsReporter.Tests/.cursor/rules/csharp-nunit.prompt.mdc`
 	•	Use mock objects (NSubstitute) for dependency isolation
 	•	Use meaningful test names that reflect the scenario being tested (pattern: `MethodName_Scenario_ExpectedBehavior`)
 	•	Test both successful and failure scenarios
