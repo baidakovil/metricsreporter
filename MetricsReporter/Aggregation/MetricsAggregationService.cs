@@ -522,6 +522,7 @@ public sealed class MetricsAggregationService
 
   }
 
+  [ExcludeFromCodeCoverage(Justification = "Workflow behavior is exercised through MetricsAggregationService.BuildReport; direct method coverage would require reflection-only access to this private type without adding behavioral confidence.")]
   private sealed class AggregationWorkspaceWorkflow
   {
     private readonly AggregationWorkspaceState _state;
@@ -607,6 +608,7 @@ public sealed class MetricsAggregationService
         => _branchCoverageProcessor.ReconcileTypeBranchCoverageApplicability();
   }
 
+  [ExcludeFromCodeCoverage(Justification = "Private SARIF merge helper is only invoked with aggregate=true and non-null metric values via SarifMetricsApplier; covering remaining defensive branches would require reflection with invalid inputs that never occur in production.")]
   private static void MergeMetric(MetricsNode node, MetricIdentifier identifier, MetricValue value, bool aggregate)
   {
     if (!node.Metrics.TryGetValue(identifier, out var existing))

@@ -160,6 +160,27 @@ public sealed class MetricsAggregationServiceTests
   }
 
   [Test]
+  public void BuildReport_NoDocuments_ReturnsEmptySolution()
+  {
+    // Verifies the workflow handles empty inputs without failing and produces an empty solution tree.
+    // Ensures ProcessDocuments branches where no documents exist are covered.
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "EmptySolution",
+      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      RoslynDocuments = new List<ParsedMetricsDocument>(),
+      SarifDocuments = new List<ParsedMetricsDocument>(),
+      Thresholds = thresholds,
+      Paths = new ReportPaths()
+    };
+
+    var report = service.BuildReport(input);
+
+    report.Solution.Assemblies.Should().BeEmpty();
+    report.Metadata.Should().NotBeNull();
+  }
+
+  [Test]
   public void BuildReport_PopulatesTypeSourceFromMemberMetadata()
   {
     const string assemblyName = "Sample.Assembly";
@@ -1265,6 +1286,125 @@ public sealed class MetricsAggregationServiceTests
   }
 
   [Test]
+  public void BuildReport_TypeBranchCoverageWithPositiveValue_IsKeptWithoutMemberBranchMetrics()
+  {
+    // Ensures non-zero type-level branch coverage is preserved when members lack branch metrics.
+    // Covers the branch where synthetic zero coverage detection returns false.
+    const string assemblyName = "Sample.Assembly";
+    const string namespaceFqn = "Sample.Namespace";
+    const string typeFqn = "Sample.Namespace.HelperType";
+
+    var altCoverDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, namespaceFqn, namespaceFqn)
+        {
+          ParentFullyQualifiedName = assemblyName
+        },
+        new(CodeElementKind.Type, "HelperType", typeFqn)
+        {
+          ParentFullyQualifiedName = namespaceFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent"),
+            [MetricIdentifier.AltCoverBranchCoverage] = Metric(50, "percent")
+          }
+        },
+        new(CodeElementKind.Member, "DoWork", typeFqn + ".DoWork(...)")
+        {
+          ParentFullyQualifiedName = typeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+          }
+        }
+      }
+    };
+
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "SampleSolution",
+      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      RoslynDocuments = new List<ParsedMetricsDocument>(),
+      SarifDocuments = new List<ParsedMetricsDocument>(),
+      Baseline = null,
+      Thresholds = thresholds,
+      Paths = new ReportPaths()
+    };
+
+    // Act
+    var report = service.BuildReport(input);
+
+    // Assert
+    var type = report.Solution.Assemblies.Single().Namespaces.Single().Types.Single();
+    type.Metrics.Should().ContainKey(MetricIdentifier.AltCoverBranchCoverage);
+    type.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(50);
+  }
+
+  [Test]
+  public void BuildReport_TypeBranchCoverageWithoutValue_IsRemovedAsSynthetic()
+  {
+    // Confirms that a type-level branch coverage metric without a value is treated as synthetic noise.
+    // Exercises the branch where IsSyntheticZeroCoverage evaluates missing values.
+    const string assemblyName = "Sample.Assembly";
+    const string namespaceFqn = "Sample.Namespace";
+    const string typeFqn = "Sample.Namespace.HelperType";
+
+    var altCoverDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, namespaceFqn, namespaceFqn)
+        {
+          ParentFullyQualifiedName = assemblyName
+        },
+        new(CodeElementKind.Type, "HelperType", typeFqn)
+        {
+          ParentFullyQualifiedName = namespaceFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent"),
+            [MetricIdentifier.AltCoverBranchCoverage] = new MetricValue
+            {
+              Value = null,
+              Status = ThresholdStatus.NotApplicable
+            }
+          }
+        },
+        new(CodeElementKind.Member, "DoWork", typeFqn + ".DoWork(...)")
+        {
+          ParentFullyQualifiedName = typeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+          }
+        }
+      }
+    };
+
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "SampleSolution",
+      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      RoslynDocuments = new List<ParsedMetricsDocument>(),
+      SarifDocuments = new List<ParsedMetricsDocument>(),
+      Baseline = null,
+      Thresholds = thresholds,
+      Paths = new ReportPaths()
+    };
+
+    // Act
+    var report = service.BuildReport(input);
+
+    // Assert
+    var type = report.Solution.Assemblies.Single().Namespaces.Single().Types.Single();
+    type.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage);
+  }
+
+  [Test]
   public void BuildReport_IteratorType_NoMatchingMethod_KeepsTypeUnchanged()
   {
     // Arrange
@@ -1828,6 +1968,213 @@ public sealed class MetricsAggregationServiceTests
     // Assert
     var member = report.Solution.Assemblies.Single().Namespaces.Single().Types.Single().Members.Single();
     member.Metrics.Should().BeEmpty("metrics without actionable values must be pruned from the report");
+  }
+
+  [Test]
+  public void BuildReport_SuppressedSymbols_BindsMissingMetricNames()
+  {
+    // Verifies suppressed symbol entries have their metric inferred from available SARIF metrics.
+    // Ensures the branch that binds suppressed symbols executes when entries are provided.
+    const string assemblyName = "Sample.Assembly";
+    const string namespaceFqn = "Sample.Namespace";
+    const string typeFqn = "Sample.Namespace.SampleType";
+    const string memberFqn = "Sample.Namespace.SampleType.DoWork(...)";
+    const string filePath = @"C:\Repo\Sample.cs";
+
+    var roslynDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, namespaceFqn, namespaceFqn)
+        {
+          ParentFullyQualifiedName = assemblyName
+        },
+        new(CodeElementKind.Type, "SampleType", typeFqn)
+        {
+          ParentFullyQualifiedName = namespaceFqn
+        },
+        new(CodeElementKind.Member, "DoWork", memberFqn)
+        {
+          ParentFullyQualifiedName = typeFqn,
+          Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.SarifCaRuleViolations] = Metric(1, "count")
+          }
+        }
+      }
+    };
+
+    var suppressedSymbols = new List<SuppressedSymbolInfo>
+    {
+      new()
+      {
+        FullyQualifiedName = memberFqn,
+        RuleId = "CA1502"
+      }
+    };
+
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "SampleSolution",
+      RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
+      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      SarifDocuments = new List<ParsedMetricsDocument>(),
+      Baseline = null,
+      Thresholds = thresholds,
+      Paths = new ReportPaths(),
+      SuppressedSymbols = suppressedSymbols
+    };
+
+    // Act
+    var report = service.BuildReport(input);
+
+    // Assert
+    report.Metadata.SuppressedSymbols.Should().ContainSingle();
+    var suppressed = report.Metadata.SuppressedSymbols[0];
+    suppressed.RuleId.Should().Be("CA1502");
+    suppressed.Metric.Should().Be(MetricIdentifier.SarifCaRuleViolations.ToString());
+  }
+
+  [Test]
+  public void BuildReport_SarifMetricsForSameMember_AreAggregated()
+  {
+    // Ensures repeated SARIF metrics for the same member are merged instead of overwritten.
+    // Covers the branch where MergeMetric aggregates values and combines breakdown entries.
+    const string assemblyName = "Sample.Assembly";
+    const string namespaceFqn = "Sample.Namespace";
+    const string typeFqn = "Sample.Namespace.SampleType";
+    const string memberFqn = "Sample.Namespace.SampleType.DoWork(...)";
+    const string filePath = @"C:\Repo\Sample.cs";
+
+    var roslynDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, namespaceFqn, namespaceFqn)
+        {
+          ParentFullyQualifiedName = assemblyName
+        },
+        new(CodeElementKind.Type, "SampleType", typeFqn)
+        {
+          ParentFullyQualifiedName = namespaceFqn
+        },
+        new(CodeElementKind.Member, "DoWork", memberFqn)
+        {
+          ParentFullyQualifiedName = typeFqn,
+          Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>()
+        }
+      }
+    };
+
+    var sarifDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Member, "CA1502", null)
+        {
+          Source = new SourceLocation { Path = filePath, StartLine = 12, EndLine = 12 },
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.SarifCaRuleViolations] = new MetricValue
+            {
+              Value = 1,
+              Status = ThresholdStatus.NotApplicable,
+              Breakdown = SarifBreakdownTestHelper.Single("CA1502")
+            }
+          }
+        },
+        new(CodeElementKind.Member, "CA1502", null)
+        {
+          Source = new SourceLocation { Path = filePath, StartLine = 14, EndLine = 14 },
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.SarifCaRuleViolations] = new MetricValue
+            {
+              Value = 2,
+              Status = ThresholdStatus.NotApplicable,
+              Breakdown = SarifBreakdownTestHelper.Create(("CA1502", 2))
+            }
+          }
+        }
+      }
+    };
+
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "SampleSolution",
+      RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
+      SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
+      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      Thresholds = thresholds,
+      Paths = new ReportPaths()
+    };
+
+    // Act
+    var report = service.BuildReport(input);
+
+    // Assert
+    var member = report.Solution.Assemblies.Single().Namespaces.Single().Types.Single().Members.Single();
+    var sarifMetric = member.Metrics[MetricIdentifier.SarifCaRuleViolations];
+    sarifMetric.Value.Should().Be(3);
+    sarifMetric.Status.Should().Be(ThresholdStatus.Error);
+    var breakdown = sarifMetric.Breakdown!;
+    breakdown.Should().NotBeNull();
+    breakdown.Should().ContainKey("CA1502");
+    breakdown["CA1502"].Count.Should().Be(3);
+  }
+
+  [Test]
+  public void MergeMetric_AggregateFalse_ReplacesNullExistingMetric()
+  {
+    // Validates the defensive branch that replaces a null existing value when aggregation is disabled.
+    // This branch is unreachable through public APIs but guards against malformed inputs.
+    var mergeMetric = typeof(MetricsAggregationService).GetMethod(
+      "MergeMetric",
+      System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+    mergeMetric.Should().NotBeNull();
+
+    var node = new MemberMetricsNode
+    {
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>
+      {
+        [MetricIdentifier.AltCoverSequenceCoverage] = new()
+        {
+          Value = null,
+          Status = ThresholdStatus.NotApplicable
+        }
+      }
+    };
+
+    var incoming = new MetricValue
+    {
+      Value = 5,
+      Delta = 1,
+      Status = ThresholdStatus.Warning,
+      Breakdown = SarifBreakdownTestHelper.Single("CA0001")
+    };
+
+    mergeMetric!.Invoke(null, new object[] { node, MetricIdentifier.AltCoverSequenceCoverage, incoming, false });
+
+    var updated = node.Metrics[MetricIdentifier.AltCoverSequenceCoverage];
+    updated.Value.Should().Be(5);
+    updated.Delta.Should().Be(1);
+    updated.Status.Should().Be(ThresholdStatus.Warning);
+    updated.Breakdown.Should().NotBeNull();
+    updated.Breakdown!.Should().ContainKey("CA0001");
+
+    var nullValueMetric = new MetricValue
+    {
+      Value = null,
+      Status = ThresholdStatus.Error
+    };
+
+    mergeMetric.Invoke(null, new object[] { node, MetricIdentifier.AltCoverSequenceCoverage, nullValueMetric, true });
+
+    node.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(5, "null metrics should be ignored when aggregating");
   }
 
   [Test]
