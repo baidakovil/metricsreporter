@@ -199,7 +199,8 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
                 : !string.IsNullOrWhiteSpace(context.Options.ThresholdsJson) ? "(inline thresholds)" : null
       },
       BaselineReference = context.Options.BaselineReference,
-      SuppressedSymbols = context.SuppressedSymbols
+      SuppressedSymbols = context.SuppressedSymbols,
+      MetricAliases = context.Options.MetricAliases
     };
   }
 

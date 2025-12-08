@@ -12,6 +12,7 @@ function initTooltips(ctx){
 
   const thresholdData = ctx.thresholdData;
   const ruleDescriptionsData = ctx.ruleDescriptionsData;
+  const metricAliasesData = ctx.metricAliasesData;
 
   function buildThresholdTooltip(metricId){
     if(!thresholdData || !thresholdData[metricId]){
@@ -43,6 +44,36 @@ function initTooltips(ctx){
     });
     parts.push('</ul>');
     return parts.join('');
+  }
+
+  function buildMetricAliasSection(metricId){
+    if(!metricId){
+      return null;
+    }
+    const aliases = metricAliasesData && metricAliasesData[metricId];
+    const aliasList = aliases && Array.isArray(aliases) && aliases.length > 0
+      ? aliases.map(escapeHtml).join(', ')
+      : null;
+    if(aliasList){
+      return '<p class=""metric-tooltip__heading""><strong>' + escapeHtml(metricId) + '</strong> <span class=""metric-tooltip__desc"">(aliases: ' + aliasList + ')</span></p>';
+    }
+    return '<p class=""metric-tooltip__heading""><strong>' + escapeHtml(metricId) + '</strong></p>';
+  }
+
+  function buildHeaderTooltip(metricId){
+    if(!metricId){
+      return null;
+    }
+    const parts = [];
+    const aliasSection = buildMetricAliasSection(metricId);
+    if(aliasSection){
+      parts.push(aliasSection);
+    }
+    const thresholds = buildThresholdTooltip(metricId);
+    if(thresholds){
+      parts.push(thresholds);
+    }
+    return parts.length ? parts.join('') : null;
   }
 
   function buildSuppressionTooltip(data){
@@ -186,7 +217,7 @@ function initTooltips(ctx){
 
   function attachTableHeaderTooltips(){
     const head = ctx.table.tHead;
-    if(!head || !thresholdData){
+    if(!head){
       return;
     }
     head.addEventListener('mouseover', function(event){
@@ -199,7 +230,7 @@ function initTooltips(ctx){
         return;
       }
       host.schedule(th, function(){
-        return buildThresholdTooltip(metricId);
+        return buildHeaderTooltip(metricId);
       });
     });
     head.addEventListener('mouseout', function(event){
@@ -223,7 +254,7 @@ function initTooltips(ctx){
         return;
       }
       host.show(th, function(){
-        return buildThresholdTooltip(metricId);
+        return buildHeaderTooltip(metricId);
       });
     }, true);
     head.addEventListener('focusout', function(event){

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using MetricsReporter.Model;
 
 namespace MetricsReporter.Configuration;
 
@@ -135,6 +136,7 @@ public sealed class MetricsReporterConfigLoader
            ?? ValidateRequiredSections(root)
            ?? ValidateSectionProperties(root, "general", GeneralSectionProperties)
            ?? ValidateSectionProperties(root, "paths", PathsSectionProperties)
+           ?? ValidateMetricAliases(root)
            ?? ValidateScriptsSection(root);
   }
 
@@ -145,7 +147,13 @@ public sealed class MetricsReporterConfigLoader
       return "Configuration root must be a JSON object.";
     }
 
-    var allowedRoot = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "general", "paths", "scripts" };
+    var allowedRoot = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+      "general",
+      "paths",
+      "scripts",
+      "metricAliases"
+    };
     foreach (var property in root.EnumerateObject())
     {
       if (!allowedRoot.Contains(property.Name))
@@ -222,6 +230,58 @@ public sealed class MetricsReporterConfigLoader
     if (groupElement.TryGetProperty("byMetric", out var byMetricElement) && byMetricElement.ValueKind == JsonValueKind.Array)
     {
       return ValidateByMetricEntries(byMetricElement, groupName);
+    }
+
+    return null;
+  }
+
+  private static string? ValidateMetricAliases(JsonElement root)
+  {
+    if (!root.TryGetProperty("metricAliases", out var aliasesElement))
+    {
+      return null;
+    }
+
+    if (aliasesElement.ValueKind != JsonValueKind.Object)
+    {
+      return "metricAliases must be an object whose keys are MetricIdentifier values.";
+    }
+
+    var aliasToMetric = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var property in aliasesElement.EnumerateObject())
+    {
+      if (!Enum.TryParse<MetricIdentifier>(property.Name, ignoreCase: true, out _))
+      {
+        return $"Unknown metric identifier '{property.Name}' in metricAliases.";
+      }
+
+      if (property.Value.ValueKind != JsonValueKind.Array || property.Value.GetArrayLength() == 0)
+      {
+        return $"metricAliases.{property.Name} must be a non-empty array of strings.";
+      }
+
+      foreach (var aliasElement in property.Value.EnumerateArray())
+      {
+        if (aliasElement.ValueKind != JsonValueKind.String)
+        {
+          return $"metricAliases.{property.Name} must contain only strings.";
+        }
+
+        var alias = aliasElement.GetString();
+        if (string.IsNullOrWhiteSpace(alias))
+        {
+          return $"metricAliases.{property.Name} must contain non-empty strings.";
+        }
+
+        var trimmed = alias.Trim();
+        if (aliasToMetric.TryGetValue(trimmed, out var existingMetric) &&
+            !string.Equals(existingMetric, property.Name, StringComparison.OrdinalIgnoreCase))
+        {
+          return $"Alias '{trimmed}' is assigned to multiple metrics ({existingMetric}, {property.Name}).";
+        }
+
+        aliasToMetric[trimmed] = property.Name;
+      }
     }
 
     return null;

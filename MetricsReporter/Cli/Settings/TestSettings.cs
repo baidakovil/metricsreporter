@@ -59,11 +59,6 @@ internal sealed class TestSettings : CliSettingsBase
       return ValidationResult.Error("--metric is required.");
     }
 
-    if (!MetricIdentifierResolver.TryResolve(Metric!, out _))
-    {
-      return ValidationResult.Error($"Unknown metric identifier '{Metric}'.");
-    }
-
     return ValidationResult.Success();
   }
 }

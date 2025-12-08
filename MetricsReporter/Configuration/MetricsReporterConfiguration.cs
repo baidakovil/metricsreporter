@@ -22,6 +22,11 @@ public sealed class MetricsReporterConfiguration
   /// Gets script execution settings.
   /// </summary>
   public ScriptsConfiguration Scripts { get; init; } = new();
+
+  /// <summary>
+  /// Gets optional metric alias mappings keyed by canonical <see cref="MetricsReporter.Model.MetricIdentifier"/>.
+  /// </summary>
+  public IDictionary<string, string[]>? MetricAliases { get; init; }
 }
 
 /// <summary>

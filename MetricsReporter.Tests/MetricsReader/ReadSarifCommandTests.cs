@@ -148,7 +148,7 @@ internal sealed class ReadSarifCommandTests : MetricsReaderCommandTestsBase
     });
 
     var reportPath = WriteReport(report);
-    var settings = CreateSarifSettings(reportPath, "Rca.Loader.Services", metricName: "Complexity");
+    var settings = CreateSarifSettings(reportPath, "Rca.Loader.Services", metricName: "RoslynCyclomaticComplexity");
 
     var (exitCode, output) = await MetricsReaderCommandTestHarness
       .RunSarifCommandAsync<ReadSarifCommand>(settings)
@@ -156,7 +156,7 @@ internal sealed class ReadSarifCommandTests : MetricsReaderCommandTestsBase
 
     exitCode.Should().Be(0);
     using var json = JsonDocument.Parse(output);
-    json.RootElement.GetProperty("metric").GetString().Should().Be("Complexity");
+    json.RootElement.GetProperty("metric").GetString().Should().Be("RoslynCyclomaticComplexity");
     json.RootElement.GetProperty("message").GetString().Should().Contain("does not expose SARIF rule breakdown data");
   }
 

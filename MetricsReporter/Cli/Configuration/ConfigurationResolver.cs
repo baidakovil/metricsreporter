@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MetricsReporter.Configuration;
+using MetricsReporter.Model;
 
 namespace MetricsReporter.Cli.Configuration;
 
@@ -62,31 +63,73 @@ internal static class ConfigurationResolver
     ArgumentNullException.ThrowIfNull(envScripts);
     ArgumentNullException.ThrowIfNull(fileScripts);
 
-    var generate = cliGenerate.Count > 0
-      ? cliGenerate
-      : envScripts.Generate ?? fileScripts.Generate ?? Array.Empty<string>();
-
-    var readAny = cliReadAny.Count > 0
-      ? cliReadAny
-      : envScripts.Read.Any ?? fileScripts.Read.Any ?? Array.Empty<string>();
-
-    var byMetric = cliMetricScripts.Count > 0
-      ? cliMetricScripts.Select(x => new MetricScript { Metrics = new[] { x.Metric }, Path = x.Path }).ToArray()
-      : envScripts.Read.ByMetric.Count > 0
-        ? envScripts.Read.ByMetric
-        : fileScripts.Read.ByMetric;
-
-    var testAny = cliTestAny.Count > 0
-      ? cliTestAny
-      : envScripts.Test.Any ?? fileScripts.Test.Any ?? Array.Empty<string>();
-
-    var testByMetric = cliTestMetricScripts.Count > 0
-      ? cliTestMetricScripts.Select(x => new MetricScript { Metrics = new[] { x.Metric }, Path = x.Path }).ToArray()
-      : envScripts.Test.ByMetric.Count > 0
-        ? envScripts.Test.ByMetric
-        : fileScripts.Test.ByMetric;
+    var generate = ResolveScriptList(cliGenerate, envScripts.Generate, fileScripts.Generate);
+    var readAny = ResolveScriptList(cliReadAny, envScripts.Read.Any, fileScripts.Read.Any);
+    var byMetric = ResolveMetricScripts(cliMetricScripts, envScripts.Read.ByMetric, fileScripts.Read.ByMetric);
+    var testAny = ResolveScriptList(cliTestAny, envScripts.Test.Any, fileScripts.Test.Any);
+    var testByMetric = ResolveMetricScripts(cliTestMetricScripts, envScripts.Test.ByMetric, fileScripts.Test.ByMetric);
 
     return new ResolvedScripts(generate, readAny, byMetric, testAny, testByMetric);
+  }
+
+  private static IReadOnlyList<string> ResolveScriptList(
+    IReadOnlyList<string> cliScripts,
+    IReadOnlyList<string>? envScripts,
+    IReadOnlyList<string>? fileScripts)
+  {
+    if (cliScripts.Count > 0)
+    {
+      return cliScripts;
+    }
+
+    return envScripts ?? fileScripts ?? Array.Empty<string>();
+  }
+
+  private static IReadOnlyList<MetricScript> ResolveMetricScripts(
+    IReadOnlyList<(string Metric, string Path)> cliScripts,
+    IReadOnlyList<MetricScript> envScripts,
+    IReadOnlyList<MetricScript> fileScripts)
+  {
+    if (cliScripts.Count > 0)
+    {
+      return ToMetricScripts(cliScripts);
+    }
+
+    if (envScripts.Count > 0)
+    {
+      return envScripts;
+    }
+
+    return fileScripts;
+  }
+
+  private static MetricScript[] ToMetricScripts(IReadOnlyList<(string Metric, string Path)> cliScripts)
+  {
+    return cliScripts
+      .Select(script => new MetricScript { Metrics = new[] { script.Metric }, Path = script.Path })
+      .ToArray();
+  }
+
+  /// <summary>
+  /// Resolves metric alias mappings using precedence: CLI &gt; env &gt; file.
+  /// </summary>
+  /// <param name="cliAliases">Optional CLI-provided aliases keyed by metric identifier.</param>
+  /// <param name="envConfig">Environment configuration.</param>
+  /// <param name="fileConfig">File configuration.</param>
+  /// <returns>Normalized alias map keyed by <see cref="MetricIdentifier"/>.</returns>
+  public static IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> ResolveMetricAliases(
+    IDictionary<string, string[]>? cliAliases,
+    MetricsReporterConfiguration envConfig,
+    MetricsReporterConfiguration fileConfig)
+  {
+    ArgumentNullException.ThrowIfNull(envConfig);
+    ArgumentNullException.ThrowIfNull(fileConfig);
+
+    var result = new Dictionary<MetricIdentifier, IReadOnlyList<string>>();
+    MergeAliases(fileConfig.MetricAliases, result);
+    MergeAliases(envConfig.MetricAliases, result);
+    MergeAliases(cliAliases, result);
+    return result;
   }
 
   private static string ResolveWorkingDirectory(
@@ -156,6 +199,48 @@ internal static class ConfigurationResolver
     MetricsReporterConfiguration fileConfig)
   {
     return (cliVerbosity ?? envConfig.General.Verbosity ?? fileConfig.General.Verbosity ?? DefaultVerbosity).Trim();
+  }
+
+  private static void MergeAliases(
+    IDictionary<string, string[]>? source,
+    Dictionary<MetricIdentifier, IReadOnlyList<string>> target)
+  {
+    if (source is null)
+    {
+      return;
+    }
+
+    foreach (var (metricName, aliases) in source)
+    {
+      if (!Enum.TryParse<MetricIdentifier>(metricName, ignoreCase: true, out var identifier))
+      {
+        continue;
+      }
+
+      var normalizedAliases = NormalizeAliases(aliases);
+      if (normalizedAliases.Count == 0)
+      {
+        target.Remove(identifier);
+        continue;
+      }
+
+      target[identifier] = normalizedAliases;
+    }
+  }
+
+  private static IReadOnlyList<string> NormalizeAliases(IEnumerable<string>? aliases)
+  {
+    if (aliases is null)
+    {
+      return Array.Empty<string>();
+    }
+
+    return aliases
+      .Select(alias => alias?.Trim())
+      .Where(alias => !string.IsNullOrWhiteSpace(alias))
+      .Select(alias => alias!)
+      .Distinct(StringComparer.OrdinalIgnoreCase)
+      .ToArray();
   }
 
   private static string? FirstNonEmpty(params string?[] values)

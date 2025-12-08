@@ -224,7 +224,7 @@ internal sealed class ReadAnyCommandTests : MetricsReaderCommandTestsBase
 
     exitCode.Should().Be(0);
     using var json = JsonDocument.Parse(output);
-    json.RootElement.GetProperty("metric").GetString().Should().Be("Complexity");
+    json.RootElement.GetProperty("metric").GetString().Should().Be("RoslynCyclomaticComplexity");
     json.RootElement.GetProperty("namespace").GetString().Should().Be("Rca.Other.Namespace");
     json.RootElement.GetProperty("message").GetString().Should().Contain("No violations were found");
   }
@@ -246,7 +246,7 @@ internal sealed class ReadAnyCommandTests : MetricsReaderCommandTestsBase
 
     exitCode.Should().Be(0);
     using var json = JsonDocument.Parse(output);
-    json.RootElement.GetProperty("metric").GetString().Should().Be("Complexity");
+    json.RootElement.GetProperty("metric").GetString().Should().Be("RoslynCyclomaticComplexity");
     json.RootElement.GetProperty("namespace").GetString().Should().Be("Rca.Loader.Services");
     json.RootElement.GetProperty("message").GetString().Should().Contain("No violations were found");
   }
@@ -327,7 +327,7 @@ internal sealed class ReadAnyCommandTests : MetricsReaderCommandTestsBase
     {
       ReportPath = "build/Metrics/Report/MetricsReport.g.json",
       Namespace = "Rca.Loader",
-      Metric = "Complexity",
+      Metric = "RoslynCyclomaticComplexity",
       GroupBy = MetricsReaderGroupByOption.RuleId
     };
 

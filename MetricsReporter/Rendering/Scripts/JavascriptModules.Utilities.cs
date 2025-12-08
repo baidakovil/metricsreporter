@@ -42,6 +42,23 @@ function readRuleDescriptionsData(doc){
   }
 }
 
+function readMetricAliasesData(doc){
+  const holder = doc.getElementById('metric-aliases-data');
+  if(!holder){
+    return null;
+  }
+  const raw = holder.textContent || holder.innerText || '';
+  if(!raw.trim()){
+    return null;
+  }
+  try{
+    const parsed = JSON.parse(raw);
+    return parsed && Object.keys(parsed).length > 0 ? parsed : null;
+  }catch(_){
+    return null;
+  }
+}
+
 function createPreferenceStore(locationKey){
   const key = 'rcaMetricsReport.preferences:' + (locationKey || 'report');
   return {

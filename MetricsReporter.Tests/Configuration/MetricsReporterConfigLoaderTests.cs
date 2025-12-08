@@ -254,6 +254,123 @@ internal sealed class MetricsReporterConfigLoaderTests
   }
 
   [Test]
+  public void Load_WithUnknownMetricAliasKey_ReturnsFailure()
+  {
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": { "generate": [], "read": {}, "test": {} },
+      "metricAliases": { "UnknownMetric": [ "x" ] }
+    }
+    """);
+
+    var result = _loader.Load(null, _root);
+
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("Unknown metric identifier"));
+  }
+
+  [Test]
+  public void Load_WithEmptyAliasArray_ReturnsFailure()
+  {
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": { "generate": [], "read": {}, "test": {} },
+      "metricAliases": { "RoslynCyclomaticComplexity": [] }
+    }
+    """);
+
+    var result = _loader.Load(null, _root);
+
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("non-empty array"));
+  }
+
+  [Test]
+  public void Load_WithNonStringAlias_ReturnsFailure()
+  {
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": { "generate": [], "read": {}, "test": {} },
+      "metricAliases": { "RoslynCyclomaticComplexity": [ 1 ] }
+    }
+    """);
+
+    var result = _loader.Load(null, _root);
+
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("must contain only strings"));
+  }
+
+  [Test]
+  public void Load_WithDuplicateAliasAcrossMetrics_ReturnsFailure()
+  {
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": { "generate": [], "read": {}, "test": {} },
+      "metricAliases": {
+        "RoslynCyclomaticComplexity": [ "cc" ],
+        "RoslynClassCoupling": [ "cc" ]
+      }
+    }
+    """);
+
+    var result = _loader.Load(null, _root);
+
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("assigned to multiple metrics"));
+  }
+
+  [Test]
+  public void Load_WithEmptyAliasString_ReturnsFailure()
+  {
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": {},
+      "scripts": { "generate": [], "read": {}, "test": {} },
+      "metricAliases": { "RoslynCyclomaticComplexity": [ "  " ] }
+    }
+    """);
+
+    var result = _loader.Load(null, _root);
+
+    result.IsSuccess.Should().BeFalse();
+    result.Errors.Should().ContainSingle(e => e.Contains("non-empty strings"));
+  }
+
+  [Test]
+  public void Load_WithValidMetricAliases_Succeeds()
+  {
+    var configPath = Path.Combine(_root, ".metricsreporter.json");
+    File.WriteAllText(configPath, """
+    {
+      "general": {},
+      "paths": { "report": "report.json", "readReport": "report.json" },
+      "scripts": { "generate": [], "read": {}, "test": {} },
+      "metricAliases": { "RoslynCyclomaticComplexity": [ "cc", "cyclomatic" ] }
+    }
+    """);
+
+    var result = _loader.Load(null, _root);
+
+    result.IsSuccess.Should().BeTrue();
+    result.Configuration.MetricAliases.Should().ContainKey("RoslynCyclomaticComplexity");
+  }
+
+  [Test]
   public void ResolveConfigPath_WalksUpwardToFindFile()
   {
     // Arrange

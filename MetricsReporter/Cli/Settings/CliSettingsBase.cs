@@ -58,6 +58,13 @@ internal abstract class CliSettingsBase : CommandSettings
   [Description("Maximum number of stdout/stderr characters logged on script failures. Defaults to 4000.")]
   public int? LogTruncationLimit { get; init; }
 
+  /// <summary>
+  /// Gets optional metric alias mappings provided as JSON (e.g. { \"AltCoverBranchCoverage\": [\"branch\"] }).
+  /// </summary>
+  [CommandOption("--metric-aliases <JSON>")]
+  [Description("JSON object mapping metric identifiers to alias arrays. CLI overrides env/config.")]
+  public string? MetricAliases { get; init; }
+
   /// <inheritdoc />
   public override ValidationResult Validate()
   {

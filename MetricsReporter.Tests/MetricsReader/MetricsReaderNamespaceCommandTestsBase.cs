@@ -39,7 +39,7 @@ internal abstract class MetricsReaderCommandTestsBase
     MetricsReaderSymbolKind symbolKind = MetricsReaderSymbolKind.Any,
     string? thresholdsFile = null,
     bool showAll = false,
-    string metricName = "Complexity",
+    string metricName = "RoslynCyclomaticComplexity",
     string? ruleId = null,
     MetricsReaderGroupByOption? groupBy = null)
   {
@@ -94,7 +94,7 @@ internal abstract class MetricsReaderCommandTestsBase
     string reportPath,
     string symbol,
     bool includeSuppressed = false,
-    string metric = "Complexity",
+    string metric = "RoslynCyclomaticComplexity",
     string? thresholdsFile = null)
   {
     var settings = new TestMetricSettings

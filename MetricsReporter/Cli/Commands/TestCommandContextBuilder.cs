@@ -6,6 +6,7 @@ using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
 using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
+using MetricsReporter.Model;
 using MetricsReporter.Services.Scripts;
 using Spectre.Console;
 
@@ -54,7 +55,7 @@ internal sealed class TestCommandContextBuilder
       return BuildTestContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var testSettings = BuildTestSettings(settings, paths);
+    var testSettings = BuildTestSettings(settings, paths, configuration.MetricAliases);
     if (!testSettings.Succeeded)
     {
       return BuildTestContextResult.CreateFailure(testSettings.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
@@ -65,6 +66,7 @@ internal sealed class TestCommandContextBuilder
         configuration.GeneralOptions,
         configuration.EnvironmentConfiguration,
         configuration.FileConfiguration,
+        configuration.MetricAliases,
         scripts.Scripts!,
         testSettings.Settings!,
         testSettings.Metrics));
@@ -102,7 +104,23 @@ internal sealed class TestCommandContextBuilder
       envConfig,
       configResult.Configuration);
 
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration);
+    Dictionary<string, string[]>? cliAliases = null;
+    try
+    {
+      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
+    }
+    catch (ArgumentException ex)
+    {
+      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
+      cliAliases,
+      envConfig,
+      configResult.Configuration);
+
+    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
   }
 
   private static PathResolutionResult ResolvePaths(TestSettings settings, ConfigurationLoadResult configuration)
@@ -148,11 +166,24 @@ internal sealed class TestCommandContextBuilder
     return ScriptResolutionResult.Success(scripts);
   }
 
-  private static TestSettingsResult BuildTestSettings(TestSettings settings, PathResolutionResult paths)
+  private static TestSettingsResult BuildTestSettings(
+    TestSettings settings,
+    PathResolutionResult paths,
+    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
   {
-    if (!MetricIdentifierResolver.TryResolve(settings.Metric!, out var resolvedMetric))
+    MetricIdentifierResolver resolver;
+    try
     {
-      AnsiConsole.MarkupLine($"[red]Unknown metric identifier '{settings.Metric}'.[/]");
+      resolver = new MetricIdentifierResolver(metricAliases);
+    }
+    catch (ArgumentException ex)
+    {
+      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+      return TestSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
+    }
+    if (!resolver.TryResolve(settings.Metric!, out var resolvedMetric))
+    {
+      AnsiConsole.MarkupLine($"[red]{resolver.BuildUnknownMetricMessage(settings.Metric)}[/]");
       return TestSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
     }
 
@@ -161,6 +192,7 @@ internal sealed class TestCommandContextBuilder
       ReportPath = paths.ReportPath!,
       Symbol = settings.Symbol!,
       Metric = settings.Metric!,
+      MetricResolver = resolver,
       ThresholdsFile = paths.ThresholdsFile,
       IncludeSuppressed = settings.IncludeSuppressed
     };
@@ -182,6 +214,7 @@ internal sealed class TestCommandContextBuilder
 /// <param name="GeneralOptions">Resolved general options shared across commands.</param>
 /// <param name="EnvironmentConfiguration">Configuration from environment sources.</param>
 /// <param name="FileConfiguration">Configuration from file sources.</param>
+/// <param name="MetricAliases">Resolved metric alias mappings.</param>
 /// <param name="Scripts">Scripts to run around the test command.</param>
 /// <param name="TestSettings">Settings for the metric test.</param>
 /// <param name="Metrics">Metrics requested by the user.</param>
@@ -189,6 +222,7 @@ internal sealed record TestCommandContext(
   ResolvedGeneralOptions GeneralOptions,
   MetricsReporterConfiguration EnvironmentConfiguration,
   MetricsReporterConfiguration FileConfiguration,
+  IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases,
   ResolvedScripts Scripts,
   TestMetricSettings TestSettings,
   IEnumerable<string> Metrics);

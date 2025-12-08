@@ -6,9 +6,9 @@ using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
 using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
+using MetricsReporter.Model;
 using MetricsReporter.Services.Scripts;
 using Spectre.Console;
-using MetricIdentifierResolver = MetricsReporter.MetricsReader.Services.MetricIdentifierResolver;
 
 namespace MetricsReporter.Cli.Commands;
 
@@ -55,7 +55,7 @@ internal sealed class ReadCommandContextBuilder
       return BuildReadContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var readerSettings = BuildReaderSettings(settings, paths);
+    var readerSettings = BuildReaderSettings(settings, paths, configuration.MetricAliases);
     if (!readerSettings.Succeeded)
     {
       return BuildReadContextResult.CreateFailure(readerSettings.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
@@ -66,6 +66,7 @@ internal sealed class ReadCommandContextBuilder
         configuration.GeneralOptions,
         configuration.EnvironmentConfiguration,
         configuration.FileConfiguration,
+        configuration.MetricAliases,
         scripts.Scripts!,
         readerSettings.ReaderSettings!,
         readerSettings.Metrics,
@@ -104,7 +105,23 @@ internal sealed class ReadCommandContextBuilder
       envConfig,
       configResult.Configuration);
 
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration);
+    Dictionary<string, string[]>? cliAliases = null;
+    try
+    {
+      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
+    }
+    catch (ArgumentException ex)
+    {
+      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
+      cliAliases,
+      envConfig,
+      configResult.Configuration);
+
+    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
   }
 
   private static PathResolutionResult ResolvePaths(ReadSettings settings, ConfigurationLoadResult configuration)
@@ -154,11 +171,24 @@ internal sealed class ReadCommandContextBuilder
     "Microsoft.Maintainability",
     "CA1506:AvoidExcessiveClassCoupling",
     Justification = "Reader settings assembly must validate metric identifier, thresholds, grouping, and suppression flags together; coupling reflects required dependencies for correctness.")]
-  private static ReadSettingsResult BuildReaderSettings(ReadSettings settings, PathResolutionResult paths)
+  private static ReadSettingsResult BuildReaderSettings(
+    ReadSettings settings,
+    PathResolutionResult paths,
+    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
   {
-    if (!MetricIdentifierResolver.TryResolve(settings.Metric!, out var resolvedMetric))
+    MetricIdentifierResolver resolver;
+    try
     {
-      AnsiConsole.MarkupLine($"[red]Unknown metric identifier '{settings.Metric}'.[/]");
+      resolver = new MetricIdentifierResolver(metricAliases);
+    }
+    catch (ArgumentException ex)
+    {
+      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+      return ReadSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
+    }
+    if (!resolver.TryResolve(settings.Metric!, out var resolvedMetric))
+    {
+      AnsiConsole.MarkupLine($"[red]{resolver.BuildUnknownMetricMessage(settings.Metric)}[/]");
       return ReadSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
     }
 
@@ -167,6 +197,7 @@ internal sealed class ReadCommandContextBuilder
       ReportPath = paths.ReportPath!,
       Namespace = settings.Namespace!,
       Metric = settings.Metric!,
+      MetricResolver = resolver,
       SymbolKind = settings.SymbolKind,
       ShowAll = settings.ShowAll,
       RuleId = settings.RuleId,
@@ -192,6 +223,7 @@ internal sealed class ReadCommandContextBuilder
 /// <param name="GeneralOptions">Resolved general options shared across commands.</param>
 /// <param name="EnvironmentConfiguration">Configuration from environment sources.</param>
 /// <param name="FileConfiguration">Configuration from file sources.</param>
+/// <param name="MetricAliases">Resolved metric alias mappings.</param>
 /// <param name="Scripts">Scripts to run before reading metrics.</param>
 /// <param name="ReaderSettings">Settings for the metrics reader.</param>
 /// <param name="Metrics">Metrics requested by the user.</param>
@@ -200,6 +232,7 @@ internal sealed record ReadCommandContext(
   ResolvedGeneralOptions GeneralOptions,
   MetricsReporterConfiguration EnvironmentConfiguration,
   MetricsReporterConfiguration FileConfiguration,
+  IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases,
   ResolvedScripts Scripts,
   NamespaceMetricSettings ReaderSettings,
   IEnumerable<string> Metrics,

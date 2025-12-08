@@ -2,6 +2,7 @@ namespace MetricsReporter.Rendering;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -80,6 +81,7 @@ public sealed class HtmlReportGenerator
 
     AppendScriptTagIfNotEmpty(builder, "threshold-data", CreateThresholdPayload(report.Metadata));
     AppendScriptTagIfNotEmpty(builder, "rule-descriptions-data", CreateRuleDescriptionsPayload(report.Metadata));
+    AppendScriptTagIfNotEmpty(builder, "metric-aliases-data", CreateMetricAliasesPayload(report.Metadata));
 
     // JavaScript section
     builder.AppendLine("<script>");
@@ -246,6 +248,26 @@ public sealed class HtmlReportGenerator
 
     var payload = BuildRuleDescriptionsPayload(metadata);
     var json = SerializeRuleDescriptionsPayload(payload);
+    return SanitizeJsonForScriptTag(json);
+  }
+
+  /// <summary>
+  /// Creates a JSON payload containing metric aliases for JavaScript consumption in the HTML report.
+  /// </summary>
+  /// <param name="metadata">The report metadata containing metric aliases.</param>
+  /// <returns>A sanitized JSON string or <see langword="null"/> when no aliases are present.</returns>
+  private static string? CreateMetricAliasesPayload(ReportMetadata metadata)
+  {
+    if (metadata.MetricAliases.Count == 0)
+    {
+      return null;
+    }
+
+    var payload = metadata.MetricAliases.ToDictionary(
+      pair => pair.Key.ToString(),
+      pair => pair.Value);
+
+    var json = JsonSerializer.Serialize(payload, JsonSerializerOptionsFactory.Create());
     return SanitizeJsonForScriptTag(json);
   }
 

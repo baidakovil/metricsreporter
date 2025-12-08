@@ -8,6 +8,7 @@ using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
 using MetricsReporter.Services;
 using MetricsReporter.Services.Scripts;
+using MetricsReporter.Model;
 using Spectre.Console;
 
 namespace MetricsReporter.Cli.Commands;
@@ -64,7 +65,7 @@ internal sealed class GenerateCommandContextBuilder
       return BuildGenerateContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var options = BuildOptions(inputs.Inputs!, logPath);
+    var options = BuildOptions(inputs.Inputs!, logPath, configuration.MetricAliases);
     return BuildGenerateContextResult.CreateSuccess(
       new GenerateCommandContext(
         configuration.GeneralOptions,
@@ -106,7 +107,23 @@ internal sealed class GenerateCommandContextBuilder
       envConfig,
       configResult.Configuration);
 
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration);
+    Dictionary<string, string[]>? cliAliases = null;
+    try
+    {
+      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
+    }
+    catch (ArgumentException ex)
+    {
+      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
+      cliAliases,
+      envConfig,
+      configResult.Configuration);
+
+    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
   }
 
   private static GenerateInputResolutionResult ResolveInputs(GenerateSettings settings, ConfigurationLoadResult configuration)
@@ -242,7 +259,10 @@ internal sealed class GenerateCommandContextBuilder
     return Path.Combine(workingDirectory, "MetricsReporter.log");
   }
 
-  private static MetricsReporterOptions BuildOptions(ResolvedGenerateInputs inputs, string logPath)
+  private static MetricsReporterOptions BuildOptions(
+    ResolvedGenerateInputs inputs,
+    string logPath,
+    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
   {
     return new MetricsReporterOptions
     {
@@ -268,7 +288,8 @@ internal sealed class GenerateCommandContextBuilder
       AnalyzeSuppressedSymbols = inputs.AnalyzeSuppressedSymbols,
       SuppressedSymbolsPath = inputs.SuppressedSymbols,
       SolutionDirectory = inputs.SolutionDirectory,
-      SourceCodeFolders = inputs.SourceCodeFolders
+      SourceCodeFolders = inputs.SourceCodeFolders,
+      MetricAliases = metricAliases
     };
   }
 

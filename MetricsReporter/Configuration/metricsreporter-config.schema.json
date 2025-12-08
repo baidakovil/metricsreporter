@@ -163,6 +163,31 @@
           }
         }
       }
+    },
+    "metricAliases": {
+      "type": "object",
+      "description": "Optional aliases for metric identifiers. Keys must match MetricIdentifier values; values are arrays of non-empty alias strings.",
+      "propertyNames": {
+        "enum": [
+          "AltCoverSequenceCoverage",
+          "AltCoverBranchCoverage",
+          "AltCoverCyclomaticComplexity",
+          "AltCoverNPathComplexity",
+          "RoslynMaintainabilityIndex",
+          "RoslynCyclomaticComplexity",
+          "RoslynClassCoupling",
+          "RoslynDepthOfInheritance",
+          "RoslynSourceLines",
+          "RoslynExecutableLines",
+          "SarifCaRuleViolations",
+          "SarifIdeRuleViolations"
+        ]
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 },
+        "minItems": 1
+      }
     }
   },
   "required": [ "general", "paths", "scripts" ]
@@ -292,6 +317,31 @@
             }
           }
         }
+      }
+    },
+    "metricAliases": {
+      "type": "object",
+      "description": "Optional aliases for metric identifiers. Keys must match MetricIdentifier values; values are arrays of non-empty alias strings.",
+      "propertyNames": {
+        "enum": [
+          "AltCoverSequenceCoverage",
+          "AltCoverBranchCoverage",
+          "AltCoverCyclomaticComplexity",
+          "AltCoverNPathComplexity",
+          "RoslynMaintainabilityIndex",
+          "RoslynCyclomaticComplexity",
+          "RoslynClassCoupling",
+          "RoslynDepthOfInheritance",
+          "RoslynSourceLines",
+          "RoslynExecutableLines",
+          "SarifCaRuleViolations",
+          "SarifIdeRuleViolations"
+        ]
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 },
+        "minItems": 1
       }
     }
   },

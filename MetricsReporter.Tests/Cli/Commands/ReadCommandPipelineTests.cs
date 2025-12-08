@@ -64,6 +64,7 @@ internal sealed class ReadCommandPipelineTests
       general,
       new MetricsReporterConfiguration(),
       new MetricsReporterConfiguration(),
+      new Dictionary<MetricIdentifier, IReadOnlyList<string>>(),
       new ResolvedScripts(Array.Empty<string>(), Array.Empty<string>(), Array.Empty<MetricScript>(), Array.Empty<string>(), Array.Empty<MetricScript>()),
       readerSettings,
       metrics,

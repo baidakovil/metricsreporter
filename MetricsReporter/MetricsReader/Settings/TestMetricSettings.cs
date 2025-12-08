@@ -30,6 +30,11 @@ internal sealed class TestMetricSettings : MetricsReaderSettingsBase
   /// </summary>
   public MetricIdentifier ResolvedMetric { get; private set; }
 
+  /// <summary>
+  /// Gets or sets the resolver used for metric/alias resolution.
+  /// </summary>
+  public MetricIdentifierResolver MetricResolver { get; init; } = MetricIdentifierResolver.Empty;
+
   /// <inheritdoc />
   public override ValidationResult Validate()
   {
@@ -49,9 +54,9 @@ internal sealed class TestMetricSettings : MetricsReaderSettingsBase
       return ValidationResult.Error("--metric is required.");
     }
 
-    if (!MetricIdentifierResolver.TryResolve(Metric, out var resolved))
+    if (!MetricResolver.TryResolve(Metric, out var resolved))
     {
-      return ValidationResult.Error($"Unknown metric identifier '{Metric}'.");
+      return ValidationResult.Error(MetricResolver.BuildUnknownMetricMessage(Metric));
     }
 
     ResolvedMetric = resolved;

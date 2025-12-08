@@ -49,7 +49,9 @@
         {
           "metrics": [
             "AltCoverBranchCoverage",
-            "AltCoverSequenceCoverage"
+            "AltCoverSequenceCoverage",
+            "AltCoverCyclomaticComplexity",
+            "AltCoverNPathComplexity"
           ],
           "path": "Metrics/scripts/collect-altcover.ps1"
         },
@@ -61,8 +63,6 @@
             "RoslynDepthOfInheritance",
             "RoslynLinesOfCode",
             "RoslynSourceLines",
-            "AltCoverCyclomaticComplexity",
-            "AltCoverNPathComplexity",
             "SarifCaRuleViolations",
             "SarifIdeRuleViolations",
             "Any"
@@ -76,6 +76,20 @@
         "Metrics/scripts/prepare-metrics.ps1"
       ]
     }
+  },
+  "metricAliases": {
+    "AltCoverSequenceCoverage": [ "SequenceCoverage", "Coverage" ],
+    "AltCoverBranchCoverage": [ "BranchCoverage" ],
+    "AltCoverCyclomaticComplexity": [ "AltCoverComplexity" ],
+    "AltCoverNPathComplexity": [ "NPath" ],
+    "RoslynMaintainabilityIndex": [ "Maintainability", "MaintainabilityIndex" ],
+    "RoslynCyclomaticComplexity": [ "Complexity", "CyclomaticComplexity", "cc", "cyclomatic" ],
+    "RoslynClassCoupling": [ "Coupling", "ClassCoupling" ],
+    "RoslynDepthOfInheritance": [ "Inheritance", "DepthOfInheritance" ],
+    "RoslynSourceLines": [ "SourceLines" ],
+    "RoslynExecutableLines": [ "ExecutableLines" ],
+    "SarifCaRuleViolations": [ "CaViolations" ],
+    "SarifIdeRuleViolations": [ "IdeViolations" ]
   }
 }
 

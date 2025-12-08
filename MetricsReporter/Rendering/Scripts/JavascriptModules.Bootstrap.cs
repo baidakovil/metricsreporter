@@ -51,6 +51,7 @@ internal static partial class JavascriptModules
     refs,
     thresholdData: readThresholdData(doc),
     ruleDescriptionsData: readRuleDescriptionsData(doc),
+    metricAliasesData: readMetricAliasesData(doc),
     preferenceStore,
     savedPreferences,
     isRestoringPreferences: !!savedPreferences,

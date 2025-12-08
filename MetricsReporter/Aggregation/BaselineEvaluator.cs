@@ -40,24 +40,34 @@ internal sealed class BaselineEvaluator
   {
     lookup[path] = node;
 
-    foreach (var assembly in (node as SolutionMetricsNode)?.Assemblies ?? Array.Empty<AssemblyMetricsNode>())
+    foreach (var (child, childPath) in EnumerateChildren(node, path))
     {
-      TraverseBaseline(assembly, $"{path}/{assembly.Name}", lookup);
+      TraverseBaseline(child, childPath, lookup);
     }
+  }
 
-    foreach (var ns in (node as AssemblyMetricsNode)?.Namespaces ?? Array.Empty<NamespaceMetricsNode>())
+  private static IEnumerable<(MetricsNode Node, string Path)> EnumerateChildren(
+      MetricsNode node,
+      string path)
+  {
+    return node switch
     {
-      TraverseBaseline(ns, $"{path}/{ns.Name}", lookup);
-    }
+      SolutionMetricsNode solution => SelectChildren(solution.Assemblies, path),
+      AssemblyMetricsNode assembly => SelectChildren(assembly.Namespaces, path),
+      NamespaceMetricsNode @namespace => SelectChildren(@namespace.Types, path),
+      TypeMetricsNode type => SelectChildren(type.Members, path),
+      _ => Array.Empty<(MetricsNode Node, string Path)>()
+    };
+  }
 
-    foreach (var type in (node as NamespaceMetricsNode)?.Types ?? Array.Empty<TypeMetricsNode>())
+  private static IEnumerable<(MetricsNode Node, string Path)> SelectChildren<TChild>(
+      IEnumerable<TChild> children,
+      string path)
+      where TChild : MetricsNode
+  {
+    foreach (var child in children)
     {
-      TraverseBaseline(type, $"{path}/{type.Name}", lookup);
-    }
-
-    foreach (var member in (node as TypeMetricsNode)?.Members ?? Array.Empty<MemberMetricsNode>())
-    {
-      TraverseBaseline(member, $"{path}/{member.Name}", lookup);
+      yield return (child, $"{path}/{child.Name}");
     }
   }
 

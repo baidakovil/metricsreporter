@@ -5,7 +5,9 @@ using MetricsReporter.Cli.Configuration;
 using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
+using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
+using MetricsReporter.Model;
 using MetricsReporter.Services.Scripts;
 using Spectre.Console;
 
@@ -54,7 +56,7 @@ internal sealed class ReadSarifCommandContextBuilder
       return BuildSarifContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var sarifSettings = BuildSarifSettings(settings, paths);
+    var sarifSettings = BuildSarifSettings(settings, paths, configuration.MetricAliases);
     if (!sarifSettings.Succeeded)
     {
       return BuildSarifContextResult.CreateFailure(sarifSettings.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
@@ -65,6 +67,7 @@ internal sealed class ReadSarifCommandContextBuilder
         configuration.GeneralOptions,
         configuration.EnvironmentConfiguration,
         configuration.FileConfiguration,
+        configuration.MetricAliases,
         scripts.Scripts!,
         sarifSettings.Settings!,
         sarifSettings.Metrics));
@@ -102,7 +105,23 @@ internal sealed class ReadSarifCommandContextBuilder
       envConfig,
       configResult.Configuration);
 
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration);
+    Dictionary<string, string[]>? cliAliases = null;
+    try
+    {
+      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
+    }
+    catch (ArgumentException ex)
+    {
+      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
+      cliAliases,
+      envConfig,
+      configResult.Configuration);
+
+    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
   }
 
   private static PathResolutionResult ResolvePaths(ReadSarifSettings settings, ConfigurationLoadResult configuration)
@@ -152,8 +171,12 @@ internal sealed class ReadSarifCommandContextBuilder
     "Microsoft.Maintainability",
     "CA1506:AvoidExcessiveClassCoupling",
     Justification = "Method consolidates SARIF-specific validation, metric resolution, and command settings construction; further splitting would duplicate validation messaging logic.")]
-  private static SarifSettingsResult BuildSarifSettings(ReadSarifSettings settings, PathResolutionResult paths)
+  private static SarifSettingsResult BuildSarifSettings(
+    ReadSarifSettings settings,
+    PathResolutionResult paths,
+    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
   {
+    var resolver = new MetricIdentifierResolver(metricAliases);
     var sarifSettings = new SarifMetricSettings
     {
       ReportPath = paths.ReportPath!,
@@ -164,7 +187,8 @@ internal sealed class ReadSarifCommandContextBuilder
       GroupBy = settings.GroupBy,
       ShowAll = settings.ShowAll,
       ThresholdsFile = paths.ThresholdsFile,
-      IncludeSuppressed = settings.IncludeSuppressed
+      IncludeSuppressed = settings.IncludeSuppressed,
+      MetricResolver = resolver
     };
 
     var validation = sarifSettings.Validate();
@@ -176,7 +200,7 @@ internal sealed class ReadSarifCommandContextBuilder
 
     if (!sarifSettings.TryResolveSarifMetrics(out var metrics) || metrics is null)
     {
-      AnsiConsole.MarkupLine($"[red]Unknown SARIF metric '{sarifSettings.EffectiveMetricName}'.[/]");
+      AnsiConsole.MarkupLine($"[red]{sarifSettings.MetricResolver.BuildUnknownMetricMessage(sarifSettings.EffectiveMetricName)}[/]");
       return SarifSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
     }
 
@@ -190,6 +214,7 @@ internal sealed class ReadSarifCommandContextBuilder
 /// <param name="GeneralOptions">Resolved general options shared across commands.</param>
 /// <param name="EnvironmentConfiguration">Configuration from environment sources.</param>
 /// <param name="FileConfiguration">Configuration from file sources.</param>
+/// <param name="MetricAliases">Resolved metric alias mappings.</param>
 /// <param name="Scripts">Scripts to run before SARIF aggregation.</param>
 /// <param name="SarifSettings">SARIF-specific settings for execution.</param>
 /// <param name="Metrics">Resolved SARIF metrics.</param>
@@ -197,6 +222,7 @@ internal sealed record ReadSarifCommandContext(
   ResolvedGeneralOptions GeneralOptions,
   MetricsReporterConfiguration EnvironmentConfiguration,
   MetricsReporterConfiguration FileConfiguration,
+  IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases,
   ResolvedScripts Scripts,
   SarifMetricSettings SarifSettings,
   IEnumerable<string> Metrics);
@@ -224,21 +250,24 @@ internal sealed record BuildSarifContextResult(bool Succeeded, int? ExitCode, Re
 /// <param name="GeneralOptions">Resolved general options.</param>
 /// <param name="EnvironmentConfiguration">Environment configuration.</param>
 /// <param name="FileConfiguration">File configuration.</param>
+/// <param name="MetricAliases">Resolved metric alias mappings.</param>
 internal sealed record ConfigurationLoadResult(
   bool Succeeded,
   int? ExitCode,
   ResolvedGeneralOptions GeneralOptions,
   MetricsReporterConfiguration EnvironmentConfiguration,
-  MetricsReporterConfiguration FileConfiguration)
+  MetricsReporterConfiguration FileConfiguration,
+  IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases)
 {
   public static ConfigurationLoadResult Success(
     ResolvedGeneralOptions generalOptions,
     MetricsReporterConfiguration environmentConfiguration,
-    MetricsReporterConfiguration fileConfiguration) =>
-    new(true, null, generalOptions, environmentConfiguration, fileConfiguration);
+    MetricsReporterConfiguration fileConfiguration,
+    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases) =>
+    new(true, null, generalOptions, environmentConfiguration, fileConfiguration, metricAliases);
 
   public static ConfigurationLoadResult Failure(int exitCode) =>
-    new(false, exitCode, null!, null!, null!);
+    new(false, exitCode, null!, null!, null!, null!);
 }
 
 /// <summary>

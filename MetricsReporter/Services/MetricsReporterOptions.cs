@@ -1,6 +1,7 @@
 namespace MetricsReporter.Services;
 
 using System.Collections.Generic;
+using MetricsReporter.Model;
 
 /// <summary>
 /// Describes command-line options supplied to the metrics reporter.
@@ -182,6 +183,12 @@ public sealed class MetricsReporterOptions
   /// Typical values: <c>["src", "src/Tools", "tests"]</c> or <c>["Source", "Tests"]</c>
   /// </example>
   public IReadOnlyCollection<string> SourceCodeFolders { get; init; } = [];
+
+  /// <summary>
+  /// Optional metric alias mappings keyed by canonical metric identifier.
+  /// </summary>
+  public IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases { get; init; }
+    = new Dictionary<MetricIdentifier, IReadOnlyList<string>>();
 }
 
 

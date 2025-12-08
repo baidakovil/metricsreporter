@@ -6,6 +6,7 @@ using System.IO;
 using FluentAssertions;
 using MetricsReporter.Cli.Configuration;
 using MetricsReporter.Configuration;
+using MetricsReporter.Model;
 using NUnit.Framework;
 
 [TestFixture]
@@ -473,6 +474,49 @@ internal sealed class ConfigurationResolverTests
     result.ReadByMetric[1].Path.Should().Be("cli-b.ps1");
     result.TestAny.Should().BeEmpty();
     result.TestByMetric.Should().BeEmpty();
+  }
+
+  [Test]
+  public void ResolveMetricAliases_PrefersCliThenEnvThenFile()
+  {
+    var envConfig = new MetricsReporterConfiguration
+    {
+      MetricAliases = new Dictionary<string, string[]>
+      {
+        ["RoslynCyclomaticComplexity"] = new[] { "env" },
+        ["RoslynClassCoupling"] = new[] { "envCoupling" }
+      }
+    };
+    var fileConfig = new MetricsReporterConfiguration
+    {
+      MetricAliases = new Dictionary<string, string[]>
+      {
+        ["RoslynCyclomaticComplexity"] = new[] { "file" },
+        ["RoslynMaintainabilityIndex"] = new[] { "fileMi" }
+      }
+    };
+    var cli = new Dictionary<string, string[]>
+    {
+      ["RoslynCyclomaticComplexity"] = new[] { "cli" }
+    };
+
+    var result = ConfigurationResolver.ResolveMetricAliases(cli, envConfig, fileConfig);
+
+    result.Should().ContainKey(MetricIdentifier.RoslynCyclomaticComplexity);
+    result[MetricIdentifier.RoslynCyclomaticComplexity].Should().BeEquivalentTo("cli");
+    result[MetricIdentifier.RoslynClassCoupling].Should().BeEquivalentTo("envCoupling");
+    result[MetricIdentifier.RoslynMaintainabilityIndex].Should().BeEquivalentTo("fileMi");
+  }
+
+  [Test]
+  public void ResolveMetricAliases_WhenNullSources_ReturnsEmpty()
+  {
+    var envConfig = new MetricsReporterConfiguration();
+    var fileConfig = new MetricsReporterConfiguration();
+
+    var result = ConfigurationResolver.ResolveMetricAliases(null, envConfig, fileConfig);
+
+    result.Should().BeEmpty();
   }
 }
 

@@ -68,6 +68,12 @@ public sealed class MetricsAggregationInput
   public List<SuppressedSymbolInfo> SuppressedSymbols { get; init; }
 
   /// <summary>
+  /// Metric alias mappings keyed by canonical identifier.
+  /// </summary>
+  public IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases { get; init; }
+    = new Dictionary<MetricIdentifier, IReadOnlyList<string>>();
+
+  /// <summary>
   /// Initializes a new instance of <see cref="MetricsAggregationInput"/>.
   /// </summary>
   public MetricsAggregationInput()

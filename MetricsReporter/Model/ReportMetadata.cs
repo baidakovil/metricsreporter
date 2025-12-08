@@ -95,6 +95,12 @@ public sealed class ReportMetadata
   /// </remarks>
   public IDictionary<string, RuleDescription> RuleDescriptions { get; init; }
       = new Dictionary<string, RuleDescription>();
+
+  /// <summary>
+  /// Metric alias mappings keyed by canonical metric identifier.
+  /// </summary>
+  public IDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases { get; init; }
+      = new Dictionary<MetricIdentifier, IReadOnlyList<string>>();
 }
 
 

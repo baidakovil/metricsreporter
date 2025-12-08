@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 
 namespace MetricsReporter.Configuration;
 
@@ -68,8 +69,57 @@ public static class EnvironmentConfigurationProvider
           Any = ReadList("METRICSREPORTER_SCRIPTS_TEST_ANY"),
           ByMetric = ReadMetricScripts("METRICSREPORTER_SCRIPTS_TEST_BYMETRIC")
         }
-      }
+      },
+      MetricAliases = ReadAliases("METRICSREPORTER_METRIC_ALIASES")
     };
+  }
+
+  private static Dictionary<string, string[]>? ReadAliases(string name)
+  {
+    var value = Environment.GetEnvironmentVariable(name);
+    if (string.IsNullOrWhiteSpace(value))
+    {
+      return null;
+    }
+
+    try
+    {
+      using var document = JsonDocument.Parse(value);
+      var root = document.RootElement;
+      if (root.ValueKind != JsonValueKind.Object)
+      {
+        return null;
+      }
+
+      var aliases = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+      foreach (var property in root.EnumerateObject())
+      {
+        if (property.Value.ValueKind != JsonValueKind.Array)
+        {
+          continue;
+        }
+
+        var values = property.Value
+          .EnumerateArray()
+          .Where(item => item.ValueKind == JsonValueKind.String)
+          .Select(item => item.GetString() ?? string.Empty)
+          .Select(alias => alias.Trim())
+          .Where(alias => alias.Length > 0)
+          .Distinct(StringComparer.OrdinalIgnoreCase)
+          .ToArray();
+
+        if (values.Length > 0)
+        {
+          aliases[property.Name] = values;
+        }
+      }
+
+      return aliases.Count == 0 ? null : aliases;
+    }
+    catch (JsonException)
+    {
+      return null;
+    }
   }
 
   private static string? ReadString(string name)

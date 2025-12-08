@@ -67,6 +67,11 @@ internal sealed class SarifMetricSettings : MetricsReaderSettingsBase
   public MetricsReaderGroupByOption EffectiveGroupBy
     => GroupBy ?? MetricsReaderGroupByOption.RuleId;
 
+  /// <summary>
+  /// Gets or sets the resolver used for metric/alias resolution.
+  /// </summary>
+  public MetricIdentifierResolver MetricResolver { get; init; } = MetricIdentifierResolver.Empty;
+
   /// <inheritdoc/>
   public override ValidationResult Validate()
   {
@@ -102,7 +107,7 @@ internal sealed class SarifMetricSettings : MetricsReaderSettingsBase
       return true;
     }
 
-    if (!MetricIdentifierResolver.TryResolve(metricName, out var resolved))
+    if (!MetricResolver.TryResolve(metricName, out var resolved))
     {
       metrics = null;
       return false;

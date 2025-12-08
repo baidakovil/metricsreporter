@@ -75,11 +75,6 @@ internal sealed class ReadSettings : CliSettingsBase
       return ValidationResult.Error("--metric is required.");
     }
 
-    if (!MetricIdentifierResolver.TryResolve(Metric!, out _))
-    {
-      return ValidationResult.Error($"Unknown metric identifier '{Metric}'.");
-    }
-
     if (string.IsNullOrWhiteSpace(Namespace))
     {
       return ValidationResult.Error("--namespace is required.");

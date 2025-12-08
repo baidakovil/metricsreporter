@@ -750,7 +750,8 @@ public sealed class MetricsAggregationService
         ExcludedAssemblyNames = content.AssemblyNamesPatterns,
         ExcludedTypeNamePatterns = content.TypeNamesPatterns,
         SuppressedSymbols = input.SuppressedSymbols,
-        RuleDescriptions = content.RuleDescriptions
+      RuleDescriptions = content.RuleDescriptions,
+      MetricAliases = new Dictionary<MetricIdentifier, IReadOnlyList<string>>(input.MetricAliases)
       };
     }
 
@@ -768,7 +769,7 @@ public sealed class MetricsAggregationService
           typeFilter,
           usedRuleIds);
 
-      return specification.CreateInput(input.SuppressedSymbols);
+      return specification.CreateInput(input.SuppressedSymbols, input.MetricAliases);
     }
 
     private static ReportThresholdMetadata GatherThresholdMetadata(GatheringContext context)
@@ -866,10 +867,13 @@ public sealed class MetricsAggregationService
 
     public ReportMetadataContent Content { get; }
 
-    public ReportMetadataInput CreateInput(IList<SuppressedSymbolInfo> suppressedSymbols)
+    public ReportMetadataInput CreateInput(
+      IList<SuppressedSymbolInfo> suppressedSymbols,
+      IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
     {
       ArgumentNullException.ThrowIfNull(suppressedSymbols);
-      return new ReportMetadataInput(BaselineReference, Paths, Content, suppressedSymbols);
+      ArgumentNullException.ThrowIfNull(metricAliases);
+      return new ReportMetadataInput(BaselineReference, Paths, Content, suppressedSymbols, metricAliases);
     }
   }
 
@@ -906,7 +910,8 @@ public sealed class MetricsAggregationService
       string? BaselineReference,
       ReportPaths Paths,
       ReportMetadataContent Content,
-      IList<SuppressedSymbolInfo> SuppressedSymbols);
+      IList<SuppressedSymbolInfo> SuppressedSymbols,
+      IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> MetricAliases);
 
   private sealed class ReportThresholdMetadata
   {

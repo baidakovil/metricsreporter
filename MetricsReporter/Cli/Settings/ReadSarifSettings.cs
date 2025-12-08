@@ -70,11 +70,6 @@ internal sealed class ReadSarifSettings : CliSettingsBase
       return ValidationResult.Error("--namespace is required.");
     }
 
-    if (!string.IsNullOrWhiteSpace(Metric) && !MetricIdentifierResolver.TryResolve(Metric!, out _))
-    {
-      return ValidationResult.Error($"Unknown metric identifier '{Metric}'.");
-    }
-
     return ValidationResult.Success();
   }
 }

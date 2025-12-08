@@ -21,13 +21,13 @@ internal sealed class ScriptSelectionTests
       ReadAny: new[] { "common.ps1" },
       ReadByMetric:
       [
-        new MetricScript { Metrics = new[] { "Complexity", "Coupling" }, Path = "metric.ps1" },
+        new MetricScript { Metrics = new[] { "RoslynCyclomaticComplexity", "RoslynClassCoupling" }, Path = "metric.ps1" },
         new MetricScript { Metrics = new[] { "Other" }, Path = "other.ps1" }
       ],
       TestAny: [],
       TestByMetric: []);
 
-    var metrics = new[] { "coupling" };
+    var metrics = new[] { "RoslynClassCoupling" };
 
     // Act
     var result = ScriptSelection.SelectReadScripts(scripts, metrics);
@@ -50,7 +50,7 @@ internal sealed class ScriptSelectionTests
         new MetricScript { Metrics = new[] { "Depth" }, Path = "depth.ps1" }
       ]);
 
-    var metrics = new[] { "Coupling" };
+    var metrics = new[] { "RoslynClassCoupling" };
 
     // Act
     var result = ScriptSelection.SelectTestScripts(scripts, metrics);
