@@ -29,47 +29,65 @@ internal sealed class PlainNestedTypeCoverageReconciler
     var candidateTypeKeys = CollectPlainNestedTypeKeys(types);
     foreach (var plusTypeKey in candidateTypeKeys)
     {
-      if (!types.TryGetValue(plusTypeKey, out var plusTypeEntry))
+      if (!TryBuildReconciliationContext(plusTypeKey, types, out var context))
       {
         continue;
       }
 
-      if (!TryParsePlainNestedPlusType(plusTypeKey, out _, out _, out var dotTypeFqn))
+      if (context.ShouldTransferTypeCoverage)
       {
-        continue;
-      }
-
-      if (!types.TryGetValue(dotTypeFqn, out var dotTypeEntry))
-      {
-        continue;
-      }
-
-      var plusTypeHasCoverage = HasNonZeroAltCoverCoverage(plusTypeEntry.Node.Metrics);
-      var dotTypeHasCoverage = HasNonZeroAltCoverCoverage(dotTypeEntry.Node.Metrics);
-      if (plusTypeHasCoverage && dotTypeHasCoverage)
-      {
-        continue;
-      }
-
-      if (HasMethodCoverageConflict(plusTypeEntry.Node, dotTypeEntry.Node))
-      {
-        continue;
-      }
-
-      if (plusTypeHasCoverage && !dotTypeHasCoverage)
-      {
-        TransferTypeAltCoverCoverage(plusTypeEntry.Node, dotTypeEntry.Node);
+        TransferTypeAltCoverCoverage(context.PlusTypeEntry.Node, context.DotTypeEntry.Node);
       }
 
       TransferMethodCoverageFromPlusType(
-          plusTypeEntry,
-          dotTypeEntry,
+          context.PlusTypeEntry,
+          context.DotTypeEntry,
           plusTypeKey,
-          dotTypeFqn,
+          context.DotTypeFqn,
           members);
 
-      removeIteratorType(plusTypeKey, plusTypeEntry);
+      removeIteratorType(plusTypeKey, context.PlusTypeEntry);
     }
+  }
+
+  private static bool TryBuildReconciliationContext(
+      string plusTypeKey,
+      IDictionary<string, TypeEntry> types,
+      out ReconciliationContext context)
+  {
+    context = default;
+
+    if (!types.TryGetValue(plusTypeKey, out var plusTypeEntry))
+    {
+      return false;
+    }
+
+    if (!TryParsePlainNestedPlusType(plusTypeKey, out _, out _, out var dotTypeFqn))
+    {
+      return false;
+    }
+
+    if (!types.TryGetValue(dotTypeFqn, out var dotTypeEntry))
+    {
+      return false;
+    }
+
+    var plusTypeHasCoverage = HasNonZeroAltCoverCoverage(plusTypeEntry.Node.Metrics);
+    var dotTypeHasCoverage = HasNonZeroAltCoverCoverage(dotTypeEntry.Node.Metrics);
+
+    if ((plusTypeHasCoverage && dotTypeHasCoverage) ||
+        HasMethodCoverageConflict(plusTypeEntry.Node, dotTypeEntry.Node))
+    {
+      return false;
+    }
+
+    context = new ReconciliationContext(
+        plusTypeEntry,
+        dotTypeEntry,
+        dotTypeFqn,
+        plusTypeHasCoverage && !dotTypeHasCoverage);
+
+    return true;
   }
 
   private static List<string> CollectPlainNestedTypeKeys(IDictionary<string, TypeEntry> types)
@@ -363,6 +381,12 @@ internal sealed class PlainNestedTypeCoverageReconciler
     var lastDot = typeFqn.LastIndexOf('.');
     return lastDot <= 0 ? "<global>" : typeFqn[..lastDot];
   }
+
+  private readonly record struct ReconciliationContext(
+      TypeEntry PlusTypeEntry,
+      TypeEntry DotTypeEntry,
+      string DotTypeFqn,
+      bool ShouldTransferTypeCoverage);
 }
 
 

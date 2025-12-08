@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using MetricsReporter.Cli.Configuration;
-using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
-using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
 using MetricsReporter.Model;
 using MetricsReporter.Services.Scripts;
-using Spectre.Console;
 
 namespace MetricsReporter.Cli.Commands;
 
@@ -18,11 +14,19 @@ namespace MetricsReporter.Cli.Commands;
 /// </summary>
 internal sealed class ReadSarifCommandContextBuilder
 {
-  private readonly MetricsReporterConfigLoader _configLoader;
+  private readonly ReadSarifConfigurationProvider _configurationProvider;
+  private readonly ReadSarifPathResolver _pathResolver;
+  private readonly ReadSarifScriptResolver _scriptResolver;
+  private readonly SarifSettingsAssembler _settingsAssembler;
 
   public ReadSarifCommandContextBuilder(MetricsReporterConfigLoader configLoader)
   {
-    _configLoader = configLoader ?? throw new ArgumentNullException(nameof(configLoader));
+    ArgumentNullException.ThrowIfNull(configLoader);
+
+    _configurationProvider = new ReadSarifConfigurationProvider(configLoader);
+    _pathResolver = new ReadSarifPathResolver();
+    _scriptResolver = new ReadSarifScriptResolver();
+    _settingsAssembler = new SarifSettingsAssembler();
   }
 
   /// <summary>
@@ -38,29 +42,37 @@ internal sealed class ReadSarifCommandContextBuilder
   {
     ArgumentNullException.ThrowIfNull(settings);
 
-    var configuration = LoadConfiguration(settings);
+    var configuration = _configurationProvider.Load(settings);
     if (!configuration.Succeeded)
     {
       return BuildSarifContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var paths = ResolvePaths(settings, configuration);
-    if (!paths.Succeeded)
+    var paths = _pathResolver.Resolve(settings, configuration);
+    if (!paths.Succeeded || string.IsNullOrWhiteSpace(paths.ReportPath))
     {
       return BuildSarifContextResult.CreateFailure(paths.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = ResolveScripts(settings, configuration);
+    var scripts = _scriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildSarifContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var sarifSettings = BuildSarifSettings(settings, paths, configuration.MetricAliases);
-    if (!sarifSettings.Succeeded)
+    var resolvedScripts = scripts.Scripts;
+    if (resolvedScripts is null)
+    {
+      return BuildSarifContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var sarifSettings = _settingsAssembler.Build(settings, paths, configuration.MetricAliases);
+    if (!sarifSettings.Succeeded || sarifSettings.Settings is null)
     {
       return BuildSarifContextResult.CreateFailure(sarifSettings.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
+
+    var metrics = sarifSettings.Metrics ?? Array.Empty<string>();
 
     return BuildSarifContextResult.CreateSuccess(
       new ReadSarifCommandContext(
@@ -68,144 +80,11 @@ internal sealed class ReadSarifCommandContextBuilder
         configuration.EnvironmentConfiguration,
         configuration.FileConfiguration,
         configuration.MetricAliases,
-        scripts.Scripts!,
-        sarifSettings.Settings!,
-        sarifSettings.Metrics));
+        resolvedScripts,
+        sarifSettings.Settings,
+        metrics));
   }
 
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Configuration load stage merges CLI, environment, and file-based inputs for SARIF reads; coupling reflects mandatory dependencies.")]
-  private ConfigurationLoadResult LoadConfiguration(ReadSarifSettings settings)
-  {
-    var envConfig = EnvironmentConfigurationProvider.Read();
-    var workingDirectoryHint = settings.WorkingDirectory
-      ?? envConfig.General.WorkingDirectory
-      ?? Environment.CurrentDirectory;
-
-    var configResult = _configLoader.Load(settings.ConfigPath, workingDirectoryHint);
-    if (!configResult.IsSuccess)
-    {
-      foreach (var error in configResult.Errors)
-      {
-        AnsiConsole.MarkupLine($"[red]{error}[/]");
-      }
-
-      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var general = ConfigurationResolver.ResolveGeneral(
-      settings.Verbosity,
-      settings.TimeoutSeconds,
-      settings.WorkingDirectory,
-      settings.LogTruncationLimit,
-      settings.RunScripts,
-      settings.AggregateAfterScripts,
-      envConfig,
-      configResult.Configuration);
-
-    Dictionary<string, string[]>? cliAliases = null;
-    try
-    {
-      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
-    }
-    catch (ArgumentException ex)
-    {
-      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
-      cliAliases,
-      envConfig,
-      configResult.Configuration);
-
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
-  }
-
-  private static PathResolutionResult ResolvePaths(ReadSarifSettings settings, ConfigurationLoadResult configuration)
-  {
-    var reportPath = CommandPathResolver.FirstNonEmpty(
-      settings.Report,
-      configuration.EnvironmentConfiguration.Paths.ReadReport,
-      configuration.FileConfiguration.Paths.ReadReport,
-      configuration.EnvironmentConfiguration.Paths.Report,
-      configuration.FileConfiguration.Paths.Report);
-    reportPath = CommandPathResolver.MakeAbsolute(reportPath, configuration.GeneralOptions.WorkingDirectory);
-    if (string.IsNullOrWhiteSpace(reportPath))
-    {
-      AnsiConsole.MarkupLine("[red]--report is required (via CLI, env, or config).[/]");
-      return PathResolutionResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var thresholdsFile = CommandPathResolver.FirstNonEmpty(
-      settings.ThresholdsFile,
-      configuration.EnvironmentConfiguration.Paths.Thresholds,
-      configuration.FileConfiguration.Paths.Thresholds);
-    thresholdsFile = CommandPathResolver.MakeAbsolute(thresholdsFile, configuration.GeneralOptions.WorkingDirectory);
-
-    return PathResolutionResult.Success(reportPath, thresholdsFile);
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Script resolution merges CLI, environment, and configuration sources for SARIF workflows; the dependencies are required for correctness.")]
-  private static ScriptResolutionResult ResolveScripts(ReadSarifSettings settings, ConfigurationLoadResult configuration)
-  {
-    var parsedMetricScripts = MetricScriptParser.Parse(settings.MetricScripts, ReadSarifCommand.MetricScriptSeparators);
-    var scripts = ConfigurationResolver.ResolveScripts(
-      Array.Empty<string>(),
-      settings.Scripts,
-      parsedMetricScripts,
-      Array.Empty<string>(),
-      Array.Empty<(string Metric, string Path)>(),
-      configuration.EnvironmentConfiguration.Scripts,
-      configuration.FileConfiguration.Scripts);
-
-    return ScriptResolutionResult.Success(scripts);
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Method consolidates SARIF-specific validation, metric resolution, and command settings construction; further splitting would duplicate validation messaging logic.")]
-  private static SarifSettingsResult BuildSarifSettings(
-    ReadSarifSettings settings,
-    PathResolutionResult paths,
-    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
-  {
-    var resolver = new MetricIdentifierResolver(metricAliases);
-    var sarifSettings = new SarifMetricSettings
-    {
-      ReportPath = paths.ReportPath!,
-      Namespace = settings.Namespace!,
-      Metric = settings.Metric,
-      SymbolKind = settings.SymbolKind,
-      RuleId = settings.RuleId,
-      GroupBy = settings.GroupBy,
-      ShowAll = settings.ShowAll,
-      ThresholdsFile = paths.ThresholdsFile,
-      IncludeSuppressed = settings.IncludeSuppressed,
-      MetricResolver = resolver
-    };
-
-    var validation = sarifSettings.Validate();
-    if (!validation.Successful)
-    {
-      AnsiConsole.MarkupLine($"[red]{validation.Message}[/]");
-      return SarifSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    if (!sarifSettings.TryResolveSarifMetrics(out var metrics) || metrics is null)
-    {
-      AnsiConsole.MarkupLine($"[red]{sarifSettings.MetricResolver.BuildUnknownMetricMessage(sarifSettings.EffectiveMetricName)}[/]");
-      return SarifSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    return SarifSettingsResult.Success(sarifSettings, metrics.Select(metric => metric.ToString()));
-  }
 }
 
 /// <summary>

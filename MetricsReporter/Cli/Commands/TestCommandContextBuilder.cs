@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using MetricsReporter.Cli.Configuration;
-using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
-using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
 using MetricsReporter.Model;
 using MetricsReporter.Services.Scripts;
-using Spectre.Console;
 
 namespace MetricsReporter.Cli.Commands;
 
@@ -17,11 +14,19 @@ namespace MetricsReporter.Cli.Commands;
 /// </summary>
 internal sealed class TestCommandContextBuilder
 {
-  private readonly MetricsReporterConfigLoader _configLoader;
+  private readonly TestConfigurationProvider _configurationProvider;
+  private readonly TestPathResolver _pathResolver;
+  private readonly TestScriptResolver _scriptResolver;
+  private readonly TestSettingsAssembler _settingsAssembler;
 
   public TestCommandContextBuilder(MetricsReporterConfigLoader configLoader)
   {
-    _configLoader = configLoader ?? throw new ArgumentNullException(nameof(configLoader));
+    ArgumentNullException.ThrowIfNull(configLoader);
+
+    _configurationProvider = new TestConfigurationProvider(configLoader);
+    _pathResolver = new TestPathResolver();
+    _scriptResolver = new TestScriptResolver();
+    _settingsAssembler = new TestSettingsAssembler();
   }
 
   /// <summary>
@@ -37,29 +42,37 @@ internal sealed class TestCommandContextBuilder
   {
     ArgumentNullException.ThrowIfNull(settings);
 
-    var configuration = LoadConfiguration(settings);
+    var configuration = _configurationProvider.Load(settings);
     if (!configuration.Succeeded)
     {
       return BuildTestContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var paths = ResolvePaths(settings, configuration);
-    if (!paths.Succeeded)
+    var paths = _pathResolver.Resolve(settings, configuration);
+    if (!paths.Succeeded || string.IsNullOrWhiteSpace(paths.ReportPath))
     {
       return BuildTestContextResult.CreateFailure(paths.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = ResolveScripts(settings, configuration);
+    var scripts = _scriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildTestContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var testSettings = BuildTestSettings(settings, paths, configuration.MetricAliases);
-    if (!testSettings.Succeeded)
+    var resolvedScripts = scripts.Scripts;
+    if (resolvedScripts is null)
+    {
+      return BuildTestContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var testSettings = _settingsAssembler.Build(settings, paths, configuration.MetricAliases);
+    if (!testSettings.Succeeded || testSettings.Settings is null)
     {
       return BuildTestContextResult.CreateFailure(testSettings.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
+
+    var metrics = testSettings.Metrics ?? Array.Empty<string>();
 
     return BuildTestContextResult.CreateSuccess(
       new TestCommandContext(
@@ -67,145 +80,11 @@ internal sealed class TestCommandContextBuilder
         configuration.EnvironmentConfiguration,
         configuration.FileConfiguration,
         configuration.MetricAliases,
-        scripts.Scripts!,
-        testSettings.Settings!,
-        testSettings.Metrics));
+        resolvedScripts,
+        testSettings.Settings,
+        metrics));
   }
 
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Configuration load stage composes CLI, environment, and file configuration for test command; coupling is inherent to this aggregation.")]
-  private ConfigurationLoadResult LoadConfiguration(TestSettings settings)
-  {
-    var envConfig = EnvironmentConfigurationProvider.Read();
-    var workingDirectoryHint = settings.WorkingDirectory
-      ?? envConfig.General.WorkingDirectory
-      ?? Environment.CurrentDirectory;
-
-    var configResult = _configLoader.Load(settings.ConfigPath, workingDirectoryHint);
-    if (!configResult.IsSuccess)
-    {
-      foreach (var error in configResult.Errors)
-      {
-        AnsiConsole.MarkupLine($"[red]{error}[/]");
-      }
-
-      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var general = ConfigurationResolver.ResolveGeneral(
-      settings.Verbosity,
-      settings.TimeoutSeconds,
-      settings.WorkingDirectory,
-      settings.LogTruncationLimit,
-      settings.RunScripts,
-      settings.AggregateAfterScripts,
-      envConfig,
-      configResult.Configuration);
-
-    Dictionary<string, string[]>? cliAliases = null;
-    try
-    {
-      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
-    }
-    catch (ArgumentException ex)
-    {
-      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
-      cliAliases,
-      envConfig,
-      configResult.Configuration);
-
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
-  }
-
-  private static PathResolutionResult ResolvePaths(TestSettings settings, ConfigurationLoadResult configuration)
-  {
-    var reportPath = CommandPathResolver.FirstNonEmpty(
-      settings.Report,
-      configuration.EnvironmentConfiguration.Paths.ReadReport,
-      configuration.FileConfiguration.Paths.ReadReport,
-      configuration.EnvironmentConfiguration.Paths.Report,
-      configuration.FileConfiguration.Paths.Report);
-    reportPath = CommandPathResolver.MakeAbsolute(reportPath, configuration.GeneralOptions.WorkingDirectory);
-    if (string.IsNullOrWhiteSpace(reportPath))
-    {
-      AnsiConsole.MarkupLine("[red]--report is required (via CLI, env, or config).[/]");
-      return PathResolutionResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var thresholdsFile = CommandPathResolver.FirstNonEmpty(
-      settings.ThresholdsFile,
-      configuration.EnvironmentConfiguration.Paths.Thresholds,
-      configuration.FileConfiguration.Paths.Thresholds);
-    thresholdsFile = CommandPathResolver.MakeAbsolute(thresholdsFile, configuration.GeneralOptions.WorkingDirectory);
-
-    return PathResolutionResult.Success(reportPath, thresholdsFile);
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Script resolution merges CLI, environment, and configuration sources for test workflows; dependencies are required for correct precedence handling.")]
-  private static ScriptResolutionResult ResolveScripts(TestSettings settings, ConfigurationLoadResult configuration)
-  {
-    var parsedMetricScripts = MetricScriptParser.Parse(settings.MetricScripts, TestCommand.MetricScriptSeparators);
-    var scripts = ConfigurationResolver.ResolveScripts(
-      Array.Empty<string>(),
-      Array.Empty<string>(),
-      Array.Empty<(string Metric, string Path)>(),
-      settings.Scripts,
-      parsedMetricScripts,
-      configuration.EnvironmentConfiguration.Scripts,
-      configuration.FileConfiguration.Scripts);
-
-    return ScriptResolutionResult.Success(scripts);
-  }
-
-  private static TestSettingsResult BuildTestSettings(
-    TestSettings settings,
-    PathResolutionResult paths,
-    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
-  {
-    MetricIdentifierResolver resolver;
-    try
-    {
-      resolver = new MetricIdentifierResolver(metricAliases);
-    }
-    catch (ArgumentException ex)
-    {
-      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-      return TestSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-    if (!resolver.TryResolve(settings.Metric!, out var resolvedMetric))
-    {
-      AnsiConsole.MarkupLine($"[red]{resolver.BuildUnknownMetricMessage(settings.Metric)}[/]");
-      return TestSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var testSettings = new TestMetricSettings
-    {
-      ReportPath = paths.ReportPath!,
-      Symbol = settings.Symbol!,
-      Metric = settings.Metric!,
-      MetricResolver = resolver,
-      ThresholdsFile = paths.ThresholdsFile,
-      IncludeSuppressed = settings.IncludeSuppressed
-    };
-
-    var validation = testSettings.Validate();
-    if (!validation.Successful)
-    {
-      AnsiConsole.MarkupLine($"[red]{validation.Message}[/]");
-      return TestSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    return TestSettingsResult.Success(testSettings, new[] { resolvedMetric.ToString() });
-  }
 }
 
 /// <summary>

@@ -250,40 +250,64 @@ public sealed class MetricsReporterConfigLoader
     var aliasToMetric = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     foreach (var property in aliasesElement.EnumerateObject())
     {
-      if (!Enum.TryParse<MetricIdentifier>(property.Name, ignoreCase: true, out _))
+      var validationResult = ValidateMetricAliasEntry(property, aliasToMetric);
+      if (validationResult is not null)
       {
-        return $"Unknown metric identifier '{property.Name}' in metricAliases.";
-      }
-
-      if (property.Value.ValueKind != JsonValueKind.Array || property.Value.GetArrayLength() == 0)
-      {
-        return $"metricAliases.{property.Name} must be a non-empty array of strings.";
-      }
-
-      foreach (var aliasElement in property.Value.EnumerateArray())
-      {
-        if (aliasElement.ValueKind != JsonValueKind.String)
-        {
-          return $"metricAliases.{property.Name} must contain only strings.";
-        }
-
-        var alias = aliasElement.GetString();
-        if (string.IsNullOrWhiteSpace(alias))
-        {
-          return $"metricAliases.{property.Name} must contain non-empty strings.";
-        }
-
-        var trimmed = alias.Trim();
-        if (aliasToMetric.TryGetValue(trimmed, out var existingMetric) &&
-            !string.Equals(existingMetric, property.Name, StringComparison.OrdinalIgnoreCase))
-        {
-          return $"Alias '{trimmed}' is assigned to multiple metrics ({existingMetric}, {property.Name}).";
-        }
-
-        aliasToMetric[trimmed] = property.Name;
+        return validationResult;
       }
     }
 
+    return null;
+  }
+
+  private static string? ValidateMetricAliasEntry(JsonProperty property, IDictionary<string, string> aliasToMetric)
+  {
+    if (!Enum.TryParse<MetricIdentifier>(property.Name, ignoreCase: true, out _))
+    {
+      return $"Unknown metric identifier '{property.Name}' in metricAliases.";
+    }
+
+    if (property.Value.ValueKind != JsonValueKind.Array || property.Value.GetArrayLength() == 0)
+    {
+      return $"metricAliases.{property.Name} must be a non-empty array of strings.";
+    }
+
+    foreach (var aliasElement in property.Value.EnumerateArray())
+    {
+      var validationResult = ValidateMetricAliasValue(property.Name, aliasElement, aliasToMetric);
+      if (validationResult is not null)
+      {
+        return validationResult;
+      }
+    }
+
+    return null;
+  }
+
+  private static string? ValidateMetricAliasValue(
+      string metricName,
+      JsonElement aliasElement,
+      IDictionary<string, string> aliasToMetric)
+  {
+    if (aliasElement.ValueKind != JsonValueKind.String)
+    {
+      return $"metricAliases.{metricName} must contain only strings.";
+    }
+
+    var alias = aliasElement.GetString();
+    if (string.IsNullOrWhiteSpace(alias))
+    {
+      return $"metricAliases.{metricName} must contain non-empty strings.";
+    }
+
+    var trimmed = alias.Trim();
+    if (aliasToMetric.TryGetValue(trimmed, out var existingMetric) &&
+        !string.Equals(existingMetric, metricName, StringComparison.OrdinalIgnoreCase))
+    {
+      return $"Alias '{trimmed}' is assigned to multiple metrics ({existingMetric}, {metricName}).";
+    }
+
+    aliasToMetric[trimmed] = metricName;
     return null;
   }
 

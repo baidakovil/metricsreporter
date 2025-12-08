@@ -196,19 +196,32 @@ public sealed class SarifMetricsParser : IMetricsSourceParser
 
   private static RuleDescription CreateRuleDescription(JsonElement rule)
   {
-    var shortDescription = rule.GetPropertyOrDefault("shortDescription")?.GetPropertyOrDefault("text")?.GetString() ?? string.Empty;
-    var fullDescription = rule.GetPropertyOrDefault("fullDescription")?.GetPropertyOrDefault("text")?.GetString();
-    var helpUri = rule.GetPropertyOrDefault("helpUri")?.GetString();
-    var category = rule.GetPropertyOrDefault("properties")?.GetPropertyOrDefault("category")?.GetString();
-
     return new RuleDescription
     {
-      ShortDescription = shortDescription,
-      FullDescription = fullDescription,
-      HelpUri = helpUri,
-      Category = category
+      ShortDescription = GetRuleText(rule, "shortDescription") ?? string.Empty,
+      FullDescription = GetRuleText(rule, "fullDescription"),
+      HelpUri = GetStringProperty(rule, "helpUri"),
+      Category = GetNestedStringProperty(rule, "properties", "category")
     };
   }
+
+  private static string? GetRuleText(JsonElement rule, string propertyName)
+      => rule
+          .GetPropertyOrDefault(propertyName)
+          ?.GetPropertyOrDefault("text")
+          ?.GetString();
+
+  private static string? GetStringProperty(JsonElement element, string propertyName)
+      => element.GetPropertyOrDefault(propertyName)?.GetString();
+
+  private static string? GetNestedStringProperty(
+      JsonElement element,
+      string parentPropertyName,
+      string childPropertyName)
+      => element
+          .GetPropertyOrDefault(parentPropertyName)
+          ?.GetPropertyOrDefault(childPropertyName)
+          ?.GetString();
 
   private static ParsedMetricsDocument EmptyDocument()
       => new()

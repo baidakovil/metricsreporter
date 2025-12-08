@@ -38,7 +38,7 @@
     "excludedAssemblies": "Tests",
     "solutionName": "metricsreporter",
     "analyzeSuppressedSymbols": true,
-    "replaceBaseline": true
+    "replaceBaseline": false
   },
   "scripts": {
     "generate": [

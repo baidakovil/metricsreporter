@@ -263,13 +263,24 @@ public sealed class HtmlReportGenerator
       return null;
     }
 
-    var payload = metadata.MetricAliases.ToDictionary(
-      pair => pair.Key.ToString(),
-      pair => pair.Value);
-
-    var json = JsonSerializer.Serialize(payload, JsonSerializerOptionsFactory.Create());
+    var payload = BuildMetricAliasesPayload(metadata);
+    var json = SerializeMetricAliasesPayload(payload);
     return SanitizeJsonForScriptTag(json);
   }
+
+  private static Dictionary<string, IReadOnlyList<string>> BuildMetricAliasesPayload(ReportMetadata metadata)
+  {
+    var payload = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+    foreach (var (identifier, aliases) in metadata.MetricAliases)
+    {
+      payload[identifier.ToString()] = aliases;
+    }
+
+    return payload;
+  }
+
+  private static string SerializeMetricAliasesPayload(Dictionary<string, IReadOnlyList<string>> payload)
+    => JsonSerializer.Serialize(payload, JsonSerializerOptionsFactory.Create());
 
   /// <summary>
   /// Builds the rule descriptions payload dictionary structure from report metadata.
@@ -319,5 +330,6 @@ public sealed class HtmlReportGenerator
     builder.AppendLine("</script>");
   }
 }
+
 
 

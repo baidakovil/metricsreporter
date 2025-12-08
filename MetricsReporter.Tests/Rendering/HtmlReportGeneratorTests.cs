@@ -551,6 +551,69 @@ public sealed class HtmlReportGeneratorTests
     html.Should().NotMatchRegex(@"<a[^>]*coverage-link-type[^>]*>");
   }
 
+  [Test]
+  public void Generate_WithMetricAliases_EmbedsSanitizedAliasPayload()
+  {
+    var report = new MetricsReport
+    {
+      Metadata = new ReportMetadata
+      {
+        GeneratedAtUtc = DateTime.UtcNow,
+        Paths = new ReportPaths(),
+        ThresholdsByLevel = new Dictionary<MetricIdentifier, IDictionary<MetricSymbolLevel, MetricThreshold>>(),
+        ThresholdDescriptions = new Dictionary<MetricIdentifier, string?>(),
+        MetricAliases = new Dictionary<MetricIdentifier, IReadOnlyList<string>>
+        {
+          [MetricIdentifier.RoslynClassCoupling] = new[] { "alias", "</script>" }
+        }
+      },
+      Solution = new SolutionMetricsNode
+      {
+        Name = "SampleSolution",
+        FullyQualifiedName = "SampleSolution",
+        Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+        Assemblies = new List<AssemblyMetricsNode>()
+      }
+    };
+
+    var html = HtmlReportGenerator.Generate(report);
+
+    var payload = ExtractScriptPayload(html, "metric-aliases-data");
+
+    payload.Should().NotBeNull();
+    payload.Should().Contain("RoslynClassCoupling");
+    payload.Should().Contain("alias");
+    payload.Should().Contain("<\\/script>");
+    payload.Should().NotContain("</script>");
+  }
+
+  [Test]
+  public void Generate_WithoutMetricAliases_SkipsAliasPayloadScript()
+  {
+    var report = new MetricsReport
+    {
+      Metadata = new ReportMetadata
+      {
+        GeneratedAtUtc = DateTime.UtcNow,
+        Paths = new ReportPaths(),
+        ThresholdsByLevel = new Dictionary<MetricIdentifier, IDictionary<MetricSymbolLevel, MetricThreshold>>(),
+        ThresholdDescriptions = new Dictionary<MetricIdentifier, string?>(),
+        MetricAliases = new Dictionary<MetricIdentifier, IReadOnlyList<string>>()
+      },
+      Solution = new SolutionMetricsNode
+      {
+        Name = "SampleSolution",
+        FullyQualifiedName = "SampleSolution",
+        Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+        Assemblies = new List<AssemblyMetricsNode>()
+      }
+    };
+
+    var html = HtmlReportGenerator.Generate(report);
+
+    ExtractScriptPayload(html, "metric-aliases-data").Should().BeNull();
+  }
+
   private static string ExtractFirstTypeRow(string html)
   {
     const string marker = "data-role=\"type\"";
@@ -573,6 +636,25 @@ public sealed class HtmlReportGeneratorTests
     }
 
     return html[rowStart..rowEnd];
+  }
+
+  private static string? ExtractScriptPayload(string html, string scriptId)
+  {
+    var marker = $"<script id=\"{scriptId}\" type=\"application/json\">";
+    var start = html.IndexOf(marker, StringComparison.Ordinal);
+    if (start < 0)
+    {
+      return null;
+    }
+
+    start += marker.Length;
+    var end = html.IndexOf("</script>", start, StringComparison.Ordinal);
+    if (end < 0 || end <= start)
+    {
+      return null;
+    }
+
+    return html[start..end].Trim();
   }
 }
 

@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using MetricsReporter.Cli.Configuration;
-using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Cli.Settings;
 using MetricsReporter.Configuration;
-using MetricsReporter.MetricsReader.Services;
 using MetricsReporter.MetricsReader.Settings;
 using MetricsReporter.Model;
 using MetricsReporter.Services.Scripts;
-using Spectre.Console;
 
 namespace MetricsReporter.Cli.Commands;
 
@@ -17,11 +14,19 @@ namespace MetricsReporter.Cli.Commands;
 /// </summary>
 internal sealed class ReadCommandContextBuilder
 {
-  private readonly MetricsReporterConfigLoader _configLoader;
+  private readonly ReadConfigurationProvider _configurationProvider;
+  private readonly ReadPathResolver _pathResolver;
+  private readonly ReadScriptResolver _scriptResolver;
+  private readonly ReadSettingsAssembler _settingsAssembler;
 
   public ReadCommandContextBuilder(MetricsReporterConfigLoader configLoader)
   {
-    _configLoader = configLoader ?? throw new ArgumentNullException(nameof(configLoader));
+    ArgumentNullException.ThrowIfNull(configLoader);
+
+    _configurationProvider = new ReadConfigurationProvider(configLoader);
+    _pathResolver = new ReadPathResolver();
+    _scriptResolver = new ReadScriptResolver();
+    _settingsAssembler = new ReadSettingsAssembler();
   }
 
   /// <summary>
@@ -37,29 +42,38 @@ internal sealed class ReadCommandContextBuilder
   {
     ArgumentNullException.ThrowIfNull(settings);
 
-    var configuration = LoadConfiguration(settings);
+    var configuration = _configurationProvider.Load(settings);
     if (!configuration.Succeeded)
     {
       return BuildReadContextResult.CreateFailure(configuration.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var paths = ResolvePaths(settings, configuration);
-    if (!paths.Succeeded)
+    var paths = _pathResolver.Resolve(settings, configuration);
+    if (!paths.Succeeded || string.IsNullOrWhiteSpace(paths.ReportPath))
     {
       return BuildReadContextResult.CreateFailure(paths.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var scripts = ResolveScripts(settings, configuration);
+    var scripts = _scriptResolver.Resolve(settings, configuration);
     if (!scripts.Succeeded)
     {
       return BuildReadContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var readerSettings = BuildReaderSettings(settings, paths, configuration.MetricAliases);
-    if (!readerSettings.Succeeded)
+    var resolvedScripts = scripts.Scripts;
+    if (resolvedScripts is null)
+    {
+      return BuildReadContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
+    }
+
+    var readerSettings = _settingsAssembler.Build(settings, paths, configuration.MetricAliases);
+    if (!readerSettings.Succeeded || readerSettings.ReaderSettings is null)
     {
       return BuildReadContextResult.CreateFailure(readerSettings.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
+
+    var reportPath = paths.ReportPath ?? string.Empty;
+    var metrics = readerSettings.Metrics ?? Array.Empty<string>();
 
     return BuildReadContextResult.CreateSuccess(
       new ReadCommandContext(
@@ -67,154 +81,12 @@ internal sealed class ReadCommandContextBuilder
         configuration.EnvironmentConfiguration,
         configuration.FileConfiguration,
         configuration.MetricAliases,
-        scripts.Scripts!,
-        readerSettings.ReaderSettings!,
-        readerSettings.Metrics,
-        paths.ReportPath!));
+        resolvedScripts,
+        readerSettings.ReaderSettings,
+        metrics,
+        reportPath));
   }
 
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Configuration load step composes CLI, environment, and file configuration sources for read command; coupling reflects necessary dependencies.")]
-  private ConfigurationLoadResult LoadConfiguration(ReadSettings settings)
-  {
-    var envConfig = EnvironmentConfigurationProvider.Read();
-    var workingDirectoryHint = settings.WorkingDirectory
-      ?? envConfig.General.WorkingDirectory
-      ?? Environment.CurrentDirectory;
-
-    var configResult = _configLoader.Load(settings.ConfigPath, workingDirectoryHint);
-    if (!configResult.IsSuccess)
-    {
-      foreach (var error in configResult.Errors)
-      {
-        AnsiConsole.MarkupLine($"[red]{error}[/]");
-      }
-
-      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var general = ConfigurationResolver.ResolveGeneral(
-      settings.Verbosity,
-      settings.TimeoutSeconds,
-      settings.WorkingDirectory,
-      settings.LogTruncationLimit,
-      settings.RunScripts,
-      settings.AggregateAfterScripts,
-      envConfig,
-      configResult.Configuration);
-
-    Dictionary<string, string[]>? cliAliases = null;
-    try
-    {
-      cliAliases = MetricAliasParser.Parse(settings.MetricAliases);
-    }
-    catch (ArgumentException ex)
-    {
-      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-      return ConfigurationLoadResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var metricAliases = ConfigurationResolver.ResolveMetricAliases(
-      cliAliases,
-      envConfig,
-      configResult.Configuration);
-
-    return ConfigurationLoadResult.Success(general, envConfig, configResult.Configuration, metricAliases);
-  }
-
-  private static PathResolutionResult ResolvePaths(ReadSettings settings, ConfigurationLoadResult configuration)
-  {
-    var reportPath = CommandPathResolver.FirstNonEmpty(
-      settings.Report,
-      configuration.EnvironmentConfiguration.Paths.ReadReport,
-      configuration.FileConfiguration.Paths.ReadReport,
-      configuration.EnvironmentConfiguration.Paths.Report,
-      configuration.FileConfiguration.Paths.Report);
-    reportPath = CommandPathResolver.MakeAbsolute(reportPath, configuration.GeneralOptions.WorkingDirectory);
-    if (string.IsNullOrWhiteSpace(reportPath))
-    {
-      AnsiConsole.MarkupLine("[red]--report is required (via CLI, env, or config).[/]");
-      return PathResolutionResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var thresholdsFile = CommandPathResolver.FirstNonEmpty(
-      settings.ThresholdsFile,
-      configuration.EnvironmentConfiguration.Paths.Thresholds,
-      configuration.FileConfiguration.Paths.Thresholds);
-    thresholdsFile = CommandPathResolver.MakeAbsolute(thresholdsFile, configuration.GeneralOptions.WorkingDirectory);
-
-    return PathResolutionResult.Success(reportPath, thresholdsFile);
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Script resolution must merge CLI, environment, and configuration-defined scripts; coupling reflects these required dependencies.")]
-  private static ScriptResolutionResult ResolveScripts(ReadSettings settings, ConfigurationLoadResult configuration)
-  {
-    var parsedMetricScripts = MetricScriptParser.Parse(settings.MetricScripts, ReadCommand.MetricScriptSeparators);
-    var scripts = ConfigurationResolver.ResolveScripts(
-      Array.Empty<string>(),
-      settings.Scripts,
-      parsedMetricScripts,
-      Array.Empty<string>(),
-      Array.Empty<(string Metric, string Path)>(),
-      configuration.EnvironmentConfiguration.Scripts,
-      configuration.FileConfiguration.Scripts);
-
-    return ScriptResolutionResult.Success(scripts);
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Microsoft.Maintainability",
-    "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Reader settings assembly must validate metric identifier, thresholds, grouping, and suppression flags together; coupling reflects required dependencies for correctness.")]
-  private static ReadSettingsResult BuildReaderSettings(
-    ReadSettings settings,
-    PathResolutionResult paths,
-    IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases)
-  {
-    MetricIdentifierResolver resolver;
-    try
-    {
-      resolver = new MetricIdentifierResolver(metricAliases);
-    }
-    catch (ArgumentException ex)
-    {
-      AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-      return ReadSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-    if (!resolver.TryResolve(settings.Metric!, out var resolvedMetric))
-    {
-      AnsiConsole.MarkupLine($"[red]{resolver.BuildUnknownMetricMessage(settings.Metric)}[/]");
-      return ReadSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    var readerSettings = new NamespaceMetricSettings
-    {
-      ReportPath = paths.ReportPath!,
-      Namespace = settings.Namespace!,
-      Metric = settings.Metric!,
-      MetricResolver = resolver,
-      SymbolKind = settings.SymbolKind,
-      ShowAll = settings.ShowAll,
-      RuleId = settings.RuleId,
-      GroupBy = settings.GroupBy,
-      ThresholdsFile = paths.ThresholdsFile,
-      IncludeSuppressed = settings.IncludeSuppressed
-    };
-
-    var validation = readerSettings.Validate();
-    if (!validation.Successful)
-    {
-      AnsiConsole.MarkupLine($"[red]{validation.Message}[/]");
-      return ReadSettingsResult.Failure((int)MetricsReporterExitCode.ValidationError);
-    }
-
-    return ReadSettingsResult.Success(readerSettings, new[] { resolvedMetric.ToString() });
-  }
 }
 
 /// <summary>

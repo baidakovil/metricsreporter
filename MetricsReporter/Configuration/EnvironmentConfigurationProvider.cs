@@ -77,49 +77,7 @@ public static class EnvironmentConfigurationProvider
   private static Dictionary<string, string[]>? ReadAliases(string name)
   {
     var value = Environment.GetEnvironmentVariable(name);
-    if (string.IsNullOrWhiteSpace(value))
-    {
-      return null;
-    }
-
-    try
-    {
-      using var document = JsonDocument.Parse(value);
-      var root = document.RootElement;
-      if (root.ValueKind != JsonValueKind.Object)
-      {
-        return null;
-      }
-
-      var aliases = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-      foreach (var property in root.EnumerateObject())
-      {
-        if (property.Value.ValueKind != JsonValueKind.Array)
-        {
-          continue;
-        }
-
-        var values = property.Value
-          .EnumerateArray()
-          .Where(item => item.ValueKind == JsonValueKind.String)
-          .Select(item => item.GetString() ?? string.Empty)
-          .Select(alias => alias.Trim())
-          .Where(alias => alias.Length > 0)
-          .Distinct(StringComparer.OrdinalIgnoreCase)
-          .ToArray();
-
-        if (values.Length > 0)
-        {
-          aliases[property.Name] = values;
-        }
-      }
-
-      return aliases.Count == 0 ? null : aliases;
-    }
-    catch (JsonException)
-    {
-      return null;
-    }
+    return MetricAliasJsonParser.TryParse(value);
   }
 
   private static string? ReadString(string name)
@@ -200,6 +158,88 @@ public static class EnvironmentConfigurationProvider
     }
 
     return scripts;
+  }
+
+  private static class MetricAliasJsonParser
+  {
+    public static Dictionary<string, string[]>? TryParse(string? json)
+    {
+      if (string.IsNullOrWhiteSpace(json))
+      {
+        return null;
+      }
+
+      try
+      {
+        using var document = JsonDocument.Parse(json);
+        return ParseObject(document.RootElement);
+      }
+      catch (JsonException)
+      {
+        return null;
+      }
+    }
+
+    private static Dictionary<string, string[]>? ParseObject(JsonElement root)
+    {
+      if (root.ValueKind != JsonValueKind.Object)
+      {
+        return null;
+      }
+
+      var aliases = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+      foreach (var property in root.EnumerateObject())
+      {
+        TryAddAliases(aliases, property);
+      }
+
+      return aliases.Count == 0 ? null : aliases;
+    }
+
+    private static void TryAddAliases(Dictionary<string, string[]> aliases, JsonProperty property)
+    {
+      if (property.Value.ValueKind != JsonValueKind.Array)
+      {
+        return;
+      }
+
+      var uniqueAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+      foreach (var item in property.Value.EnumerateArray())
+      {
+        var alias = ExtractAlias(item);
+        if (alias is null)
+        {
+          continue;
+        }
+
+        uniqueAliases.Add(alias);
+      }
+
+      if (uniqueAliases.Count == 0)
+      {
+        return;
+      }
+
+      var aliasesCopy = new string[uniqueAliases.Count];
+      uniqueAliases.CopyTo(aliasesCopy);
+      aliases[property.Name] = aliasesCopy;
+    }
+
+    private static string? ExtractAlias(JsonElement item)
+    {
+      if (item.ValueKind != JsonValueKind.String)
+      {
+        return null;
+      }
+
+      var alias = item.GetString();
+      if (string.IsNullOrWhiteSpace(alias))
+      {
+        return null;
+      }
+
+      return alias.Trim();
+    }
   }
 }
 

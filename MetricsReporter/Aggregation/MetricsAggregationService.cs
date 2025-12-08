@@ -769,7 +769,7 @@ public sealed class MetricsAggregationService
           typeFilter,
           usedRuleIds);
 
-      return specification.CreateInput(input.SuppressedSymbols, input.MetricAliases);
+      return specification.CreateInput(input);
     }
 
     private static ReportThresholdMetadata GatherThresholdMetadata(GatheringContext context)
@@ -866,6 +866,12 @@ public sealed class MetricsAggregationService
     public ReportPaths Paths { get; }
 
     public ReportMetadataContent Content { get; }
+
+    public ReportMetadataInput CreateInput(MetricsAggregationInput input)
+    {
+      ArgumentNullException.ThrowIfNull(input);
+      return CreateInput(input.SuppressedSymbols, input.MetricAliases);
+    }
 
     public ReportMetadataInput CreateInput(
       IList<SuppressedSymbolInfo> suppressedSymbols,

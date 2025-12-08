@@ -27,46 +27,63 @@ internal sealed class IteratorCoverageReconciler
     var iteratorTypeKeys = CollectIteratorTypeKeys(types);
     foreach (var iteratorTypeKey in iteratorTypeKeys)
     {
-      if (!types.TryGetValue(iteratorTypeKey, out var iteratorTypeEntry))
-      {
-        continue;
-      }
+      ProcessIteratorType(types, iteratorTypeKey, removeIteratorType);
+    }
+  }
 
-      if (!TryExtractIteratorInfo(iteratorTypeKey, out var outerTypeFqn, out var methodName))
-      {
-        continue;
-      }
+  private static void ProcessIteratorType(
+      IDictionary<string, TypeEntry> types,
+      string iteratorTypeKey,
+      Action<string, TypeEntry> removeIteratorType)
+  {
+    if (!types.TryGetValue(iteratorTypeKey, out var iteratorTypeEntry))
+    {
+      return;
+    }
 
-      if (!types.TryGetValue(outerTypeFqn, out var outerTypeEntry))
-      {
-        continue;
-      }
+    if (!TryExtractIteratorInfo(iteratorTypeKey, out var outerTypeFqn, out var methodName))
+    {
+      return;
+    }
 
-      var targetMember = FindMethodOnType(outerTypeEntry.Node, methodName);
-      if (targetMember is null)
-      {
-        continue;
-      }
+    if (!types.TryGetValue(outerTypeFqn, out var outerTypeEntry))
+    {
+      return;
+    }
 
-      var methodHasCoverage = HasNonZeroAltCoverCoverage(targetMember.Metrics);
-      var iteratorHasCoverage = HasNonZeroAltCoverCoverage(iteratorTypeEntry.Node.Metrics);
+    var targetMember = FindMethodOnType(outerTypeEntry.Node, methodName);
+    if (targetMember is null)
+    {
+      return;
+    }
 
-      if (methodHasCoverage && iteratorHasCoverage)
-      {
-        continue;
-      }
+    ApplyCoverageReconciliation(iteratorTypeKey, iteratorTypeEntry, targetMember, removeIteratorType);
+  }
 
-      if (!methodHasCoverage && !iteratorHasCoverage)
-      {
-        removeIteratorType(iteratorTypeKey, iteratorTypeEntry);
-        continue;
-      }
+  private static void ApplyCoverageReconciliation(
+      string iteratorTypeKey,
+      TypeEntry iteratorTypeEntry,
+      MemberMetricsNode targetMember,
+      Action<string, TypeEntry> removeIteratorType)
+  {
+    var methodHasCoverage = HasNonZeroAltCoverCoverage(targetMember.Metrics);
+    var iteratorHasCoverage = HasNonZeroAltCoverCoverage(iteratorTypeEntry.Node.Metrics);
 
-      if (!methodHasCoverage && iteratorHasCoverage)
-      {
-        TransferIteratorCoverage(iteratorTypeEntry.Node, targetMember);
-        removeIteratorType(iteratorTypeKey, iteratorTypeEntry);
-      }
+    if (methodHasCoverage && iteratorHasCoverage)
+    {
+      return;
+    }
+
+    if (!methodHasCoverage && !iteratorHasCoverage)
+    {
+      removeIteratorType(iteratorTypeKey, iteratorTypeEntry);
+      return;
+    }
+
+    if (!methodHasCoverage && iteratorHasCoverage)
+    {
+      TransferIteratorCoverage(iteratorTypeEntry.Node, targetMember);
+      removeIteratorType(iteratorTypeKey, iteratorTypeEntry);
     }
   }
 

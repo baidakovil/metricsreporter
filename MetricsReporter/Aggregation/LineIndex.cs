@@ -109,64 +109,66 @@ internal sealed class LineIndex
       return null;
     }
 
-    // WHY: We prioritize nodes that start exactly at the specified line or one line after it.
-    // This handles cases where SARIF reports violations on method declaration lines (line N),
-    // but the method index may start at line N+1 due to how Roslyn determines method boundaries.
-    // For example, if SARIF reports a violation on line 159 (method declaration), but the method
-    // is indexed starting at line 160 (method body start), we should still match it to the method.
-    MetricsNode? bestExactStartMatch = null;
-    var bestExactStartLength = int.MaxValue;
-    MetricsNode? bestNearStartMatch = null;
-    var bestNearStartLength = int.MaxValue;
-    MetricsNode? bestContainingNode = null;
-    var bestContainingLength = int.MaxValue;
+    var exactStart = MatchSelection.Create();
+    var nearStart = MatchSelection.Create();
+    var containing = MatchSelection.Create();
 
     foreach (var node in list)
     {
       var length = node.EndLine - node.StartLine;
 
-      // Prefer exact start line match (e.g., method declaration line)
-      if (line == node.StartLine)
+      switch (GetMatchKind(line, node))
       {
-        // Among nodes starting at this line, prefer the shortest one
-        if (length < bestExactStartLength)
-        {
-          bestExactStartLength = length;
-          bestExactStartMatch = node.Node;
-        }
+        case MatchKind.ExactStart:
+          exactStart.Consider(node.Node, length);
+          break;
+        case MatchKind.NearStart:
+          nearStart.Consider(node.Node, length);
+          break;
+        case MatchKind.Contains:
+          containing.Consider(node.Node, length);
+          break;
+        case MatchKind.None:
+        default:
+          continue;
       }
-      else if (line == node.StartLine - 1)
-      {
-        // Handle case where SARIF reports violation on declaration line (N), but method indexed at body start (N+1)
-        // This handles the common case where Roslyn indexes method body start, but SARIF reports on declaration.
-        // Prefer shorter nodes among those starting one line after the violation.
-        if (length < bestNearStartLength)
-        {
-          bestNearStartLength = length;
-          bestNearStartMatch = node.Node;
-        }
-      }
-      else if (line >= node.StartLine && line <= node.EndLine)
-      {
-        // Track the shortest containing node as fallback
-        if (length < bestContainingLength)
-        {
-          bestContainingLength = length;
-          bestContainingNode = node.Node;
-        }
-      }
+    }
+
+    var selectedNode = exactStart.Node ?? nearStart.Node ?? containing.Node;
+    if (selectedNode is not null)
+    {
+      return selectedNode;
     }
 
     // If no containing node found, handle single-line indexed methods (Roslyn parser limitation)
     // When a method is indexed as StartLine=EndLine (single line), violations after that line
     // may belong to the method if no other method starts before the violation.
-    if (bestExactStartMatch is null && bestNearStartMatch is null && bestContainingNode is null)
+    return FindNodeForSingleLineIndexedMethod(list, line);
+  }
+
+  private static MatchKind GetMatchKind(int targetLine, IndexedNode node)
+  {
+    // WHY: We prioritize nodes that start exactly at the specified line or one line after it.
+    // This handles cases where SARIF reports violations on method declaration lines (line N),
+    // but the method index may start at line N+1 due to how Roslyn determines method boundaries.
+    // For example, if SARIF reports a violation on line 159 (method declaration), but the method
+    // is indexed starting at line 160 (method body start), we should still match it to the method.
+    if (targetLine == node.StartLine)
     {
-      return FindNodeForSingleLineIndexedMethod(list, line);
+      return MatchKind.ExactStart;
     }
 
-    // Return in priority order: exact start match > near start match > shortest containing node
-    return bestExactStartMatch ?? bestNearStartMatch ?? bestContainingNode;
+    if (targetLine == node.StartLine - 1)
+    {
+      return MatchKind.NearStart;
+    }
+
+    if (targetLine >= node.StartLine && targetLine <= node.EndLine)
+    {
+      return MatchKind.Contains;
+    }
+
+    return MatchKind.None;
   }
 
   /// <summary>
@@ -179,9 +181,20 @@ internal sealed class LineIndex
   /// </remarks>
   private static MetricsNode? FindNodeForSingleLineIndexedMethod(List<IndexedNode> sortedList, int line)
   {
-    // Find the last method that starts before or at the violation line
+    var candidate = FindLastSingleLineMethod(sortedList, line);
+    if (candidate is null)
+    {
+      return null;
+    }
+
+    return HasInterveningMethod(sortedList, candidate.Value.StartLine, line)
+      ? null
+      : candidate.Value.Node;
+  }
+
+  private static IndexedNode? FindLastSingleLineMethod(List<IndexedNode> sortedList, int line)
+  {
     IndexedNode? candidate = null;
-    int candidateStartLine = -1;
 
     foreach (var node in sortedList)
     {
@@ -198,36 +211,68 @@ internal sealed class LineIndex
       }
 
       // Keep track of the method that starts closest to (but not after) the violation line
-      if (node.StartLine > candidateStartLine)
+      if (candidate.HasValue && node.StartLine <= candidate.Value.StartLine)
       {
-        candidate = node;
-        candidateStartLine = node.StartLine;
+        continue;
       }
+
+      candidate = node;
     }
 
-    // If we found a candidate, verify no other method starts between it and the violation
-    if (candidate.HasValue)
+    return candidate;
+  }
+
+  private static bool HasInterveningMethod(List<IndexedNode> sortedList, int candidateStartLine, int line)
+  {
+    foreach (var node in sortedList)
     {
-      foreach (var node in sortedList)
+      if (node.StartLine <= candidateStartLine)
       {
-        // Check if there's another method between candidate and violation
-        if (node.StartLine > candidateStartLine && node.StartLine < line)
-        {
-          // Another method exists between candidate and violation - don't attribute to candidate
-          return null;
-        }
-
-        // Stop searching once we've passed the violation line
-        if (node.StartLine > line)
-        {
-          break;
-        }
+        continue;
       }
 
-      return candidate.Value.Node;
+      if (node.StartLine >= line)
+      {
+        return false;
+      }
+
+      return true;
     }
 
-    return null;
+    return false;
+  }
+
+  private struct MatchSelection
+  {
+    private int _bestLength;
+    public MetricsNode? Node { get; private set; }
+
+    private MatchSelection(int bestLength, MetricsNode? node)
+    {
+      _bestLength = bestLength;
+      Node = node;
+    }
+
+    public static MatchSelection Create() => new(int.MaxValue, null);
+
+    public void Consider(MetricsNode candidate, int length)
+    {
+      if (length >= _bestLength)
+      {
+        return;
+      }
+
+      _bestLength = length;
+      Node = candidate;
+    }
+  }
+
+  private enum MatchKind
+  {
+    None,
+    ExactStart,
+    NearStart,
+    Contains
   }
 
   private readonly record struct IndexedNode(MetricsNode Node, int StartLine, int EndLine);

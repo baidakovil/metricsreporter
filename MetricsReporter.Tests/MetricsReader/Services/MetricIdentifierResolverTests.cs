@@ -14,7 +14,7 @@ internal sealed class MetricIdentifierResolverTests
   [Test]
   public void TryResolve_WithAliasFromConfiguration_ReturnsCanonical()
   {
-    var aliases = new Dictionary<MetricIdentifier, IReadOnlyList<string?>>
+    var aliases = new Dictionary<MetricIdentifier, IReadOnlyList<string>>
     {
       [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { "cc", "cyclomatic" }
     };
@@ -40,7 +40,7 @@ internal sealed class MetricIdentifierResolverTests
   [Test]
   public void Constructor_WithDuplicateAliasAcrossMetrics_Throws()
   {
-    var aliases = new Dictionary<MetricIdentifier, IReadOnlyList<string?>>
+    var aliases = new Dictionary<MetricIdentifier, IReadOnlyList<string>>
     {
       [MetricIdentifier.AltCoverBranchCoverage] = new[] { "branch" },
       [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { "branch" }
@@ -67,7 +67,7 @@ internal sealed class MetricIdentifierResolverTests
   public void Constructor_TrimsAndDeduplicatesAliases()
   {
     var resolver = new MetricIdentifierResolver(
-      new Dictionary<MetricIdentifier, IReadOnlyList<string?>>
+      new Dictionary<MetricIdentifier, IReadOnlyList<string>>
       {
         [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { " cc ", "CC" }
       });
@@ -79,7 +79,7 @@ internal sealed class MetricIdentifierResolverTests
   public void TryResolve_IgnoresAliasesEqualToIdentifier()
   {
     var resolver = new MetricIdentifierResolver(
-      new Dictionary<MetricIdentifier, IReadOnlyList<string?>>
+      new Dictionary<MetricIdentifier, IReadOnlyList<string>>
       {
         [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { "RoslynCyclomaticComplexity" }
       });
@@ -87,6 +87,44 @@ internal sealed class MetricIdentifierResolverTests
     resolver.AliasesByMetric.Should().BeEmpty();
     resolver.TryResolve("RoslynCyclomaticComplexity", out var metric).Should().BeTrue();
     metric.Should().Be(MetricIdentifier.RoslynCyclomaticComplexity);
+  }
+
+  [Test]
+  public void Constructor_WithNullAliasEntry_IgnoresIt()
+  {
+    var resolver = new MetricIdentifierResolver(
+      new Dictionary<MetricIdentifier, IReadOnlyList<string>>
+      {
+        [MetricIdentifier.RoslynCyclomaticComplexity] = null!
+      });
+
+    resolver.AliasesByMetric.Should().BeEmpty();
+  }
+
+  [Test]
+  public void TryResolve_WithWhitespaceAlias_ResolvesAfterTrim()
+  {
+    var resolver = new MetricIdentifierResolver(
+      new Dictionary<MetricIdentifier, IReadOnlyList<string>>
+      {
+        [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { "  cc  " }
+      });
+
+    resolver.TryResolve("cc", out var metric).Should().BeTrue();
+    metric.Should().Be(MetricIdentifier.RoslynCyclomaticComplexity);
+  }
+
+  [Test]
+  public void Constructor_RemovesDuplicateAliasCaseInsensitive()
+  {
+    var resolver = new MetricIdentifierResolver(
+      new Dictionary<MetricIdentifier, IReadOnlyList<string>>
+      {
+        [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { "CC", "cc", "Cc" }
+      });
+
+    resolver.AliasesByMetric.Should().ContainKey(MetricIdentifier.RoslynCyclomaticComplexity);
+    resolver.AliasesByMetric[MetricIdentifier.RoslynCyclomaticComplexity].Should().BeEquivalentTo("CC");
   }
 }
 

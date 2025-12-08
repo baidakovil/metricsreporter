@@ -95,21 +95,45 @@ internal sealed class MetricIdentifierResolver
     var normalized = new Dictionary<MetricIdentifier, IReadOnlyList<string>>();
     foreach (var (identifier, values) in aliases)
     {
-      var cleaned = (values ?? Array.Empty<string>())
-        .Select(alias => alias?.Trim())
-        .Where(alias => !string.IsNullOrWhiteSpace(alias)
-                        && !alias.Equals(identifier.ToString(), StringComparison.OrdinalIgnoreCase))
-        .Select(alias => alias!)
-        .Distinct(StringComparer.OrdinalIgnoreCase)
-        .ToArray();
-
-      if (cleaned.Length > 0)
+      var cleaned = CollectAliases(identifier, values);
+      if (cleaned.Count > 0)
       {
         normalized[identifier] = cleaned;
       }
     }
 
     return normalized;
+  }
+
+  private static IReadOnlyList<string> CollectAliases(MetricIdentifier identifier, IReadOnlyList<string>? values)
+  {
+    var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var aliases = values ?? Array.Empty<string>();
+    for (var i = 0; i < aliases.Count; i++)
+    {
+      var alias = aliases[i];
+      if (string.IsNullOrWhiteSpace(alias))
+      {
+        continue;
+      }
+
+      var trimmed = alias.Trim();
+      if (trimmed.Equals(identifier.ToString(), StringComparison.OrdinalIgnoreCase))
+      {
+        continue;
+      }
+
+      unique.Add(trimmed);
+    }
+
+    if (unique.Count == 0)
+    {
+      return Array.Empty<string>();
+    }
+
+    var buffer = new string[unique.Count];
+    unique.CopyTo(buffer);
+    return buffer;
   }
 
   private static Dictionary<string, MetricIdentifier> BuildAliasLookup(

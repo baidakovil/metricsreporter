@@ -24,52 +24,72 @@ internal static class MetricAliasParser
 
     try
     {
-      using var document = JsonDocument.Parse(payload);
-      var root = document.RootElement;
-      if (root.ValueKind != JsonValueKind.Object)
-      {
-        throw new ArgumentException("Metric aliases must be a JSON object.");
-      }
-
-      var result = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-      foreach (var property in root.EnumerateObject())
-      {
-        if (property.Value.ValueKind != JsonValueKind.Array)
-        {
-          throw new ArgumentException($"metricAliases.{property.Name} must be an array.");
-        }
-
-        var aliases = new List<string>();
-        foreach (var item in property.Value.EnumerateArray())
-        {
-          if (item.ValueKind != JsonValueKind.String)
-          {
-            throw new ArgumentException($"metricAliases.{property.Name} must contain only strings.");
-          }
-
-          var alias = item.GetString();
-          if (string.IsNullOrWhiteSpace(alias))
-          {
-            throw new ArgumentException($"metricAliases.{property.Name} must not contain empty strings.");
-          }
-
-          aliases.Add(alias.Trim());
-        }
-
-        if (aliases.Count == 0)
-        {
-          throw new ArgumentException($"metricAliases.{property.Name} must be a non-empty array of strings.");
-        }
-
-        result[property.Name] = aliases.ToArray();
-      }
-
-      return result.Count == 0 ? null : result;
+      return ParsePayload(payload);
     }
     catch (JsonException ex)
     {
       throw new ArgumentException($"Invalid metricAliases JSON: {ex.Message}", ex);
     }
+  }
+
+  private static Dictionary<string, string[]>? ParsePayload(string payload)
+  {
+    using var document = JsonDocument.Parse(payload);
+    var root = document.RootElement;
+    EnsureObjectRoot(root);
+
+    var result = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+    foreach (var property in root.EnumerateObject())
+    {
+      result[property.Name] = ParseAliases(property);
+    }
+
+    return result.Count == 0 ? null : result;
+  }
+
+  private static void EnsureObjectRoot(JsonElement root)
+  {
+    if (root.ValueKind != JsonValueKind.Object)
+    {
+      throw new ArgumentException("Metric aliases must be a JSON object.");
+    }
+  }
+
+  private static string[] ParseAliases(JsonProperty property)
+  {
+    if (property.Value.ValueKind != JsonValueKind.Array)
+    {
+      throw new ArgumentException($"metricAliases.{property.Name} must be an array.");
+    }
+
+    var aliases = new List<string>();
+    foreach (var item in property.Value.EnumerateArray())
+    {
+      aliases.Add(ParseAliasValue(property.Name, item));
+    }
+
+    if (aliases.Count == 0)
+    {
+      throw new ArgumentException($"metricAliases.{property.Name} must be a non-empty array of strings.");
+    }
+
+    return aliases.ToArray();
+  }
+
+  private static string ParseAliasValue(string propertyName, JsonElement item)
+  {
+    if (item.ValueKind != JsonValueKind.String)
+    {
+      throw new ArgumentException($"metricAliases.{propertyName} must contain only strings.");
+    }
+
+    var alias = item.GetString();
+    if (string.IsNullOrWhiteSpace(alias))
+    {
+      throw new ArgumentException($"metricAliases.{propertyName} must not contain empty strings.");
+    }
+
+    return alias.Trim();
   }
 }
 
