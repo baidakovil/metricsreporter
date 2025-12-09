@@ -48,7 +48,7 @@
     <AltCoverAssemblyFilter Condition="'$(AltCoverAssemblyFilter)' == ''">Spectre</AltCoverAssemblyFilter>
     <AltCoverTypeFilter Condition="'$(AltCoverTypeFilter)' == ''"></AltCoverTypeFilter>
     <AltCoverMethodFilter Condition="'$(AltCoverMethodFilter)' == ''"></AltCoverMethodFilter>
-    <AltCoverAttributeFilter Condition="'$(AltCoverAttributeFilter)' == ''"></AltCoverAttributeFilter>
+    <AltCoverAttributeFilter Condition="'$(AltCoverAttributeFilter)' == ''">System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute</AltCoverAttributeFilter>
     <AltCoverUseOpenCover Condition="'$(AltCoverUseOpenCover)' == ''">true</AltCoverUseOpenCover>
     <AltCoverAdditionalInstrumentationArgs Condition="'$(AltCoverAdditionalInstrumentationArgs)' == ''"></AltCoverAdditionalInstrumentationArgs>
     <!-- Collection anchor (runs once after tests) -->
