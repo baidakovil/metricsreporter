@@ -76,7 +76,11 @@
         "fullyQualifiedName": { "type": ["string", "null"] },
         "source": { "$ref": "#/definitions/sourceLocation" },
         "isNew": { "type": "boolean" },
-        "metrics": { "$ref": "#/definitions/metricsBag" }
+        "metrics": { "$ref": "#/definitions/metricsBag" },
+        "memberKind": {
+          "type": ["string", "null"],
+          "enum": ["Unknown", "Method", "Property", "Field", "Event", null]
+        }
       },
       "required": ["name", "kind", "isNew", "metrics"],
       "additionalProperties": false
@@ -231,6 +235,10 @@
           "type": ["string", "null"],
           "description": "Comma-separated fully qualified type name patterns excluded while generating the report."
         },
+        "excludeMethods": { "type": "boolean", "description": "Whether methods were excluded." },
+        "excludeProperties": { "type": "boolean", "description": "Whether properties were excluded." },
+        "excludeFields": { "type": "boolean", "description": "Whether fields were excluded." },
+        "excludeEvents": { "type": "boolean", "description": "Whether events were excluded." },
         "metricAliases": {
           "type": "object",
           "description": "Optional aliases for metric identifiers. Keys are MetricIdentifier values; values are arrays of alias strings.",

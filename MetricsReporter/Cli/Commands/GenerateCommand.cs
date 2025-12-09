@@ -47,30 +47,3 @@ internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
   }
 }
 
-/// <summary>
-/// Represents resolved inputs for the generate command across CLI, environment, and config sources.
-/// </summary>
-internal sealed record ResolvedGenerateInputs(
-  string? SolutionName,
-  string? MetricsDir,
-  string[] AltCover,
-  string[] Roslyn,
-  string[] Sarif,
-  string? Baseline,
-  string? BaselineReference,
-  string? OutputJson,
-  string? OutputHtml,
-  string? ThresholdsFile,
-  string? ThresholdsInline,
-  string? InputJson,
-  string? ExcludedMembers,
-  string? ExcludedAssemblies,
-  string? ExcludedTypes,
-  bool ReplaceBaseline,
-  string? BaselineStoragePath,
-  string? CoverageHtmlDir,
-  bool AnalyzeSuppressedSymbols,
-  string? SuppressedSymbols,
-  string? SolutionDirectory,
-  string[] SourceCodeFolders,
-  bool MetricsDirProvided);

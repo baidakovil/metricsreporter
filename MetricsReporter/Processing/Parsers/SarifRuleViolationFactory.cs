@@ -19,7 +19,9 @@ internal static class SarifRuleViolationFactory
     return new ParsedCodeElement(CodeElementKind.Member, ruleId, null)
     {
       Metrics = CreateMetricDictionary(identifier, CreateRuleBreakdown(ruleId, location, messageText)),
-      Source = location.Source
+      Source = location.Source,
+      MemberKind = MemberKind.Unknown,
+      HasSarifViolations = true
     };
   }
 

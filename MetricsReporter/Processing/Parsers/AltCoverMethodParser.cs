@@ -67,11 +67,12 @@ internal static class AltCoverMethodParser
   private static int SeqStartLine(XElement point) => (int)(point.Attribute("sl")?.GetDecimalValue() ?? 0m);
   private static int SeqEndLine(XElement point) => (int)(point.Attribute("el")?.GetDecimalValue() ?? 0m);
 
-  private static ParsedCodeElement CreateNode(CodeElementKind kind, string name, string? fqn, string? parentFqn, SourceLocation? source)
+  private static ParsedCodeElement CreateNode(CodeElementKind kind, string name, string? fqn, string? parentFqn, SourceLocation? source, MemberKind memberKind = MemberKind.Unknown)
       => new(kind, name, fqn)
       {
         ParentFullyQualifiedName = parentFqn,
-        Source = source
+        Source = source,
+        MemberKind = memberKind
       };
 
   private static class AltCoverMethodNodeFactory
@@ -93,7 +94,8 @@ internal static class AltCoverMethodParser
           methodDisplayName,
           normalizedMethodFqn,
           classNode.FullyQualifiedName,
-          sourceLocation);
+          sourceLocation,
+          MemberKind.Method);
     }
   }
 

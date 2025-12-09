@@ -53,6 +53,10 @@ public static class EnvironmentConfigurationProvider
         ExcludedMembers = ReadString("METRICSREPORTER_PATHS_EXCLUDED_MEMBERS"),
         ExcludedAssemblies = ReadString("METRICSREPORTER_PATHS_EXCLUDED_ASSEMBLIES"),
         ExcludedTypes = ReadString("METRICSREPORTER_PATHS_EXCLUDED_TYPES"),
+        ExcludeMethods = ReadBool("METRICSREPORTER_PATHS_EXCLUDE_METHODS"),
+        ExcludeProperties = ReadBool("METRICSREPORTER_PATHS_EXCLUDE_PROPERTIES"),
+        ExcludeFields = ReadBool("METRICSREPORTER_PATHS_EXCLUDE_FIELDS"),
+        ExcludeEvents = ReadBool("METRICSREPORTER_PATHS_EXCLUDE_EVENTS"),
         AnalyzeSuppressedSymbols = ReadBool("METRICSREPORTER_PATHS_ANALYZE_SUPPRESSED_SYMBOLS"),
         ReplaceBaseline = ReadBool("METRICSREPORTER_PATHS_REPLACE_BASELINE")
       },

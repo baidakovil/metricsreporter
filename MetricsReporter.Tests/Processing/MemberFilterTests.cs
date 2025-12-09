@@ -15,7 +15,7 @@ public sealed class MemberFilterTests
   public void ShouldExcludeMethod_ExcludesConstructor_Ctor()
   {
     // Arrange
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethod(".ctor").Should().BeTrue();
@@ -26,7 +26,7 @@ public sealed class MemberFilterTests
   public void ShouldExcludeMethod_ExcludesStaticConstructor_Cctor()
   {
     // Arrange
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethod(".cctor").Should().BeTrue();
@@ -37,7 +37,7 @@ public sealed class MemberFilterTests
   public void ShouldExcludeMethod_ExcludesCompilerGeneratedMethods()
   {
     // Arrange
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethod("MoveNext").Should().BeTrue();
@@ -50,7 +50,7 @@ public sealed class MemberFilterTests
   public void ShouldExcludeMethod_DoesNotExcludeNormalMethods()
   {
     // Arrange
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethod("DoWork").Should().BeFalse();
@@ -64,7 +64,7 @@ public sealed class MemberFilterTests
   {
     // Arrange
     const string constructorFqn = "Namespace.Type..ctor(...)";
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethodByFqn(constructorFqn).Should().BeTrue();
@@ -75,7 +75,7 @@ public sealed class MemberFilterTests
   {
     // Arrange
     const string staticConstructorFqn = "Namespace.Type..cctor(...)";
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethodByFqn(staticConstructorFqn).Should().BeTrue();
@@ -86,7 +86,7 @@ public sealed class MemberFilterTests
   {
     // Arrange - Roslyn format: constructor name matches type name
     const string constructorFqn = "Namespace.Type.Type(...)";
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethodByFqn(constructorFqn).Should().BeTrue();
@@ -96,7 +96,7 @@ public sealed class MemberFilterTests
   public void ShouldExcludeMethodByFqn_ExcludesCompilerGeneratedMethods()
   {
     // Arrange
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethodByFqn("Namespace.Type.MoveNext(...)").Should().BeTrue();
@@ -109,7 +109,7 @@ public sealed class MemberFilterTests
   public void ShouldExcludeMethodByFqn_DoesNotExcludeNormalMethods()
   {
     // Arrange
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     filter.ShouldExcludeMethodByFqn("Namespace.Type.DoWork(...)").Should().BeFalse();
@@ -129,7 +129,7 @@ public sealed class MemberFilterTests
 
     // For now, we'll test that the basic logic works
     const string methodFqn = "Namespace.SomeType.SomeType(...)";
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     // This will be excluded because method name matches type name (Roslyn constructor pattern)
@@ -165,7 +165,7 @@ public sealed class MemberFilterTests
   {
     // Arrange - Test with nested types and complex names
     const string constructorFqn = "Namespace.Outer+Nested.Outer+Nested(...)";
-    var filter = new MemberFilter();
+    var filter = MemberFilter.FromString("ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync");
 
     // Act & Assert
     // This should extract type name as "Outer+Nested" and method name as "Outer+Nested"
@@ -213,10 +213,10 @@ public sealed class MemberFilterTests
     var filter2 = MemberFilter.FromString(string.Empty);
     var filter3 = MemberFilter.FromString("   ");
 
-    // Assert - Should use default excluded methods
-    filter1.ShouldExcludeMethod("ctor").Should().BeTrue();
-    filter2.ShouldExcludeMethod("ctor").Should().BeTrue();
-    filter3.ShouldExcludeMethod("ctor").Should().BeTrue();
+    // Assert - No defaults when not provided
+    filter1.ShouldExcludeMethod("ctor").Should().BeFalse();
+    filter2.ShouldExcludeMethod("ctor").Should().BeFalse();
+    filter3.ShouldExcludeMethod("ctor").Should().BeFalse();
   }
 
   [Test]

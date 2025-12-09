@@ -210,9 +210,14 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
       ILogger logger)
   {
     var memberFilter = MemberFilter.FromString(options.ExcludedMemberNamesPatterns);
+    var memberKindFilter = MemberKindFilter.Create(
+        options.ExcludeMethods,
+        options.ExcludeProperties,
+        options.ExcludeFields,
+        options.ExcludeEvents);
     var assemblyFilter = AssemblyFilter.FromString(options.ExcludedAssemblyNames);
     var typeFilter = TypeFilter.FromString(options.ExcludedTypeNamePatterns);
-    var aggregationService = new MetricsAggregationService(memberFilter, assemblyFilter, typeFilter);
+    var aggregationService = new MetricsAggregationService(memberFilter, memberKindFilter, assemblyFilter, typeFilter);
 
     try
     {

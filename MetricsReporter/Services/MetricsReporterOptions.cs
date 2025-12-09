@@ -85,6 +85,26 @@ public sealed class MetricsReporterOptions
   public string? ExcludedMemberNamesPatterns { get; init; }
 
   /// <summary>
+  /// Exclude methods from metrics.
+  /// </summary>
+  public bool ExcludeMethods { get; init; }
+
+  /// <summary>
+  /// Exclude properties from metrics.
+  /// </summary>
+  public bool ExcludeProperties { get; init; }
+
+  /// <summary>
+  /// Exclude fields from metrics.
+  /// </summary>
+  public bool ExcludeFields { get; init; }
+
+  /// <summary>
+  /// Exclude events from metrics.
+  /// </summary>
+  public bool ExcludeEvents { get; init; }
+
+  /// <summary>
   /// Comma-separated or semicolon-separated list of assembly name patterns to exclude from metrics reports.
   /// </summary>
   /// <remarks>

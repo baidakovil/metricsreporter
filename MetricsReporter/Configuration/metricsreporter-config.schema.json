@@ -83,6 +83,10 @@
         "excludedMembers": { "type": "string", "description": "Comma/semicolon-separated member name patterns to exclude." },
         "excludedAssemblies": { "type": "string", "description": "Comma/semicolon-separated assembly name patterns to exclude." },
         "excludedTypes": { "type": "string", "description": "Comma/semicolon-separated type name patterns to exclude." },
+        "excludeMethods": { "type": "boolean", "description": "Exclude methods from the report." },
+        "excludeProperties": { "type": "boolean", "description": "Exclude properties from the report." },
+        "excludeFields": { "type": "boolean", "description": "Exclude fields from the report." },
+        "excludeEvents": { "type": "boolean", "description": "Exclude events from the report." },
         "analyzeSuppressedSymbols": { "type": "boolean", "description": "Enable suppressed-symbol analysis." },
         "replaceBaseline": { "type": "boolean", "description": "Replace baseline when differences are detected." }
       }

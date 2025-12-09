@@ -27,6 +27,10 @@ internal static class NodeRenderer
     }
     var role = NodeKindProvider.GetKind(node);
     var roleUpper = role.ToUpperInvariant();
+    if (node is MemberMetricsNode memberNode && memberNode.MemberKind != MemberKind.Unknown)
+    {
+      roleUpper = $"{roleUpper}: {memberNode.MemberKind.ToString().ToUpperInvariant()}";
+    }
     var source = node.Source;
     var data = new
     {

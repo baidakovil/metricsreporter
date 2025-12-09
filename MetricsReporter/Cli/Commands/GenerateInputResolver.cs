@@ -85,6 +85,18 @@ internal static class GenerateInputResolver
     var excludedMembers = CommandPathResolver.FirstNonEmpty(settings.ExcludedMembers, envPaths.ExcludedMembers, filePaths.ExcludedMembers);
     var excludedAssemblies = CommandPathResolver.FirstNonEmpty(settings.ExcludedAssemblies, envPaths.ExcludedAssemblies, filePaths.ExcludedAssemblies);
     var excludedTypes = CommandPathResolver.FirstNonEmpty(settings.ExcludedTypes, envPaths.ExcludedTypes, filePaths.ExcludedTypes);
+    var excludeMethods = settings.ExcludeMethods
+      || envPaths.ExcludeMethods == true
+      || filePaths.ExcludeMethods == true;
+    var excludeProperties = settings.ExcludeProperties
+      || envPaths.ExcludeProperties == true
+      || filePaths.ExcludeProperties == true;
+    var excludeFields = settings.ExcludeFields
+      || envPaths.ExcludeFields == true
+      || filePaths.ExcludeFields == true;
+    var excludeEvents = settings.ExcludeEvents
+      || envPaths.ExcludeEvents == true
+      || filePaths.ExcludeEvents == true;
     var baselineStoragePath = CommandPathResolver.FirstNonEmpty(settings.BaselineStoragePath, envPaths.BaselineStoragePath, filePaths.BaselineStoragePath);
     var coverageHtmlDir = CommandPathResolver.FirstNonEmpty(settings.CoverageHtmlDir, envPaths.CoverageHtmlDir, filePaths.CoverageHtmlDir);
     var suppressedSymbols = CommandPathResolver.FirstNonEmpty(settings.SuppressedSymbols, envPaths.SuppressedSymbols, filePaths.SuppressedSymbols);
@@ -114,6 +126,10 @@ internal static class GenerateInputResolver
       ExcludedMembers: excludedMembers,
       ExcludedAssemblies: excludedAssemblies,
       ExcludedTypes: excludedTypes,
+      ExcludeMethods: excludeMethods,
+      ExcludeProperties: excludeProperties,
+      ExcludeFields: excludeFields,
+      ExcludeEvents: excludeEvents,
       ReplaceBaseline: replaceBaseline,
       BaselineStoragePath: CommandPathResolver.MakeAbsolute(baselineStoragePath, workingDirectory),
       CoverageHtmlDir: CommandPathResolver.MakeAbsolute(coverageHtmlDir, workingDirectory),
@@ -239,4 +255,36 @@ internal sealed record GenerateInputResolutionResult(bool Succeeded, int? ExitCo
   public static GenerateInputResolutionResult Failure(int exitCode) =>
     new(false, exitCode, null, null);
 }
+
+/// <summary>
+/// Resolved inputs for the generate command.
+/// </summary>
+internal sealed record ResolvedGenerateInputs(
+  string SolutionName,
+  string? MetricsDir,
+  string[] AltCover,
+  string[] Roslyn,
+  string[] Sarif,
+  string? Baseline,
+  string? BaselineReference,
+  string? OutputJson,
+  string? OutputHtml,
+  string? ThresholdsFile,
+  string? ThresholdsInline,
+  string? InputJson,
+  string? ExcludedMembers,
+  string? ExcludedAssemblies,
+  string? ExcludedTypes,
+  bool ExcludeMethods,
+  bool ExcludeProperties,
+  bool ExcludeFields,
+  bool ExcludeEvents,
+  bool ReplaceBaseline,
+  string? BaselineStoragePath,
+  string? CoverageHtmlDir,
+  bool AnalyzeSuppressedSymbols,
+  string? SuppressedSymbols,
+  string? SolutionDirectory,
+  string[] SourceCodeFolders,
+  bool MetricsDirProvided);
 

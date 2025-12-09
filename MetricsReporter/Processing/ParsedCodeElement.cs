@@ -52,6 +52,16 @@ public sealed class ParsedCodeElement
   public SourceLocation? Source { get; init; }
 
   /// <summary>
+  /// Specific member kind when <see cref="Kind"/> is <see cref="CodeElementKind.Member"/>.
+  /// </summary>
+  public MemberKind MemberKind { get; init; } = MemberKind.Unknown;
+
+  /// <summary>
+  /// Indicates that this element carries SARIF violations and must not be dropped by filters.
+  /// </summary>
+  public bool HasSarifViolations { get; init; }
+
+  /// <summary>
   /// Metrics provided by the parser for this element.
   /// </summary>
   public IDictionary<MetricIdentifier, MetricValue> Metrics { get; init; } = new Dictionary<MetricIdentifier, MetricValue>();

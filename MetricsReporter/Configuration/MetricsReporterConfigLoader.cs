@@ -52,6 +52,10 @@ public sealed class MetricsReporterConfigLoader
     "excludedMembers",
     "excludedAssemblies",
     "excludedTypes",
+    "excludeMethods",
+    "excludeProperties",
+    "excludeFields",
+    "excludeEvents",
     "analyzeSuppressedSymbols",
     "replaceBaseline"
   ];

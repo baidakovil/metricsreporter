@@ -27,6 +27,7 @@ internal sealed class StructuralElementMerger
   private readonly Dictionary<string, TypeEntry> _types;
   private readonly Dictionary<string, MemberMetricsNode> _members;
   private readonly MemberFilter _memberFilter;
+  private readonly MemberKindFilter _memberKindFilter;
   private readonly AssemblyFilter _assemblyFilter;
   private readonly TypeFilter _typeFilter;
 
@@ -41,6 +42,7 @@ internal sealed class StructuralElementMerger
       Dictionary<string, TypeEntry> types,
       Dictionary<string, MemberMetricsNode> members,
       MemberFilter memberFilter,
+      MemberKindFilter memberKindFilter,
       AssemblyFilter assemblyFilter,
       TypeFilter typeFilter)
   {
@@ -51,6 +53,7 @@ internal sealed class StructuralElementMerger
     _types = types ?? throw new ArgumentNullException(nameof(types));
     _members = members ?? throw new ArgumentNullException(nameof(members));
     _memberFilter = memberFilter ?? throw new ArgumentNullException(nameof(memberFilter));
+    _memberKindFilter = memberKindFilter ?? throw new ArgumentNullException(nameof(memberKindFilter));
     _assemblyFilter = assemblyFilter ?? throw new ArgumentNullException(nameof(assemblyFilter));
     _typeFilter = typeFilter ?? throw new ArgumentNullException(nameof(typeFilter));
   }
@@ -167,6 +170,11 @@ internal sealed class StructuralElementMerger
   /// <param name="element">The parsed member element to merge.</param>
   public void MergeMember(ParsedCodeElement element)
   {
+    if (_memberFilter.ShouldExcludeMethod(element.Name) || _memberFilter.ShouldExcludeMethodByFqn(element.FullyQualifiedName))
+    {
+      return;
+    }
+
     if (!TryResolveMemberContext(element, out var context))
     {
       return;
@@ -179,6 +187,7 @@ internal sealed class StructuralElementMerger
     }
 
     var memberNode = GetOrCreateMember(typeEntry, context.MemberFqn, element.Name);
+    UpdateMemberMetadata(memberNode, element);
     MergeMetrics(memberNode.Metrics, element.Metrics);
     MergeSource(memberNode, element.Source);
   }
@@ -188,6 +197,11 @@ internal sealed class StructuralElementMerger
       [NotNullWhen(true)] out MemberResolutionContext? context)
   {
     context = null;
+    if (_memberKindFilter.ShouldExclude(element.MemberKind, element.HasSarifViolations))
+    {
+      return false;
+    }
+
     if (element.FullyQualifiedName is null)
     {
       return false;
@@ -535,6 +549,20 @@ internal sealed class StructuralElementMerger
     typeEntry.Node.Members.Add(node);
     _members[memberFqn] = node;
     return node;
+  }
+
+  private static void UpdateMemberMetadata(MemberMetricsNode memberNode, ParsedCodeElement element)
+  {
+    if (memberNode.MemberKind == MemberKind.Unknown ||
+        (memberNode.MemberKind == MemberKind.Method && element.MemberKind != MemberKind.Unknown && element.MemberKind != MemberKind.Method))
+    {
+      memberNode.MemberKind = element.MemberKind;
+    }
+
+    if (element.HasSarifViolations)
+    {
+      memberNode.HasSarifViolations = true;
+    }
   }
 
   private static void MergeMetrics(IDictionary<MetricIdentifier, MetricValue> target, IDictionary<MetricIdentifier, MetricValue> source)

@@ -176,6 +176,26 @@ public sealed class PathsConfiguration
   public string? ExcludedTypes { get; init; }
 
   /// <summary>
+  /// Gets a value indicating whether methods should be excluded.
+  /// </summary>
+  public bool? ExcludeMethods { get; init; }
+
+  /// <summary>
+  /// Gets a value indicating whether properties should be excluded.
+  /// </summary>
+  public bool? ExcludeProperties { get; init; }
+
+  /// <summary>
+  /// Gets a value indicating whether fields should be excluded.
+  /// </summary>
+  public bool? ExcludeFields { get; init; }
+
+  /// <summary>
+  /// Gets a value indicating whether events should be excluded.
+  /// </summary>
+  public bool? ExcludeEvents { get; init; }
+
+  /// <summary>
   /// Gets a value indicating whether suppressed symbol analysis should be performed.
   /// </summary>
   public bool? AnalyzeSuppressedSymbols { get; init; }

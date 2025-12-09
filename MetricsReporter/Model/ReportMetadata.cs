@@ -71,6 +71,26 @@ public sealed class ReportMetadata
   public string? ExcludedTypeNamePatterns { get; init; }
 
   /// <summary>
+  /// Indicates whether methods were excluded during generation.
+  /// </summary>
+  public bool ExcludeMethods { get; init; }
+
+  /// <summary>
+  /// Indicates whether properties were excluded during generation.
+  /// </summary>
+  public bool ExcludeProperties { get; init; }
+
+  /// <summary>
+  /// Indicates whether fields were excluded during generation.
+  /// </summary>
+  public bool ExcludeFields { get; init; }
+
+  /// <summary>
+  /// Indicates whether events were excluded during generation.
+  /// </summary>
+  public bool ExcludeEvents { get; init; }
+
+  /// <summary>
   /// Optional collection of suppressed symbol entries that were taken into account
   /// when computing this report.
   /// </summary>

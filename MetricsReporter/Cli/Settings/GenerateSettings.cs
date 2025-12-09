@@ -61,6 +61,22 @@ internal sealed class GenerateSettings : CliSettingsBase
   [Description("Comma/semicolon-separated member name patterns to exclude.")]
   public string? ExcludedMembers { get; init; }
 
+  [CommandOption("--exclude-methods")]
+  [Description("Exclude methods from metrics output.")]
+  public bool ExcludeMethods { get; init; }
+
+  [CommandOption("--exclude-properties")]
+  [Description("Exclude properties from metrics output.")]
+  public bool ExcludeProperties { get; init; }
+
+  [CommandOption("--exclude-fields")]
+  [Description("Exclude fields from metrics output.")]
+  public bool ExcludeFields { get; init; }
+
+  [CommandOption("--exclude-events")]
+  [Description("Exclude events from metrics output.")]
+  public bool ExcludeEvents { get; init; }
+
   [CommandOption("--excluded-assemblies <LIST>")]
   [Description("Comma/semicolon-separated assembly name patterns to exclude.")]
   public string? ExcludedAssemblies { get; init; }

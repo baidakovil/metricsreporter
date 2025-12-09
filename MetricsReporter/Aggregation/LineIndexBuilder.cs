@@ -2,6 +2,7 @@ namespace MetricsReporter.Aggregation;
 
 using System.Collections.Generic;
 using MetricsReporter.Model;
+using MetricsReporter.Processing;
 
 /// <summary>
 /// Encapsulates line index population logic so the workspace can focus on orchestration.
@@ -15,7 +16,8 @@ internal sealed class LineIndexBuilder
       LineIndex lineIndex,
       IEnumerable<MemberMetricsNode> members,
       IEnumerable<TypeEntry> types,
-      AggregationWorkspaceLookup lookup)
+      AggregationWorkspaceLookup lookup,
+      MemberKindFilter memberKindFilter)
   {
     foreach (var member in members)
     {
@@ -25,6 +27,11 @@ internal sealed class LineIndexBuilder
       }
 
       if (lookup.ShouldExcludeMember(member))
+      {
+        continue;
+      }
+
+      if (memberKindFilter.ShouldExclude(member.MemberKind, member.HasSarifViolations))
       {
         continue;
       }

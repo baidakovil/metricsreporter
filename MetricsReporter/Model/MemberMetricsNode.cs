@@ -24,6 +24,16 @@ public sealed class MemberMetricsNode : MetricsNode
   /// still keeping the UI focused on user-defined methods.
   /// </remarks>
   public bool IncludesIteratorStateMachineCoverage { get; set; }
+
+  /// <summary>
+  /// Gets or sets the member kind (method, property, field, event).
+  /// </summary>
+  public MemberKind MemberKind { get; set; } = MemberKind.Unknown;
+
+  /// <summary>
+  /// Gets or sets a value indicating whether this member carries SARIF violations.
+  /// </summary>
+  public bool HasSarifViolations { get; set; }
 }
 
 

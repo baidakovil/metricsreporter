@@ -207,14 +207,19 @@ internal sealed class RoslynMetricsDocumentWalker
     internal static IEnumerable<ParsedCodeElement> CreateMembers(XElement typeElement, ParsedCodeElement typeNode)
     {
       var members = typeElement.Element(XmlNamespace + "Members")?.Elements() ?? Enumerable.Empty<XElement>();
-      foreach (var memberNode in members.Select(member => ParseMember(member, typeNode)))
+      foreach (var memberNode in members.Select(member => ParseMember(member, typeNode)).Where(node => node is not null))
       {
-        yield return memberNode;
+        yield return memberNode!;
       }
     }
 
-    private static ParsedCodeElement ParseMember(XElement memberElement, ParsedCodeElement typeNode)
+    private static ParsedCodeElement? ParseMember(XElement memberElement, ParsedCodeElement typeNode)
     {
+      if (RoslynMemberAccessorDetector.IsAccessor(memberElement))
+      {
+        return null;
+      }
+
       return RoslynMemberNodeFactory.Create(memberElement, typeNode);
     }
   }
@@ -230,7 +235,8 @@ internal sealed class RoslynMetricsDocumentWalker
         ParentFullyQualifiedName = typeNode.FullyQualifiedName,
         ContainingAssemblyName = typeNode.ContainingAssemblyName,
         Metrics = context.Metrics,
-        Source = context.Source
+        Source = context.Source,
+        MemberKind = context.MemberKind
       };
     }
 
@@ -248,7 +254,8 @@ internal sealed class RoslynMetricsDocumentWalker
         var source = CreateSourceLocation(memberElement.Attribute("File")?.Value, memberElement.Attribute("Line")?.Value);
 
         var metrics = ExtractMetrics(memberElement.Element(XmlNamespace + "Metrics"));
-        return new RoslynMemberContext(methodNameOnly, normalizedMemberFqn, source, metrics);
+        var memberKind = ResolveMemberKind(memberElement.Name.LocalName);
+        return new RoslynMemberContext(methodNameOnly, normalizedMemberFqn, source, metrics, memberKind);
       }
     }
 
@@ -256,7 +263,8 @@ internal sealed class RoslynMetricsDocumentWalker
         string MethodDisplayName,
         string? NormalizedMemberFqn,
         SourceLocation? Source,
-        Dictionary<MetricIdentifier, MetricValue> Metrics);
+        Dictionary<MetricIdentifier, MetricValue> Metrics,
+        MemberKind MemberKind);
 
     private static string ExtractDisplayMethodName(string rawMemberName, string memberDisplayName, string typeName)
     {
@@ -340,6 +348,54 @@ internal sealed class RoslynMetricsDocumentWalker
       return $"{typeFqn}.{suffix}";
     }
 
+    private static MemberKind ResolveMemberKind(string elementName)
+    {
+      return elementName switch
+      {
+        "Property" => MemberKind.Property,
+        "Field" => MemberKind.Field,
+        "Event" => MemberKind.Event,
+        _ => MemberKind.Method
+      };
+    }
+
+  }
+
+  private static class RoslynMemberAccessorDetector
+  {
+    private static readonly string[] AccessorPrefixes = ["get", "set", "add", "remove"];
+
+    internal static bool IsAccessor(XElement memberElement)
+    {
+      if (!string.Equals(memberElement.Name.LocalName, "Method", StringComparison.Ordinal))
+      {
+        return false;
+      }
+
+      var rawName = memberElement.Attribute("Name")?.Value;
+      if (string.IsNullOrWhiteSpace(rawName))
+      {
+        return false;
+      }
+
+      var methodName = SymbolNormalizer.ExtractMethodName(rawName);
+      if (string.IsNullOrWhiteSpace(methodName))
+      {
+        return false;
+      }
+
+      var normalized = methodName.Replace("::", ".", StringComparison.Ordinal);
+      foreach (var prefix in AccessorPrefixes)
+      {
+        if (normalized.Equals(prefix, StringComparison.Ordinal) ||
+            normalized.StartsWith(prefix + "_", StringComparison.Ordinal))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
   }
 
   private static string ExtractAssemblyShortName(string assemblyDisplayName)

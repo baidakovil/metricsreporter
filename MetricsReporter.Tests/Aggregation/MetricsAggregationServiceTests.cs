@@ -14,19 +14,29 @@ using MetricsReporter.Tests.TestHelpers;
 [Category("Unit")]
 public sealed class MetricsAggregationServiceTests
 {
+  private const string DefaultExcludedMembers = "ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync";
   private MetricsAggregationService service = null!;
   private Dictionary<MetricIdentifier, MetricThresholdDefinition> thresholds = null!;
 
   [SetUp]
   public void SetUp()
   {
-    service = new MetricsAggregationService();
+    service = CreateService();
     thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
       [MetricIdentifier.RoslynMaintainabilityIndex] = ThresholdTestFactory.CreateDefinition(65, 40, true),
       [MetricIdentifier.AltCoverSequenceCoverage] = ThresholdTestFactory.CreateDefinition(70, 50, true),
       [MetricIdentifier.SarifCaRuleViolations] = ThresholdTestFactory.CreateDefinition(1, 2, false)
     };
+  }
+
+  private static MetricsAggregationService CreateService()
+  {
+    return new MetricsAggregationService(
+      MemberFilter.FromString(DefaultExcludedMembers),
+      MemberKindFilter.Create(false, false, false, false),
+      new AssemblyFilter(),
+      new TypeFilter());
   }
 
   [Test]
@@ -394,7 +404,7 @@ public sealed class MetricsAggregationServiceTests
     // Arrange
     const string assemblyName = "Inclusive.Assembly";
 
-    var serviceUnderTest = new MetricsAggregationService();
+    var serviceUnderTest = CreateService();
     var thresholds = ThresholdTestFactory.CreateUniformThresholds(
         (MetricIdentifier.SarifCaRuleViolations, 1m, 2m, false));
 
@@ -436,7 +446,7 @@ public sealed class MetricsAggregationServiceTests
     // Arrange
     const string assemblyName = "Inclusive.Assembly";
 
-    var serviceUnderTest = new MetricsAggregationService();
+    var serviceUnderTest = CreateService();
     var thresholds = ThresholdTestFactory.CreateUniformThresholds(
         (MetricIdentifier.SarifCaRuleViolations, 1m, 2m, false));
 
@@ -480,7 +490,7 @@ public sealed class MetricsAggregationServiceTests
     const string namespaceName = "Inclusive.Namespace";
     const string typeFqn = "Inclusive.Namespace.SampleType";
 
-    var serviceUnderTest = new MetricsAggregationService();
+    var serviceUnderTest = CreateService();
     var thresholds = ThresholdTestFactory.CreateUniformThresholds(
         (MetricIdentifier.RoslynMaintainabilityIndex, 65m, 40m, true));
 
@@ -532,7 +542,7 @@ public sealed class MetricsAggregationServiceTests
     const string namespaceName = "Inclusive.Namespace";
     const string typeFqn = "Inclusive.Namespace.SampleType";
 
-    var serviceUnderTest = new MetricsAggregationService();
+    var serviceUnderTest = CreateService();
     var thresholds = ThresholdTestFactory.CreateUniformThresholds(
         (MetricIdentifier.RoslynMaintainabilityIndex, 65m, 40m, true));
 
@@ -634,7 +644,17 @@ public sealed class MetricsAggregationServiceTests
     };
 
     // Act
-    var report = service.BuildReport(input);
+    var memberFilter = MemberFilter.FromString(DefaultExcludedMembers);
+    memberFilter.HasPatterns.Should().BeTrue();
+    memberFilter.ShouldExcludeMethod("ctor").Should().BeTrue();
+    memberFilter.ShouldExcludeMethodByFqn(constructorFqn).Should().BeTrue();
+    var serviceUnderTest = new MetricsAggregationService(
+      memberFilter,
+      MemberKindFilter.Create(false, false, false, false),
+      new AssemblyFilter(),
+      new TypeFilter());
+
+    var report = serviceUnderTest.BuildReport(input);
 
     // Assert
     var assembly = report.Solution.Assemblies.Should().ContainSingle(a => a.Name == assemblyName).Subject;
@@ -797,7 +817,14 @@ public sealed class MetricsAggregationServiceTests
     };
 
     // Act
-    var report = service.BuildReport(input);
+    var memberFilter = MemberFilter.FromString(DefaultExcludedMembers);
+    var serviceUnderTest = new MetricsAggregationService(
+      memberFilter,
+      MemberKindFilter.Create(false, false, false, false),
+      new AssemblyFilter(),
+      new TypeFilter());
+
+    var report = serviceUnderTest.BuildReport(input);
 
     // Assert
     var assembly = report.Solution.Assemblies.Should().ContainSingle(a => a.Name == assemblyName).Subject;
@@ -875,7 +902,14 @@ public sealed class MetricsAggregationServiceTests
     };
 
     // Act
-    var report = service.BuildReport(input);
+    var memberFilter = MemberFilter.FromString(DefaultExcludedMembers);
+    var serviceUnderTest = new MetricsAggregationService(
+      memberFilter,
+      MemberKindFilter.Create(false, false, false, false),
+      new AssemblyFilter(),
+      new TypeFilter());
+
+    var report = serviceUnderTest.BuildReport(input);
 
     // Assert - Verify that excluded methods are not in the report structure
     // (which means they won't be in JSON either)
@@ -895,6 +929,153 @@ public sealed class MetricsAggregationServiceTests
   }
 
   [Test]
+  public void BuildReport_MergesRoslynAndAltCover_ForSameMember()
+  {
+    // Arrange: same member appears in Roslyn (Maintainability) and AltCover (coverage); should merge into one node with both metrics.
+    const string assemblyName = "Sample.Assembly";
+    const string namespaceFqn = "Sample.Namespace";
+    const string typeFqn = "Sample.Namespace.SampleType";
+    const string memberFqn = "Sample.Namespace.SampleType.DoWork(...)";
+
+    var roslynDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, namespaceFqn, namespaceFqn) { ParentFullyQualifiedName = assemblyName },
+        new(CodeElementKind.Type, "SampleType", typeFqn) { ParentFullyQualifiedName = namespaceFqn },
+        new(CodeElementKind.Member, "DoWork", memberFqn)
+        {
+          ParentFullyQualifiedName = typeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.RoslynMaintainabilityIndex] = Metric(80, "score")
+          }
+        }
+      }
+    };
+
+    var altCoverDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, namespaceFqn, namespaceFqn) { ParentFullyQualifiedName = assemblyName },
+        new(CodeElementKind.Type, "SampleType", typeFqn) { ParentFullyQualifiedName = namespaceFqn },
+        new(CodeElementKind.Member, "DoWork", memberFqn)
+        {
+          ParentFullyQualifiedName = typeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(55, "%")
+          }
+        }
+      }
+    };
+
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "SampleSolution",
+      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
+      SarifDocuments = new List<ParsedMetricsDocument>(),
+      Baseline = null,
+      Thresholds = thresholds,
+      Paths = new ReportPaths()
+    };
+
+    var serviceUnderTest = CreateService();
+
+    // Act
+    var report = serviceUnderTest.BuildReport(input);
+
+    // Assert: single member with both metrics.
+    var assembly = report.Solution.Assemblies.Should().ContainSingle(a => a.Name == assemblyName).Subject;
+    var type = assembly.Namespaces.Should().ContainSingle().Subject.Types.Should().ContainSingle(t => t.FullyQualifiedName == typeFqn).Subject;
+    type.Members.Should().ContainSingle(m => m.FullyQualifiedName == memberFqn);
+    var member = type.Members.Single(m => m.FullyQualifiedName == memberFqn);
+    member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
+    member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+  }
+
+  [Test]
+  public void BuildReport_HandlesNestedTypesAndGlobalNamespace()
+  {
+    // Arrange: AltCover uses '+' for nested types; global namespace should be preserved; ctor must be filtered by provided patterns.
+    const string assemblyName = "Sample.Assembly";
+    const string globalNamespace = "<global namespace>";
+    const string nestedTypeFqn = "Outer+Inner";
+    const string nestedCtorFqn = "Sample.Assembly.Outer+Inner..ctor(...)";
+    const string nestedMethodFqn = "Sample.Assembly.Outer+Inner.Process(...)";
+    const string globalTypeFqn = "<global namespace>.Helper";
+    const string globalMethodFqn = "<global namespace>.Helper.Run(...)";
+
+    var altCoverDocument = new ParsedMetricsDocument
+    {
+      Elements = new List<ParsedCodeElement>
+      {
+        new(CodeElementKind.Assembly, assemblyName, assemblyName),
+        new(CodeElementKind.Namespace, globalNamespace, globalNamespace) { ParentFullyQualifiedName = assemblyName },
+        new(CodeElementKind.Type, "Outer+Inner", nestedTypeFqn) { ParentFullyQualifiedName = globalNamespace },
+        new(CodeElementKind.Member, ".ctor", nestedCtorFqn)
+        {
+          ParentFullyQualifiedName = nestedTypeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "%")
+          }
+        },
+        new(CodeElementKind.Member, "Process", nestedMethodFqn)
+        {
+          ParentFullyQualifiedName = nestedTypeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(75, "%")
+          }
+        },
+        new(CodeElementKind.Type, "Helper", globalTypeFqn) { ParentFullyQualifiedName = globalNamespace },
+        new(CodeElementKind.Member, "Run", globalMethodFqn)
+        {
+          ParentFullyQualifiedName = globalTypeFqn,
+          Metrics = new Dictionary<MetricIdentifier, MetricValue>
+          {
+            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(90, "%")
+          }
+        }
+      }
+    };
+
+    var input = new MetricsAggregationInput
+    {
+      SolutionName = "SampleSolution",
+      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      RoslynDocuments = new List<ParsedMetricsDocument>(),
+      SarifDocuments = new List<ParsedMetricsDocument>(),
+      Baseline = null,
+      Thresholds = thresholds,
+      Paths = new ReportPaths()
+    };
+
+    var serviceUnderTest = CreateService();
+
+    // Act
+    var report = serviceUnderTest.BuildReport(input);
+
+    // Assert: ctor filtered, nested method kept, global method kept, namespaces preserved.
+    var assembly = report.Solution.Assemblies.Should().ContainSingle(a => a.Name == assemblyName).Subject;
+    var ns = assembly.Namespaces.Should().ContainSingle(n => n.FullyQualifiedName == globalNamespace).Subject;
+    ns.Types.Should().ContainSingle(t => t.FullyQualifiedName == nestedTypeFqn);
+    ns.Types.Should().ContainSingle(t => t.FullyQualifiedName == globalTypeFqn);
+
+    var nestedType = ns.Types.Single(t => t.FullyQualifiedName == nestedTypeFqn);
+    nestedType.Members.Should().NotContain(m => m.FullyQualifiedName == nestedCtorFqn, "constructor must be filtered by member patterns");
+    nestedType.Members.Should().ContainSingle(m => m.FullyQualifiedName == nestedMethodFqn);
+
+    var globalType = ns.Types.Single(t => t.FullyQualifiedName == globalTypeFqn);
+    globalType.Members.Should().ContainSingle(m => m.FullyQualifiedName == globalMethodFqn);
+  }
+
+  [Test]
   public void BuildReport_ExcludedAssemblies_AreNotAddedToSolution()
   {
     // Arrange
@@ -903,7 +1084,7 @@ public sealed class MetricsAggregationServiceTests
     const string excludedTypeFqn = "Rca.UI.Tests.RcaDockablePanelViewModelTests";
 
     var assemblyFilter = AssemblyFilter.FromString("Tests");
-    var serviceWithFilter = new MetricsAggregationService(new MemberFilter(), assemblyFilter, new TypeFilter());
+    var serviceWithFilter = new MetricsAggregationService(MemberFilter.FromString(DefaultExcludedMembers), MemberKindFilter.Create(false, false, false, false), assemblyFilter, new TypeFilter());
 
     var roslynDocument = new ParsedMetricsDocument
     {
@@ -951,7 +1132,7 @@ public sealed class MetricsAggregationServiceTests
     const string excludedFilePath = @"C:\Repo\tests\Rca.Integration.Revit.Tests\TestLogger.cs";
 
     var assemblyFilter = AssemblyFilter.FromString("Tests");
-    var serviceWithFilter = new MetricsAggregationService(new MemberFilter(), assemblyFilter, new TypeFilter());
+    var serviceWithFilter = new MetricsAggregationService(MemberFilter.FromString(DefaultExcludedMembers), MemberKindFilter.Create(false, false, false, false), assemblyFilter, new TypeFilter());
 
     var roslynDocument = new ParsedMetricsDocument
     {

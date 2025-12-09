@@ -599,6 +599,110 @@ public sealed class RoslynMetricsDocumentWalkerTests
     // Assert
     result.SolutionName.Should().Be("TestSolution");
   }
+
+  [Test]
+  public void Parse_WithVariousMemberKinds_SetsMemberKind()
+  {
+    // Arrange: include Method, Property, Field, Event with names similar to Roslyn output.
+    var document = XDocument.Parse(
+        """
+        <CodeMetricsReport>
+          <Targets>
+            <Target Name="TestSolution">
+              <Assembly Name="Sample.Assembly, Version=1.0.0.0">
+                <Namespaces>
+                  <Namespace Name="Sample">
+                    <Types>
+                      <NamedType Name="Sample.MyType">
+                        <Members>
+                          <Method Name="void MyType.DoWork()" File="MyType.cs" Line="10">
+                            <Metrics>
+                              <Metric Name="MaintainabilityIndex" Value="90" />
+                            </Metrics>
+                          </Method>
+                          <Property Name="int MyType.Count" File="MyType.cs" Line="20">
+                            <Metrics>
+                              <Metric Name="MaintainabilityIndex" Value="85" />
+                            </Metrics>
+                          </Property>
+                          <Field Name="int MyType._value" File="MyType.cs" Line="30">
+                            <Metrics>
+                              <Metric Name="MaintainabilityIndex" Value="80" />
+                            </Metrics>
+                          </Field>
+                          <Event Name="System.EventHandler MyType.OnChanged" File="MyType.cs" Line="40">
+                            <Metrics>
+                              <Metric Name="MaintainabilityIndex" Value="75" />
+                            </Metrics>
+                          </Event>
+                        </Members>
+                      </NamedType>
+                    </Types>
+                  </Namespace>
+                </Namespaces>
+              </Assembly>
+            </Target>
+          </Targets>
+        </CodeMetricsReport>
+        """);
+
+    // Act
+    var result = RoslynMetricsDocumentWalker.Parse(document);
+    var members = result.Elements.Where(e => e.Kind == CodeElementKind.Member).ToList();
+
+    // Assert
+    members.Should().HaveCount(4);
+    members.Single(m => m.Name == "DoWork").MemberKind.Should().Be(MemberKind.Method);
+    members.Single(m => m.Name == "Count").MemberKind.Should().Be(MemberKind.Property);
+    members.Single(m => m.Name == "_value").MemberKind.Should().Be(MemberKind.Field);
+    members.Single(m => m.Name == "OnChanged").MemberKind.Should().Be(MemberKind.Event);
+  }
+
+  [Test]
+  public void Parse_SkipsPropertyAccessors()
+  {
+    // Arrange: a property plus its accessor method; accessor should be skipped.
+    var document = XDocument.Parse(
+        """
+        <CodeMetricsReport>
+          <Targets>
+            <Target Name="TestSolution">
+              <Assembly Name="Sample.Assembly, Version=1.0.0.0">
+                <Namespaces>
+                  <Namespace Name="Sample">
+                    <Types>
+                      <NamedType Name="Sample.MyType">
+                        <Members>
+                          <Property Name="int Sample.MyType.Count" File="MyType.cs" Line="20">
+                            <Metrics>
+                              <Metric Name="MaintainabilityIndex" Value="85" />
+                            </Metrics>
+                          </Property>
+                          <Method Name="int Sample.MyType.get_Count()" File="MyType.cs" Line="21">
+                            <Metrics>
+                              <Metric Name="MaintainabilityIndex" Value="84" />
+                            </Metrics>
+                          </Method>
+                        </Members>
+                      </NamedType>
+                    </Types>
+                  </Namespace>
+                </Namespaces>
+              </Assembly>
+            </Target>
+          </Targets>
+        </CodeMetricsReport>
+        """);
+
+    // Act
+    var result = RoslynMetricsDocumentWalker.Parse(document);
+    var members = result.Elements.Where(e => e.Kind == CodeElementKind.Member).ToList();
+
+    // Assert
+    members.Should().HaveCount(1, "property accessor should not be treated as a separate member");
+    members[0].Name.Should().Be("Count");
+    members[0].MemberKind.Should().Be(MemberKind.Property);
+  }
 }
 
 

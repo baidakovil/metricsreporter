@@ -33,12 +33,16 @@
       "Metrics/Sarif/MetricsReporter.Tool.sarif",
       "Metrics/Sarif/MetricsReporter.Tests.sarif"
     ],
-    "excludedMembers": "*b__*,<Create>*,*<Main>*,<Clone>$,ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync,Deconstruct,GetHashCode,ToString,Equals,PrintMembers,op_Equality,op_Inequality",
+    "excludedMembers": "*b__*,<Create>*,*<Main>*,<Clone>$,ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync,Deconstruct,GetHashCode,ToString,Equals,PrintMembers,op_Equality,op_Inequality,get_*,set_*,add_*,remove_*",
     "excludedTypes": "<>c,<-ctor>",
     "excludedAssemblies": "Tests",
     "solutionName": "metricsreporter",
+    "excludeMethods": false,
+    "excludeProperties": false,
+    "excludeFields": true,
+    "excludeEvents": false,
     "analyzeSuppressedSymbols": true,
-    "replaceBaseline": false
+    "replaceBaseline": true
   },
   "scripts": {
     "generate": [

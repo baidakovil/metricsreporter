@@ -20,29 +20,14 @@ using System.Linq;
 /// </remarks>
 public sealed class MemberFilter
 {
-  /// <summary>
-  /// Gets the default set of method name patterns that should be excluded from metrics reports.
-  /// </summary>
-  /// <remarks>
-  /// This set contains:
-  /// - "ctor" - instance constructors (normalized from ".ctor").
-  /// - "cctor" - static constructors (normalized from ".cctor").
-  /// - "MoveNext" - compiler-generated method for IEnumerator.
-  /// - "SetStateMachine" - compiler-generated method for async state machines.
-  /// - "MoveNextAsync" - compiler-generated method for async enumerators.
-  /// - "DisposeAsync" - compiler-generated method for async disposal.
-  /// </remarks>
-  private static readonly NamePatternSet DefaultExcludedPatterns = NamePatternSet.FromString(
-      "ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync",
-      plainTextIsExactMatch: true);
-
   private readonly NamePatternSet _patterns;
+  private readonly HashSet<string> _exactNames;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="MemberFilter"/> class with default excluded method patterns.
+  /// Initializes a new instance of the <see cref="MemberFilter"/> class with no predefined exclusions.
   /// </summary>
   public MemberFilter()
-      : this(DefaultExcludedPatterns)
+      : this(NamePatternSet.Empty)
   {
   }
 
@@ -55,7 +40,15 @@ public sealed class MemberFilter
   {
     ArgumentNullException.ThrowIfNull(patterns);
     _patterns = patterns;
+    _exactNames = new HashSet<string>(
+      patterns.RawPatterns.Where(p => !p.Contains('*') && !p.Contains('?')),
+      StringComparer.Ordinal);
   }
+
+  /// <summary>
+  /// Gets a value indicating whether any exclusion patterns are configured.
+  /// </summary>
+  public bool HasPatterns => _patterns.RawPatterns.Count > 0;
 
   /// <summary>
   /// Determines whether a method should be excluded from metrics reports based on its simple name.
@@ -79,6 +72,11 @@ public sealed class MemberFilter
     var normalizedName = methodName.StartsWith('.')
         ? methodName[1..]
         : methodName;
+
+    if (_exactNames.Contains(normalizedName))
+    {
+      return true;
+    }
 
     return _patterns.IsMatch(normalizedName);
   }
@@ -174,7 +172,7 @@ public sealed class MemberFilter
 
     var normalizedString = string.Join(",", normalizedParts);
     var patternSet = string.IsNullOrWhiteSpace(normalizedString)
-        ? DefaultExcludedPatterns
+        ? NamePatternSet.Empty
         : NamePatternSet.FromString(normalizedString, plainTextIsExactMatch: true);
 
     return new MemberFilter(patternSet);
