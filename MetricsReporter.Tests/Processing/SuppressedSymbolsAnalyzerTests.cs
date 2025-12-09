@@ -267,6 +267,83 @@ public sealed class SuppressedSymbolsAnalyzerTests
     entry.FullyQualifiedName.Should().Be("Sample.Namespace.SampleType.SuppressedProperty");
     entry.Justification.Should().Be("Property suppression test.");
   }
+
+  [Test]
+  public void Analyze_AltCoverBranchCoverage_Suppression_IsDiscovered()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var code = """
+      using System.Diagnostics.CodeAnalysis;
+
+      namespace Sample.Namespace;
+
+      public class SampleType
+      {
+        [SuppressMessage(
+            "AltCoverBranchCoverage",
+            "AltCoverBranchCoverage",
+            Justification = "Suppress noisy branch coverage.")]
+        public void SuppressedMethod()
+        {
+        }
+      }
+      """;
+
+    var filePath = Path.Combine(srcDir, "SampleType.cs");
+    File.WriteAllText(filePath, code);
+
+    // Act
+    var sourceCodeFolders = new[] { "src" };
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().ContainSingle(
+      s =>
+        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
+        s.RuleId == "AltCoverBranchCoverage" &&
+        s.FullyQualifiedName == "Sample.Namespace.SampleType.SuppressedMethod(...)" &&
+        s.Justification == "Suppress noisy branch coverage.");
+  }
+
+  [Test]
+  public void Analyze_AltCoverSequenceCoverage_Suppression_IsDiscovered()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var code = """
+      using System.Diagnostics.CodeAnalysis;
+
+      namespace Sample.Namespace;
+
+      [SuppressMessage(
+          "AltCoverSequenceCoverage",
+          "AltCoverSequenceCoverage",
+          Justification = "Suppress sequence coverage at type level.")]
+      public class SampleType
+      {
+      }
+      """;
+
+    var filePath = Path.Combine(srcDir, "SampleType.cs");
+    File.WriteAllText(filePath, code);
+
+    // Act
+    var sourceCodeFolders = new[] { "src" };
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().Contain(
+      s =>
+        s.Metric == nameof(MetricIdentifier.AltCoverSequenceCoverage) &&
+        s.RuleId == "AltCoverSequenceCoverage" &&
+        s.FullyQualifiedName == "Sample.Namespace.SampleType" &&
+        s.Justification == "Suppress sequence coverage at type level.");
+  }
 }
 
 

@@ -82,18 +82,18 @@
     }
   },
   "metricAliases": {
-    "AltCoverSequenceCoverage": [ "SequenceCoverage", "Coverage" ],
+    "AltCoverSequenceCoverage": [ "SequenceCoverage" ],
     "AltCoverBranchCoverage": [ "BranchCoverage" ],
     "AltCoverCyclomaticComplexity": [ "AltCoverComplexity" ],
     "AltCoverNPathComplexity": [ "NPath" ],
-    "RoslynMaintainabilityIndex": [ "Maintainability", "MaintainabilityIndex" ],
-    "RoslynCyclomaticComplexity": [ "Complexity", "CyclomaticComplexity", "cc", "cyclomatic" ],
-    "RoslynClassCoupling": [ "Coupling", "ClassCoupling" ],
-    "RoslynDepthOfInheritance": [ "Inheritance", "DepthOfInheritance" ],
+    "RoslynMaintainabilityIndex": [ "Maintainability"],
+    "RoslynCyclomaticComplexity": [ "Complexity" ],
+    "RoslynClassCoupling": [ "Coupling" ],
+    "RoslynDepthOfInheritance": [ "Inheritance" ],
     "RoslynSourceLines": [ "SourceLines" ],
     "RoslynExecutableLines": [ "ExecutableLines" ],
-    "SarifCaRuleViolations": [ "CaViolations" ],
-    "SarifIdeRuleViolations": [ "IdeViolations" ]
+    "SarifCaRuleViolations": [ "Ca" ],
+    "SarifIdeRuleViolations": [ "Ide" ]
   }
 }
 

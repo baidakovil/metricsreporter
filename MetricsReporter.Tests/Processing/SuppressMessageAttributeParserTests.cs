@@ -32,6 +32,78 @@ public sealed class SuppressMessageAttributeParserTests
     ruleId.Should().Be("CA1506");
     justification.Should().BeNull();
   }
+
+  [Test]
+  public void TryParse_SuppressMessageWithAltCoverBranchCoverageCategory_ReturnsTrue()
+  {
+    // Arrange
+    var code = """
+      using System.Diagnostics.CodeAnalysis;
+      [SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Justification = "Coverage suppression")]
+      public class TestClass
+      {
+      }
+      """;
+    var syntaxTree = CSharpSyntaxTree.ParseText(code);
+    var root = syntaxTree.GetRoot();
+    var attribute = root.DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax>().First();
+
+    // Act
+    var result = SuppressMessageAttributeParser.TryParse(attribute, out var ruleId, out var justification);
+
+    // Assert
+    result.Should().BeTrue();
+    ruleId.Should().Be("AltCoverBranchCoverage");
+    justification.Should().Be("Coverage suppression");
+  }
+
+  [Test]
+  public void TryParse_SuppressMessageWithAltCoverSequenceCoverageCategory_ReturnsTrue()
+  {
+    // Arrange
+    var code = """
+      using System.Diagnostics.CodeAnalysis;
+      [SuppressMessage("AltCoverSequenceCoverage", "AltCoverSequenceCoverage")]
+      public class TestClass
+      {
+      }
+      """;
+    var syntaxTree = CSharpSyntaxTree.ParseText(code);
+    var root = syntaxTree.GetRoot();
+    var attribute = root.DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax>().First();
+
+    // Act
+    var result = SuppressMessageAttributeParser.TryParse(attribute, out var ruleId, out var justification);
+
+    // Assert
+    result.Should().BeTrue();
+    ruleId.Should().Be("AltCoverSequenceCoverage");
+    justification.Should().BeNull();
+  }
+
+  [Test]
+  public void TryParse_SuppressMessageWithUnknownMetricCategory_ReturnsFalse()
+  {
+    // Arrange
+    var code = """
+      using System.Diagnostics.CodeAnalysis;
+      [SuppressMessage("UnknownMetric", "AltCoverBranchCoverage")]
+      public class TestClass
+      {
+      }
+      """;
+    var syntaxTree = CSharpSyntaxTree.ParseText(code);
+    var root = syntaxTree.GetRoot();
+    var attribute = root.DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax>().First();
+
+    // Act
+    var result = SuppressMessageAttributeParser.TryParse(attribute, out var ruleId, out var justification);
+
+    // Assert
+    result.Should().BeFalse();
+    ruleId.Should().BeNull();
+    justification.Should().BeNull();
+  }
   [Test]
   public void TryParse_SuppressMessageWithJustification_ExtractsJustification()
   {

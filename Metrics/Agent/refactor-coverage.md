@@ -1,6 +1,7 @@
-# Increase test coverage for branch coverage metric
+# Increase test coverage for AltCover branch coverage
 
-- Refactor code in the given namespace to achieve the required AltCoverBranchCoverage metric: all methods in classes must have sufficient branch coverage 75 for methods and 50 for classes. The goal is to ensure comprehensive test coverage for all code paths, including edge cases and error conditions.
+- Refactor code in the given namespace to achieve the required `AltCoverBranchCoverage` metric: all methods in classes must have sufficient branch coverage 75 for methods and 50 for classes. The goal is to ensure comprehensive test coverage for all code paths, including edge cases and error conditions.
+- When working with coverage metrics, use the exact metric identifiers (e.g., `AltCoverBranchCoverage`, `AltCoverSequenceCoverage`) — aliases like `Coverage` are not supported.
 
 ## Requirements
 
@@ -24,7 +25,7 @@
 
 ### 1. Get problematic class
 
-Using the `metricsreporter read` command, get the first "problematic" class that requires test coverage improvement. A problematic class is one that contains methods with insufficient branch coverage (`metricsreporter` handles this comparison automatically). Use `--group-by type` to get classes grouped by type.
+Using the `metricsreporter read` command, get the first "problematic" class that requires test coverage improvement. A problematic class is one that contains methods with insufficient branch coverage (`metricsreporter` handles this comparison automatically). Use `--group-by type` to get classes grouped by type. Always specify the full metric identifier (e.g., `AltCoverBranchCoverage`).
 
 Example request to `metricsreporter` with the required options:
 
@@ -46,33 +47,14 @@ For each method in the class that has insufficient branch coverage, identify:
 - Nullable reference type scenarios
 - Complex state transitions
 
-### 3. Cancel conditions
+### 3. Cancel conditions (prefer suppression, not exclusion)
 
-Before writing tests, evaluate if the method should be excluded from coverage requirements. Exclude a method from coverage if any of the following conditions apply:
+Перед тем как писать тесты, оцени, нужно ли подавить метрику, а не исключать код из покрытия:
 
-- The method requires complex fixtures that cannot be mocked (e.g., deep Revit API dependencies that cannot be abstracted)
-- Increasing coverage would require testing private methods (violates encapsulation)
-- The class is a thin wrapper or orchestrator with trivial logic that doesn't warrant extensive testing
+- Подавлять (рекомендуется): если метод/тип шумный для метрик, но его нужно оставить видимым в отчёте. Используй `[SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Justification = "...")]` и `[SuppressMessage("AltCoverSequenceCoverage", "AltCoverSequenceCoverage", Justification = "...")]`. Метрика останется в отчёте и в HTML, но будет помечена как suppressed.
 
-If cancel conditions apply, exclude the method using the `[ExcludeFromCodeCoverage]` attribute with a clear justification in English:
 
-```csharp
-[ExcludeFromCodeCoverage(Justification = "Thin wrapper delegating to dependency; business logic is tested in the dependency's own tests.")]
-public void DelegateMethod(IDependency dependency)
-{
-    dependency.Execute();
-}
-```
-
-```csharp
-[ExcludeFromCodeCoverage(Justification = "Simple property accessor with no branching logic; coverage would require testing private implementation details.")]
-private void InternalHelper()
-{
-    // Trivial implementation
-}
-```
-
-If a method is excluded, continue with the next method. When all methods in the class are processed (either tested or excluded), return to step 1.
+Если метод/тип подавлён, переходи к следующему. Если всё же решено исключить, добавь `[ExcludeFromCodeCoverage]` и продолжай по шагам.
 
 ### 4. Write tests
 

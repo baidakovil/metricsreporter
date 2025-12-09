@@ -89,9 +89,8 @@ internal sealed class FullyQualifiedNameBuilder
       return null;
     }
 
-    // Parameter details are not required because the normalizer will collapse
-    // them to "(...)" and only preserve the namespace/type/method name chain.
-    var raw = $"{typeFqn}.{memberIdentifier}()";
+    // Always include "(...)" so the normalized form matches AltCover/Roslyn convention.
+    var raw = $"{typeFqn}.{memberIdentifier}(...)";
     return SymbolNormalizer.NormalizeFullyQualifiedMethodName(raw);
   }
 

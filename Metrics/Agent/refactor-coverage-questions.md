@@ -10,7 +10,7 @@ Summary of my test work:
 ## Review Criteria
 
 ### 1. Coverage and Completeness
-**Question:** Do the tests deliver the required branch coverage and verify all scenarios from `@refactor-coverage.md`?
+**Question:** Do the tests deliver the required `AltCoverBranchCoverage` (and, when applicable, `AltCoverSequenceCoverage`) and verify all scenarios from `@refactor-coverage.md`?
 **Answer format (6 lines):**
 - Happy-path branches covered (yes/no + brief)
 - Error/exception branches covered (yes/no + brief)

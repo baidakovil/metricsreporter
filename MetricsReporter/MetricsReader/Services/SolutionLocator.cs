@@ -3,6 +3,7 @@ namespace MetricsReporter.MetricsReader.Services;
 using System;
 using System.IO;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 /// <summary>
 /// Locates the solution file associated with a metrics report path.
@@ -26,6 +27,14 @@ internal static class SolutionLocator
     throw new InvalidOperationException($"Failed to discover a solution file while walking up from '{reportPath}'.");
   }
 
+  [SuppressMessage(
+    "AltCoverBranchCoverage",
+    "AltCoverBranchCoverage",
+    Justification = "IO-walking helper; branch coverage retained but flagged as suppressed to avoid noise.")]
+  [SuppressMessage(
+    "AltCoverSequenceCoverage",
+    "AltCoverSequenceCoverage",
+    Justification = "IO-walking helper; sequence coverage is retained but flagged as suppressed to avoid noise.")]
   private static DirectoryInfo? GetStartingDirectory(string path)
   {
     var fullPath = Path.GetFullPath(path);

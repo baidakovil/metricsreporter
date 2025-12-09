@@ -62,9 +62,12 @@ internal static class SuppressMessageAttributeParser
     category = null;
     var categoryLiteral = argument.Expression as LiteralExpressionSyntax;
     var categoryValue = categoryLiteral?.Token.ValueText;
+    var isKnownMetric = Enum.TryParse<MetricIdentifier>(categoryValue, ignoreCase: true, out _);
+
     if (string.IsNullOrWhiteSpace(categoryValue) ||
         (!categoryValue.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase) &&
-         !categoryValue.Equals("Style", StringComparison.OrdinalIgnoreCase)))
+         !categoryValue.Equals("Style", StringComparison.OrdinalIgnoreCase) &&
+         !isKnownMetric))
     {
       return false;
     }

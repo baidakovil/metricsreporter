@@ -45,10 +45,13 @@
     <AltCoverToolCommand Condition="'$(AltCoverToolCommand)' == ''">dotnet tool run altcover</AltCoverToolCommand>
     <ReportGeneratorToolCommand Condition="'$(ReportGeneratorToolCommand)' == ''">dotnet tool run reportgenerator</ReportGeneratorToolCommand>
     <!-- Filters and formatting -->
+    <!-- AltCoverAttributeFilter:
+         - Leave empty to keep all symbols in coverage and handle “noise” via SuppressMessage so HTML shows suppressed rows.
+         - Set to System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute only when you truly want AltCover to drop symbols entirely. -->
     <AltCoverAssemblyFilter Condition="'$(AltCoverAssemblyFilter)' == ''">Spectre</AltCoverAssemblyFilter>
     <AltCoverTypeFilter Condition="'$(AltCoverTypeFilter)' == ''"></AltCoverTypeFilter>
     <AltCoverMethodFilter Condition="'$(AltCoverMethodFilter)' == ''"></AltCoverMethodFilter>
-    <AltCoverAttributeFilter Condition="'$(AltCoverAttributeFilter)' == ''">System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute</AltCoverAttributeFilter>
+    <AltCoverAttributeFilter Condition="'$(AltCoverAttributeFilter)' == ''"></AltCoverAttributeFilter>
     <AltCoverUseOpenCover Condition="'$(AltCoverUseOpenCover)' == ''">true</AltCoverUseOpenCover>
     <AltCoverAdditionalInstrumentationArgs Condition="'$(AltCoverAdditionalInstrumentationArgs)' == ''"></AltCoverAdditionalInstrumentationArgs>
     <!-- Collection anchor (runs once after tests) -->
