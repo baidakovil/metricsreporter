@@ -104,6 +104,12 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
       return new ParsedDocumentsResult(MetricsReporterExitCode.ParsingError, altCoverDocuments, roslynDocuments, []);
     }
 
+    logger.LogInformation(
+      "Metrics parsed successfully: {AltCoverCount} AltCover, {RoslynCount} Roslyn, {SarifCount} Sarif",
+      altCoverDocuments.Count,
+      roslynDocuments.Count,
+      sarifDocuments.Count);
+
     return new ParsedDocumentsResult(MetricsReporterExitCode.Success, altCoverDocuments, roslynDocuments, sarifDocuments);
   }
 
@@ -266,7 +272,7 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
   {
     try
     {
-      logger.LogInformation("Parsing metrics file {Path}", path);
+      logger.LogDebug("Parsing metrics file {Path}", path);
       return await parser.ParseAsync(path, cancellationToken).ConfigureAwait(false);
     }
     catch (Exception ex)

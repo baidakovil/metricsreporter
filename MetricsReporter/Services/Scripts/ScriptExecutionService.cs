@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Logging;
@@ -42,19 +44,37 @@ public sealed class ScriptExecutionService
     ArgumentNullException.ThrowIfNull(scripts);
     ArgumentNullException.ThrowIfNull(context);
 
-    foreach (var script in scripts)
+    var scriptList = scripts.Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+    if (scriptList.Count == 0)
     {
-      if (string.IsNullOrWhiteSpace(script))
-      {
-        continue;
-      }
+      return ScriptExecutionResult.Success();
+    }
 
+    var stopwatch = Stopwatch.StartNew();
+    var executedScripts = new List<string>();
+
+    foreach (var script in scriptList)
+    {
+      var resolvedPath = ResolvePath(script, context.WorkingDirectory);
       var failure = await ExecuteScriptAsync(script, context, cancellationToken).ConfigureAwait(false);
       if (failure is not null)
       {
         return failure;
       }
+
+      executedScripts.Add(Path.GetFileName(resolvedPath));
     }
+
+    stopwatch.Stop();
+
+    var scriptsText = executedScripts.Count == 1
+      ? executedScripts[0]
+      : string.Join(", ", executedScripts);
+
+    context.Logger.LogInformation(
+      "Scripts ran successfully: {Scripts} in {TotalSeconds:F0}s",
+      scriptsText,
+      stopwatch.Elapsed.TotalSeconds);
 
     return ScriptExecutionResult.Success();
   }
@@ -65,7 +85,7 @@ public sealed class ScriptExecutionService
     CancellationToken cancellationToken)
   {
     var resolvedPath = ResolvePath(script, context.WorkingDirectory);
-    var missingScript = ValidateScriptExists(resolvedPath);
+    var missingScript = ValidateScriptExists(resolvedPath, context.Logger);
     if (missingScript is not null)
     {
       return missingScript;
@@ -77,7 +97,7 @@ public sealed class ScriptExecutionService
       ["workingDirectory"] = context.WorkingDirectory
     });
 
-    context.Logger.LogInformation(
+    context.Logger.LogDebug(
       "Starting script {ScriptPath} in {WorkingDirectory}. TimeoutSeconds={TimeoutSeconds}",
       resolvedPath,
       context.WorkingDirectory,
@@ -163,13 +183,14 @@ public sealed class ScriptExecutionService
   private static bool IsProcessStartFailure(Exception exception)
     => exception is InvalidOperationException or Win32Exception or IOException;
 
-  private static ScriptExecutionResult? ValidateScriptExists(string resolvedPath)
+  private static ScriptExecutionResult? ValidateScriptExists(string resolvedPath, ILogger logger)
   {
     if (File.Exists(resolvedPath))
     {
       return null;
     }
 
+    logger.LogError("Script not found: {ScriptPath}", resolvedPath);
     return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, $"Script not found: {resolvedPath}");
   }
 
@@ -202,7 +223,7 @@ public sealed class ScriptExecutionService
   private static void LogSuccess(ScriptExecutionContext context, string resolvedPath, ProcessRunResult result)
   {
     var duration = result.FinishedAt - result.StartedAt;
-    context.Logger.LogInformation(
+    context.Logger.LogDebug(
       "Script {ScriptPath} completed in {DurationSeconds:N0}s with exit code {ExitCode}",
       resolvedPath,
       duration.TotalSeconds,

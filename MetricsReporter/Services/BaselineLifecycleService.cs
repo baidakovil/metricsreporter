@@ -41,7 +41,7 @@ internal sealed class BaselineLifecycleService : IBaselineLifecycleService
   /// </summary>
   public void LogContext(BaselineRunContext context, MetricsReporterOptions options, ILogger logger)
   {
-    logger.LogInformation(
+    logger.LogDebug(
       "Baseline debug ReplaceMetricsBaseline={ReplaceMetricsBaseline} EffectiveReplaceBaseline={EffectiveReplaceBaseline} BaselinePath={BaselinePath} OutputJsonPath={OutputJsonPath} MetricsReportStoragePath={MetricsReportStoragePath} HadReportAtStart={HadReportAtStart} HadBaselineAtStart={HadBaselineAtStart}",
       options.ReplaceMetricsBaseline,
       context.ReplaceBaselineEnabled,
@@ -110,12 +110,18 @@ internal sealed class BaselineLifecycleService : IBaselineLifecycleService
       return;
     }
 
-    await _baselineManager.ReplaceBaselineAsync(
+    var success = await _baselineManager.ReplaceBaselineAsync(
         options.OutputJsonPath,
         options.BaselinePath,
         options.MetricsReportStoragePath,
         logger,
         cancellationToken).ConfigureAwait(false);
+
+    if (success)
+    {
+      var baselineFileName = Path.GetFileName(options.BaselinePath);
+      logger.LogInformation("Baseline replaced successfully: {BaselineFileName}", baselineFileName);
+    }
   }
 }
 

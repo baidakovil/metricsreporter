@@ -30,12 +30,10 @@ public sealed class ProcessRunner : IProcessRunner
   {
     ArgumentNullException.ThrowIfNull(request);
 
-    _logger.LogInformation(
-      "Starting process {FileName} {Arguments} (cwd: {WorkingDirectory}, timeoutSeconds: {TimeoutSeconds})",
+    _logger.LogDebug(
+      "Starting process {FileName} {Arguments}",
       request.FileName,
-      request.Arguments,
-      request.WorkingDirectory,
-      request.Timeout.TotalSeconds);
+      request.Arguments);
 
     using var execution = ProcessExecutionScope.Start(request, cancellationToken);
     var waitResult = await execution.WaitForExitAsync(request.Timeout, cancellationToken).ConfigureAwait(false);
@@ -58,12 +56,11 @@ public sealed class ProcessRunner : IProcessRunner
     }
     else
     {
-      _logger.LogInformation(
-        "Process {FileName} exited with code {ExitCode} in {DurationSeconds:F0}s (cwd: {WorkingDirectory})",
+      _logger.LogDebug(
+        "Process {FileName} exited with code {ExitCode} in {DurationSeconds:F0}s",
         request.FileName,
         result.ExitCode,
-        duration.TotalSeconds,
-        request.WorkingDirectory);
+        duration.TotalSeconds);
     }
 
     if (result.ExitCode != 0 || result.TimedOut)

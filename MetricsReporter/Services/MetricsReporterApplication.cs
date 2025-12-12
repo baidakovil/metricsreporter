@@ -58,7 +58,7 @@ public sealed class MetricsReporterApplication
     ArgumentNullException.ThrowIfNull(options);
 
     var minimumLevel = LoggerFactoryBuilder.FromVerbosity(options.Verbosity);
-    using var loggerFactory = LoggerFactoryBuilder.Create(options.LogFilePath, minimumLevel);
+    using var loggerFactory = LoggerFactoryBuilder.Create(options.LogFilePath, minimumLevel, verbosity: options.Verbosity);
     return await RunAsync(options, loggerFactory, cancellationToken).ConfigureAwait(false);
   }
 
@@ -83,7 +83,7 @@ public sealed class MetricsReporterApplication
       ["baseline"] = options.BaselinePath
     });
 
-    logger.LogInformation("Metrics Reporter started.");
+    logger.LogDebug("Metrics Reporter started.");
 
     ConfigurationWarningEvaluator.LogWarnings(options, options.CommandName, logger);
 
@@ -125,7 +125,6 @@ public sealed class MetricsReporterApplication
       return executionResult;
     }
 
-    logger.LogInformation("Metrics Reporter completed successfully.");
     return MetricsReporterExitCode.Success;
   }
 
@@ -172,7 +171,7 @@ public sealed class MetricsReporterApplication
     try
     {
       var cliArgs = Environment.GetCommandLineArgs();
-      logger.LogInformation("CLI args: {Args}", string.Join(" | ", cliArgs));
+      logger.LogDebug("CLI args: {Args}", string.Join(" | ", cliArgs));
     }
     catch (Exception)
     {

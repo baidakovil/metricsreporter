@@ -156,7 +156,7 @@ public sealed class BaselineManager : IBaselineManager
 
       // Copy new report to baseline location (copy to preserve original report)
       await CopyFileAsync(parameters.ReportPath, parameters.BaselinePath, cancellationToken).ConfigureAwait(false);
-      logger.LogInformation(
+      logger.LogDebug(
         "Baseline replaced {BaselinePath} <- {ReportPath}",
         parameters.BaselinePath,
         parameters.ReportPath);

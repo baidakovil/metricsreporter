@@ -61,9 +61,10 @@ internal sealed class FileLoggerProvider : ILoggerProvider
       }
 
       var timestamp = DateTimeOffset.UtcNow.ToString("u", CultureInfo.InvariantCulture);
+      var levelText = ToShortLevel(logLevel);
       var builder = new StringBuilder()
         .Append('[').Append(timestamp).Append("] ")
-        .Append(logLevel.ToString().ToUpperInvariant()).Append(" ")
+        .Append(levelText).Append(": ")
         .Append(_categoryName).Append(": ")
         .Append(formatter(state, exception));
 
@@ -78,6 +79,18 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         _writer.WriteLine(line);
       }
     }
+
+    private static string ToShortLevel(LogLevel level)
+      => level switch
+      {
+        LogLevel.Trace => "trace",
+        LogLevel.Debug => "debug",
+        LogLevel.Information => "info",
+        LogLevel.Warning => "warn",
+        LogLevel.Error => "error",
+        LogLevel.Critical => "crit",
+        _ => "info"
+      };
   }
 
   private sealed class NullScope : IDisposable

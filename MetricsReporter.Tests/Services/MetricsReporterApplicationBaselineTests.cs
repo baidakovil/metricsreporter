@@ -2,12 +2,16 @@ namespace MetricsReporter.Tests.Services;
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using MetricsReporter;
+using MetricsReporter.Logging;
 using MetricsReporter.Services;
+using MetricsReporter.Tests.TestHelpers;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Integration-style tests that verify baseline creation and replacement behavior
@@ -69,9 +73,11 @@ public sealed class MetricsReporterApplicationBaselineTests
 
     var options = CreateDefaultOptions(replaceBaseline: true);
     var application = new MetricsReporterApplication();
+    var minimumLevel = LoggerFactoryBuilder.FromVerbosity(options.Verbosity);
+    using var loggerFactory = LoggerFactoryBuilder.Create(options.LogFilePath, minimumLevel, includeConsole: false, verbosity: options.Verbosity);
 
     // Act
-    var result = await application.RunAsync(options, CancellationToken.None).ConfigureAwait(false);
+    var result = await application.RunAsync(options, loggerFactory, CancellationToken.None).ConfigureAwait(false);
 
     // Assert
     result.Should().Be(MetricsReporterExitCode.Success);
@@ -91,7 +97,9 @@ public sealed class MetricsReporterApplicationBaselineTests
 
     // Arrange step 1: initial run to create the first report without touching baseline.
     var initialOptions = CreateDefaultOptions(replaceBaseline: false);
-    var initialResult = await application.RunAsync(initialOptions, CancellationToken.None).ConfigureAwait(false);
+    var initialMinimumLevel = LoggerFactoryBuilder.FromVerbosity(initialOptions.Verbosity);
+    using var initialLoggerFactory = LoggerFactoryBuilder.Create(initialOptions.LogFilePath, initialMinimumLevel, includeConsole: false, verbosity: initialOptions.Verbosity);
+    var initialResult = await application.RunAsync(initialOptions, initialLoggerFactory, CancellationToken.None).ConfigureAwait(false);
     initialResult.Should().Be(MetricsReporterExitCode.Success);
 
     File.Exists(reportPath!).Should().BeTrue("initial run should create metrics-report.json");
@@ -99,9 +107,11 @@ public sealed class MetricsReporterApplicationBaselineTests
 
     // Arrange step 2: second run with ReplaceMetricsBaseline=true and no baseline.
     var optionsWithBaseline = CreateDefaultOptions(replaceBaseline: true);
+    var minimumLevel = LoggerFactoryBuilder.FromVerbosity(optionsWithBaseline.Verbosity);
+    using var loggerFactory = LoggerFactoryBuilder.Create(optionsWithBaseline.LogFilePath, minimumLevel, includeConsole: false, verbosity: optionsWithBaseline.Verbosity);
 
     // Act
-    var result = await application.RunAsync(optionsWithBaseline, CancellationToken.None).ConfigureAwait(false);
+    var result = await application.RunAsync(optionsWithBaseline, loggerFactory, CancellationToken.None).ConfigureAwait(false);
 
     // Assert
     result.Should().Be(MetricsReporterExitCode.Success);
@@ -129,7 +139,9 @@ public sealed class MetricsReporterApplicationBaselineTests
 
     // Arrange step 1: create initial report without baseline.
     var initialOptions = CreateDefaultOptions(replaceBaseline: false);
-    var initialResult = await application.RunAsync(initialOptions, CancellationToken.None).ConfigureAwait(false);
+    var initialMinimumLevel = LoggerFactoryBuilder.FromVerbosity(initialOptions.Verbosity);
+    using var initialLoggerFactory = LoggerFactoryBuilder.Create(initialOptions.LogFilePath, initialMinimumLevel, includeConsole: false, verbosity: initialOptions.Verbosity);
+    var initialResult = await application.RunAsync(initialOptions, initialLoggerFactory, CancellationToken.None).ConfigureAwait(false);
     initialResult.Should().Be(MetricsReporterExitCode.Success);
 
     File.Exists(reportPath!).Should().BeTrue();
@@ -137,7 +149,9 @@ public sealed class MetricsReporterApplicationBaselineTests
 
     // Arrange step 2: second run with ReplaceMetricsBaseline=true to create baseline from previous report.
     var optionsWithBaseline = CreateDefaultOptions(replaceBaseline: true);
-    var secondResult = await application.RunAsync(optionsWithBaseline, CancellationToken.None).ConfigureAwait(false);
+    var secondMinimumLevel = LoggerFactoryBuilder.FromVerbosity(optionsWithBaseline.Verbosity);
+    using var secondLoggerFactory = LoggerFactoryBuilder.Create(optionsWithBaseline.LogFilePath, secondMinimumLevel, includeConsole: false, verbosity: optionsWithBaseline.Verbosity);
+    var secondResult = await application.RunAsync(optionsWithBaseline, secondLoggerFactory, CancellationToken.None).ConfigureAwait(false);
     secondResult.Should().Be(MetricsReporterExitCode.Success);
 
     File.Exists(reportPath!).Should().BeTrue();
@@ -150,7 +164,9 @@ public sealed class MetricsReporterApplicationBaselineTests
     File.Exists(reportPath!).Should().BeFalse();
 
     // Act: third run with existing baseline and no previous report.
-    var thirdResult = await application.RunAsync(optionsWithBaseline, CancellationToken.None).ConfigureAwait(false);
+    var thirdMinimumLevel = LoggerFactoryBuilder.FromVerbosity(optionsWithBaseline.Verbosity);
+    using var thirdLoggerFactory = LoggerFactoryBuilder.Create(optionsWithBaseline.LogFilePath, thirdMinimumLevel, includeConsole: false, verbosity: optionsWithBaseline.Verbosity);
+    var thirdResult = await application.RunAsync(optionsWithBaseline, thirdLoggerFactory, CancellationToken.None).ConfigureAwait(false);
 
     // Assert
     thirdResult.Should().Be(MetricsReporterExitCode.Success);
@@ -173,12 +189,16 @@ public sealed class MetricsReporterApplicationBaselineTests
 
     // Arrange step 1: create initial report without baseline.
     var initialOptions = CreateDefaultOptions(replaceBaseline: false);
-    var initialResult = await application.RunAsync(initialOptions, CancellationToken.None).ConfigureAwait(false);
+    var initialMinimumLevel = LoggerFactoryBuilder.FromVerbosity(initialOptions.Verbosity);
+    using var initialLoggerFactory = LoggerFactoryBuilder.Create(initialOptions.LogFilePath, initialMinimumLevel, includeConsole: false, verbosity: initialOptions.Verbosity);
+    var initialResult = await application.RunAsync(initialOptions, initialLoggerFactory, CancellationToken.None).ConfigureAwait(false);
     initialResult.Should().Be(MetricsReporterExitCode.Success);
 
     // Arrange step 2: second run with ReplaceMetricsBaseline=true to create baseline from previous report.
     var optionsWithBaseline = CreateDefaultOptions(replaceBaseline: true);
-    var secondResult = await application.RunAsync(optionsWithBaseline, CancellationToken.None).ConfigureAwait(false);
+    var secondMinimumLevel = LoggerFactoryBuilder.FromVerbosity(optionsWithBaseline.Verbosity);
+    using var secondLoggerFactory = LoggerFactoryBuilder.Create(optionsWithBaseline.LogFilePath, secondMinimumLevel, includeConsole: false, verbosity: optionsWithBaseline.Verbosity);
+    var secondResult = await application.RunAsync(optionsWithBaseline, secondLoggerFactory, CancellationToken.None).ConfigureAwait(false);
     secondResult.Should().Be(MetricsReporterExitCode.Success);
 
     File.Exists(reportPath!).Should().BeTrue();
@@ -187,7 +207,9 @@ public sealed class MetricsReporterApplicationBaselineTests
     var firstBaselineTimestamp = File.GetLastWriteTimeUtc(baselinePath!);
 
     // Act: third run with the same options (both report and baseline exist).
-    var thirdResult = await application.RunAsync(optionsWithBaseline, CancellationToken.None).ConfigureAwait(false);
+    var thirdMinimumLevel = LoggerFactoryBuilder.FromVerbosity(optionsWithBaseline.Verbosity);
+    using var thirdLoggerFactory = LoggerFactoryBuilder.Create(optionsWithBaseline.LogFilePath, thirdMinimumLevel, includeConsole: false, verbosity: optionsWithBaseline.Verbosity);
+    var thirdResult = await application.RunAsync(optionsWithBaseline, thirdLoggerFactory, CancellationToken.None).ConfigureAwait(false);
 
     // Assert
     thirdResult.Should().Be(MetricsReporterExitCode.Success);
@@ -230,6 +252,22 @@ public sealed class MetricsReporterApplicationBaselineTests
       SolutionDirectory = rootDirectory!,
       SourceCodeFolders = Array.Empty<string>()
     };
+  }
+
+  [Test]
+  public async Task RunAsync_OnSuccess_CompletesWithoutErrors()
+  {
+    // Arrange
+    var options = CreateDefaultOptions(replaceBaseline: false);
+    var loggerFactory = new TestLoggerFactory();
+    var application = new MetricsReporterApplication();
+
+    // Act
+    var result = await application.RunAsync(options, loggerFactory, CancellationToken.None).ConfigureAwait(false);
+
+    // Assert
+    result.Should().Be(MetricsReporterExitCode.Success);
+    // Note: Final completion message with timer is now logged in GenerateCommandPipeline, not here
   }
 }
 

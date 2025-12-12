@@ -90,8 +90,37 @@ internal sealed class ScriptExecutionServiceTests
     await _processRunner.Received(1).RunAsync(
       Arg.Is<ProcessRunRequest>(r => r.FileName == "pwsh" && r.Arguments.Contains(scriptPath) && r.WorkingDirectory == _workingDirectory),
       Arg.Any<CancellationToken>());
-    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Information && entry.Message.Contains("Starting script"));
-    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Information && entry.Message.Contains("completed"));
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Debug && entry.Message.Contains("Starting script"));
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Debug && entry.Message.Contains("completed"));
+    _logger.Entries.Should().Contain(entry =>
+      entry.Level == LogLevel.Information &&
+      entry.Message.Contains("Scripts ran successfully:") &&
+      entry.Message.Contains("run.ps1") &&
+      entry.Message.Contains("in") &&
+      !entry.Message.Contains(","));
+  }
+
+  [Test]
+  public async Task RunAsync_MultipleScripts_LogsAllScriptNames()
+  {
+    // Arrange
+    var script1 = CreateScriptFile("scripts/first.ps1");
+    var script2 = CreateScriptFile("scripts/second.ps1");
+    var context = CreateContext();
+    _processRunner.RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>())
+      .Returns(CreateResult(exitCode: 0));
+
+    // Act
+    var result = await _service.RunAsync(new[] { script1, script2 }, context, CancellationToken.None).ConfigureAwait(false);
+
+    // Assert
+    result.IsSuccess.Should().BeTrue();
+    _logger.Entries.Should().Contain(entry =>
+      entry.Level == LogLevel.Information &&
+      entry.Message.Contains("Scripts ran successfully:") &&
+      entry.Message.Contains("first.ps1") &&
+      entry.Message.Contains("second.ps1") &&
+      entry.Message.Contains(","));
   }
 
   [Test]

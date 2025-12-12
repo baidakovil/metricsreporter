@@ -92,7 +92,7 @@ internal sealed class SuppressedSymbolsService : ISuppressedSymbolsService
   {
     var foldersText = string.Join(", ", context.SourceCodeFolders);
     var excludedAssemblies = context.ExcludedAssemblyNames ?? string.Empty;
-    logger.LogInformation(
+    logger.LogDebug(
       "Analyzing suppressed symbols via Roslyn root={SolutionRoot} sourceFolders=[{SourceFolders}] excludedAssemblies={ExcludedAssemblies}",
       context.SolutionRoot,
       foldersText,
@@ -129,7 +129,7 @@ internal sealed class SuppressedSymbolsService : ISuppressedSymbolsService
 
   private static void LogAnalysisCompletion(int symbolCount, ILogger logger)
   {
-    logger.LogInformation("Suppressed symbols analysis completed. Entries={EntryCount}", symbolCount);
+    logger.LogInformation("Suppressed symbols analysis completed: {EntryCount} entries", symbolCount);
   }
 
   private sealed record SuppressedSymbolsAnalysisContext(

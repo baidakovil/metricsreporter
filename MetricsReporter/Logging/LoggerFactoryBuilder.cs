@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging.Console;
 
 namespace MetricsReporter.Logging;
 
@@ -18,8 +19,9 @@ internal static class LoggerFactoryBuilder
   /// <param name="logFilePath">Optional log file path; when null or whitespace, no file sink is added.</param>
   /// <param name="minimumLevel">Minimum log level.</param>
   /// <param name="includeConsole">When true, emits logs to the console.</param>
+  /// <param name="verbosity">Verbosity level to determine console formatting (normal mode omits timestamps).</param>
   /// <returns>Configured logger factory.</returns>
-  public static ILoggerFactory Create(string? logFilePath, LogLevel minimumLevel, bool includeConsole = true)
+  public static ILoggerFactory Create(string? logFilePath, LogLevel minimumLevel, bool includeConsole = true, string? verbosity = null)
   {
     if (ShouldSuppressConsoleLogging())
     {
@@ -33,12 +35,16 @@ internal static class LoggerFactoryBuilder
 
       if (includeConsole)
       {
-        builder.AddSimpleConsole(options =>
+        builder.AddConsole(options => { options.FormatterName = "minimal"; });
+        // Default to normal verbosity if not specified
+        var normalizedVerbosity = string.IsNullOrWhiteSpace(verbosity) ? "normal" : verbosity.Trim();
+        var isNormalVerbosity = string.Equals(normalizedVerbosity, "normal", StringComparison.OrdinalIgnoreCase);
+        builder.AddConsoleFormatter<MinimalConsoleFormatter, MinimalConsoleFormatterOptions>(options =>
         {
-          options.SingleLine = true;
           options.TimestampFormat = DefaultTimestampFormat;
           options.UseUtcTimestamp = true;
-          options.IncludeScopes = true;
+          options.IncludeScopes = false;
+          options.IncludeTimestamp = !isNormalVerbosity;
         });
       }
 

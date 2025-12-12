@@ -15,7 +15,7 @@ internal sealed class GenerateScriptLoggerFactory : IGenerateScriptLoggerFactory
     ArgumentNullException.ThrowIfNull(request);
 
     var minimumLevel = LoggerFactoryBuilder.FromVerbosity(request.Verbosity);
-    var factory = LoggerFactoryBuilder.Create(request.LogPath, minimumLevel);
+    var factory = LoggerFactoryBuilder.Create(request.LogPath, minimumLevel, verbosity: request.Verbosity);
     var logger = factory.CreateLogger<ScriptExecutionService>();
     return new ScriptLoggerScope(logger, factory);
   }

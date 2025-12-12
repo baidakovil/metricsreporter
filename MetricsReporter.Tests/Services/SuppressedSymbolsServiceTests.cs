@@ -385,6 +385,45 @@ public sealed class SuppressedSymbolsServiceTests
     // Excluded assembly should not be processed
     result.Should().BeEmpty("excluded assembly should not be analyzed");
   }
+
+  [Test]
+  public async Task ResolveAsync_WithAnalyzeEnabled_LogsCompletionMessageWithCorrectFormat()
+  {
+    // Arrange
+    var srcDir = Path.Combine(testDirectory!, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var code = """
+      using System.Diagnostics.CodeAnalysis;
+
+      namespace Sample.Namespace;
+
+      [SuppressMessage("Microsoft.Maintainability", "CA1506:Avoid excessive class coupling", Justification = "Test")]
+      public class SampleType
+      {
+      }
+      """;
+    File.WriteAllText(Path.Combine(srcDir, "SampleType.cs"), code);
+
+    var options = new MetricsReporterOptions
+    {
+      AnalyzeSuppressedSymbols = true,
+      SuppressedSymbolsPath = suppressedSymbolsPath,
+      SolutionDirectory = testDirectory,
+      SourceCodeFolders = new[] { "src" }
+    };
+    var logger = CreateLogger();
+
+    // Act
+    var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
+
+    // Assert
+    logger.Entries.Should().Contain(entry =>
+      entry.Level == LogLevel.Information &&
+      entry.Message.Contains("Suppressed symbols analysis completed:") &&
+      entry.Message.Contains("entries") &&
+      !entry.Message.Contains("Entries="));
+  }
 }
 
 
