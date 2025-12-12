@@ -9,6 +9,11 @@ using MetricsReporter.Model;
 public sealed class MetricsReporterOptions
 {
   /// <summary>
+  /// Gets the command that produced this options instance (generate, read, readsarif, test).
+  /// </summary>
+  public string CommandName { get; init; } = "generate";
+
+  /// <summary>
   /// Solution name displayed in the report.
   /// </summary>
   public string SolutionName { get; init; } = "Solution";

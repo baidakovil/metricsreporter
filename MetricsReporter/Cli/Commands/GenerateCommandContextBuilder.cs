@@ -83,6 +83,7 @@ internal sealed class GenerateCommandContextBuilder
   {
     return new MetricsReporterOptions
     {
+      CommandName = "generate",
       SolutionName = inputs.SolutionName ?? "Solution",
       MetricsDirectory = inputs.MetricsDir ?? string.Empty,
       AltCoverPaths = inputs.AltCover,

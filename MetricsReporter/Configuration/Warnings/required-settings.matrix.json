@@ -1,0 +1,130 @@
+{
+  "rules": [
+    {
+      "id": "replaceBaseline.baselinePath",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "ReplaceMetricsBaseline", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "nonEmpty",
+          "setting": "BaselinePath",
+          "message": "replaceBaseline=true requires paths.baseline; baseline replacement will be skipped."
+        }
+      ]
+    },
+    {
+      "id": "replaceBaseline.storagePath",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "ReplaceMetricsBaseline", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "nonEmpty",
+          "setting": "MetricsReportStoragePath",
+          "message": "replaceBaseline=true should specify paths.baselineStoragePath to archive previous baselines."
+        },
+        {
+          "kind": "directoryExists",
+          "setting": "MetricsReportStoragePath",
+          "message": "paths.baselineStoragePath does not exist; baseline archive will be skipped."
+        }
+      ]
+    },
+    {
+      "id": "replaceBaseline.reportPath",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "ReplaceMetricsBaseline", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "nonEmpty",
+          "setting": "OutputJsonPath",
+          "message": "replaceBaseline=true expects paths.report/outputJson to be set for rotation."
+        }
+      ]
+    },
+    {
+      "id": "suppressedSymbols.outputPath",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "AnalyzeSuppressedSymbols", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "nonEmpty",
+          "setting": "SuppressedSymbolsPath",
+          "message": "analyzeSuppressedSymbols=true requires paths.suppressedSymbols to store analysis output."
+        }
+      ]
+    },
+    {
+      "id": "suppressedSymbols.parentDirectory",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "AnalyzeSuppressedSymbols", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "parentDirectoryExists",
+          "setting": "SuppressedSymbolsPath",
+          "message": "paths.suppressedSymbols parent directory does not exist; analysis output cannot be written."
+        }
+      ]
+    },
+    {
+      "id": "suppressedSymbols.sourceFolders",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "AnalyzeSuppressedSymbols", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "nonEmptyCollection",
+          "setting": "SourceCodeFolders",
+          "message": "analyzeSuppressedSymbols=true requires paths.sourceCodeFolders to locate source roots."
+        }
+      ]
+    },
+    {
+      "id": "suppressedSymbols.solutionDirectory",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "AnalyzeSuppressedSymbols", "operator": "equals", "value": true },
+      "requirements": [
+        {
+          "kind": "nonEmpty",
+          "setting": "SolutionDirectory",
+          "message": "analyzeSuppressedSymbols=true without paths.solutionDirectory may fail to locate the solution; set it explicitly."
+        }
+      ]
+    },
+    {
+      "id": "metricsInputs.missingAll",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "InputJsonPath", "operator": "isNullOrEmpty" },
+      "requirements": [
+        {
+          "kind": "atLeastOne",
+          "settings": [ "AltCoverPaths", "RoslynPaths", "SarifPaths" ],
+          "message": "No metrics inputs found (altcover/roslyn/sarif); report will be empty."
+        }
+      ]
+    },
+    {
+      "id": "coverageHtml.missingDir",
+      "appliesTo": [ "generate", "read", "readsarif", "test" ],
+      "condition": { "setting": "CoverageHtmlDir", "operator": "notNullOrEmpty" },
+      "requirements": [
+        {
+          "kind": "directoryExists",
+          "setting": "CoverageHtmlDir",
+          "message": "paths.coverageHtmlDir does not exist; coverage links in HTML will not be generated."
+        }
+      ]
+    },
+    {
+      "id": "baselineReference.noBaseline",
+      "appliesTo": [ "generate" ],
+      "condition": { "setting": "BaselineReference", "operator": "notNullOrEmpty" },
+      "requirements": [
+        {
+          "kind": "nonEmpty",
+          "setting": "BaselinePath",
+          "message": "paths.baselineReference is set but paths.baseline is missing; reference will be ignored."
+        }
+      ]
+    }
+  ]
+}
+

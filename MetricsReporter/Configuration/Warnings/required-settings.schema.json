@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MetricsReporter conditional required settings schema",
+  "type": "object",
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "appliesTo", "requirements" ],
+        "properties": {
+          "id": { "type": "string" },
+          "appliesTo": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Command names that should evaluate this rule (e.g., generate, read, readsarif, test)."
+          },
+          "condition": {
+            "type": "object",
+            "description": "Optional condition that must be true before requirements are checked.",
+            "properties": {
+              "setting": { "type": "string" },
+              "operator": {
+                "type": "string",
+                "enum": [ "equals", "isNullOrEmpty", "notNullOrEmpty" ]
+              },
+              "value": {}
+            },
+            "required": [ "setting", "operator" ]
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [ "kind", "message" ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [ "nonEmpty", "nonEmptyCollection", "atLeastOne", "directoryExists", "parentDirectoryExists" ]
+                },
+                "setting": {
+                  "type": "string",
+                  "description": "Single setting name to validate (nonEmpty/nonEmptyCollection)."
+                },
+                "settings": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Multiple settings, at least one must be non-empty (atLeastOne)."
+                },
+                "message": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [ "rules" ]
+}
+

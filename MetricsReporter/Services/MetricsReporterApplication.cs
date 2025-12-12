@@ -85,6 +85,8 @@ public sealed class MetricsReporterApplication
 
     logger.LogInformation("Metrics Reporter started.");
 
+    ConfigurationWarningEvaluator.LogWarnings(options, options.CommandName, logger);
+
     LogCommandLineArguments(logger);
 
     // If input JSON is specified, load it and generate HTML only

@@ -1,4 +1,7 @@
 using Microsoft.Extensions.Logging;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace MetricsReporter.Logging;
 
@@ -18,6 +21,11 @@ internal static class LoggerFactoryBuilder
   /// <returns>Configured logger factory.</returns>
   public static ILoggerFactory Create(string? logFilePath, LogLevel minimumLevel, bool includeConsole = true)
   {
+    if (ShouldSuppressConsoleLogging())
+    {
+      includeConsole = false;
+    }
+
     return LoggerFactory.Create(builder =>
     {
       builder.ClearProviders();
@@ -61,6 +69,33 @@ internal static class LoggerFactoryBuilder
       "detailed" => LogLevel.Debug,
       _ => LogLevel.Information
     };
+  }
+
+  private static bool ShouldSuppressConsoleLogging()
+  {
+    var processName = Process.GetCurrentProcess().ProcessName;
+    if (processName.Contains("testhost", StringComparison.OrdinalIgnoreCase))
+    {
+      return true;
+    }
+
+    var friendlyName = AppDomain.CurrentDomain.FriendlyName;
+    if (!string.IsNullOrWhiteSpace(friendlyName) && friendlyName.Contains("testhost", StringComparison.OrdinalIgnoreCase))
+    {
+      return true;
+    }
+
+    var args = Environment.GetCommandLineArgs();
+    if (args.Any(a => a.Contains("testhost", StringComparison.OrdinalIgnoreCase)
+                      || a.Contains("vstest", StringComparison.OrdinalIgnoreCase)
+                      || a.Contains("nunit", StringComparison.OrdinalIgnoreCase)
+                      || a.Contains("mstest", StringComparison.OrdinalIgnoreCase)))
+    {
+      return true;
+    }
+
+    var suppressEnv = Environment.GetEnvironmentVariable("METRICSREPORTER_SUPPRESS_CONSOLE_LOG");
+    return !string.IsNullOrWhiteSpace(suppressEnv) && bool.TryParse(suppressEnv, out var suppress) && suppress;
   }
 }
 
