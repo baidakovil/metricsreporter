@@ -67,6 +67,8 @@ Before writing tests, decide whether the metric should be suppressed instead of 
 
 If tests should be written, proceed as follows:
 
+If tests reveal a logic gap, brittleness, or untestable design, fix the production code first (including small refactors) to uphold the intended business behavior and make it testable. Keep changes focused and cover them with tests.
+
 1. Plan the test scenarios for each method:
    - Identify 2 to 5 test scenarios per method (1 only if the method is trivial)
    - Include happy path, edge cases, exception scenarios, and nullable cases
