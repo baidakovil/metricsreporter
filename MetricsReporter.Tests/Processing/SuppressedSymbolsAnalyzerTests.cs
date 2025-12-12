@@ -344,6 +344,192 @@ public sealed class SuppressedSymbolsAnalyzerTests
         s.FullyQualifiedName == "Sample.Namespace.SampleType" &&
         s.Justification == "Suppress sequence coverage at type level.");
   }
+
+  [Test]
+  public void Analyze_GlobalSuppressionsWithTypeTarget_IsDiscovered()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var suppressionFile = """
+      using System.Diagnostics.CodeAnalysis;
+
+      [assembly: SuppressMessage(
+          "AltCoverBranchCoverage",
+          "AltCoverBranchCoverage",
+          Scope = "type",
+          Target = "~T:Sample.Namespace.GlobalType",
+          Justification = "Assembly-level type suppression")]
+      """;
+
+    File.WriteAllText(Path.Combine(srcDir, "GlobalSuppressions.cs"), suppressionFile);
+
+    var sourceCodeFolders = new[] { "src" };
+
+    // Act
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().Contain(
+      s =>
+        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
+        s.RuleId == "AltCoverBranchCoverage" &&
+        s.FullyQualifiedName == "Sample.Namespace.GlobalType" &&
+        s.Justification == "Assembly-level type suppression");
+  }
+
+  [Test]
+  public void Analyze_GlobalSuppressionsWithMethodTarget_IsDiscovered()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var suppressionFile = """
+      using System.Diagnostics.CodeAnalysis;
+
+      [assembly: SuppressMessage(
+          "AltCoverBranchCoverage",
+          "AltCoverBranchCoverage",
+          Scope = "member",
+          Target = "~M:Sample.Namespace.GlobalType.DoWork(System.String)",
+          Justification = "Assembly-level method suppression")]
+      """;
+
+    File.WriteAllText(Path.Combine(srcDir, "GlobalSuppressions.cs"), suppressionFile);
+
+    var sourceCodeFolders = new[] { "src" };
+
+    // Act
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().Contain(
+      s =>
+        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
+        s.RuleId == "AltCoverBranchCoverage" &&
+        s.FullyQualifiedName == "Sample.Namespace.GlobalType.DoWork(...)" &&
+        s.Justification == "Assembly-level method suppression");
+  }
+
+  [Test]
+  public void Analyze_ModuleLevelSuppression_IsDiscovered()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var suppressionFile = """
+      using System.Diagnostics.CodeAnalysis;
+
+      [module: SuppressMessage(
+          "AltCoverBranchCoverage",
+          "AltCoverBranchCoverage",
+          Target = "~T:Sample.Namespace.ModuleType",
+          Justification = "Module-level suppression")]
+      """;
+
+    File.WriteAllText(Path.Combine(srcDir, "GlobalSuppressions.cs"), suppressionFile);
+
+    var sourceCodeFolders = new[] { "src" };
+
+    // Act
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().Contain(
+      s =>
+        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
+        s.FullyQualifiedName == "Sample.Namespace.ModuleType" &&
+        s.Justification == "Module-level suppression");
+  }
+
+  [Test]
+  public void Analyze_AssemblyLevelWithInvalidPrefix_IsIgnored()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var suppressionFile = """
+      using System.Diagnostics.CodeAnalysis;
+
+      [assembly: SuppressMessage(
+          "AltCoverBranchCoverage",
+          "AltCoverBranchCoverage",
+          Target = "~X:Sample.Namespace.Invalid",
+          Justification = "Should be ignored")]
+      """;
+
+    File.WriteAllText(Path.Combine(srcDir, "GlobalSuppressions.cs"), suppressionFile);
+
+    var sourceCodeFolders = new[] { "src" };
+
+    // Act
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().BeEmpty("invalid target prefix should be ignored");
+  }
+
+  [Test]
+  public void Analyze_AssemblyLevelWithMissingTarget_IsIgnored()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var suppressionFile = """
+      using System.Diagnostics.CodeAnalysis;
+
+      [assembly: SuppressMessage(
+          "AltCoverBranchCoverage",
+          "AltCoverBranchCoverage",
+          Justification = "Missing target should be ignored")]
+      """;
+
+    File.WriteAllText(Path.Combine(srcDir, "GlobalSuppressions.cs"), suppressionFile);
+
+    var sourceCodeFolders = new[] { "src" };
+
+    // Act
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().BeEmpty("assembly-level suppression without target should be ignored");
+  }
+
+  [Test]
+  public void Analyze_AssemblyLevelWithConcatenatedJustification_ParsesTarget()
+  {
+    // Arrange
+    var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
+    Directory.CreateDirectory(srcDir);
+
+    var suppressionFile = """
+      using System.Diagnostics.CodeAnalysis;
+
+      [assembly: SuppressMessage(
+          "AltCoverBranchCoverage",
+          "AltCoverBranchCoverage",
+          Target = "~T:Sample.Namespace.Concatenated",
+          Justification = "Part1 " + "Part2")]
+      """;
+
+    File.WriteAllText(Path.Combine(srcDir, "GlobalSuppressions.cs"), suppressionFile);
+
+    var sourceCodeFolders = new[] { "src" };
+
+    // Act
+    var report = SuppressedSymbolsAnalyzer.Analyze(_rootDirectory, sourceCodeFolders, excludedAssemblyNames: null, CancellationToken.None);
+
+    // Assert
+    report.SuppressedSymbols.Should().ContainSingle(
+      s =>
+        s.FullyQualifiedName == "Sample.Namespace.Concatenated" &&
+        s.Justification == "Part1 Part2");
+  }
 }
 
 

@@ -3,6 +3,7 @@ namespace MetricsReporter.Processing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,6 +56,131 @@ internal static class SuppressMessageAttributeParser
     justification = ExtractJustification(args);
 
     return !string.IsNullOrWhiteSpace(ruleId);
+  }
+
+  /// <summary>
+  /// Attempts to extract and normalize the target fully qualified name from a SuppressMessage attribute.
+  /// </summary>
+  /// <param name="attribute">The attribute syntax node to parse.</param>
+  /// <param name="fullyQualifiedName">The normalized fully qualified name specified in the Target argument.</param>
+  /// <returns>
+  /// <see langword="true"/> when the attribute is a SuppressMessage attribute and a valid Target value
+  /// could be normalized; otherwise, <see langword="false"/>.
+  /// </returns>
+  public static bool TryParseTargetFullyQualifiedName(AttributeSyntax attribute, out string? fullyQualifiedName)
+  {
+    fullyQualifiedName = null;
+    if (!IsSuppressMessageAttribute(attribute) || attribute.ArgumentList is null)
+    {
+      return false;
+    }
+
+    foreach (var argument in attribute.ArgumentList.Arguments)
+    {
+      if (argument.NameEquals is null ||
+          !string.Equals(argument.NameEquals.Name.Identifier.Text, "Target", StringComparison.Ordinal))
+      {
+        continue;
+      }
+
+      if (argument.Expression is not LiteralExpressionSyntax literal ||
+          !literal.IsKind(SyntaxKind.StringLiteralExpression))
+      {
+        return false;
+      }
+
+      fullyQualifiedName = NormalizeTargetValue(literal.Token.ValueText);
+      return !string.IsNullOrWhiteSpace(fullyQualifiedName);
+    }
+
+    return false;
+  }
+
+  private static string? NormalizeTargetValue(string? target)
+  {
+    if (string.IsNullOrWhiteSpace(target))
+    {
+      return null;
+    }
+
+    var normalized = target.Trim();
+    var prefix = '\0';
+    if (normalized.StartsWith("~", StringComparison.Ordinal) && normalized.Length > 2 && normalized[2] == ':')
+    {
+      prefix = normalized[1];
+      normalized = normalized[3..];
+    }
+
+    normalized = normalized.Replace('+', '.');
+    normalized = RemoveArityMarkers(normalized);
+
+    return prefix switch
+    {
+      'M' => NormalizeMethodTarget(normalized),
+      'T' => NormalizeTypeTarget(normalized),
+      'P' or 'F' or 'E' => NormalizeMemberTarget(normalized),
+      '\0' => NormalizeMemberTarget(normalized),
+      _ => null
+    };
+  }
+
+  private static string? NormalizeMethodTarget(string raw)
+  {
+    if (string.IsNullOrWhiteSpace(raw))
+    {
+      return null;
+    }
+
+    var candidate = raw.Contains('(') ? raw : $"{raw}(...)";
+    return SymbolNormalizer.NormalizeFullyQualifiedMethodName(candidate);
+  }
+
+  private static string? NormalizeTypeTarget(string raw)
+  {
+    if (string.IsNullOrWhiteSpace(raw))
+    {
+      return null;
+    }
+
+    return SymbolNormalizer.NormalizeTypeName(raw);
+  }
+
+  private static string? NormalizeMemberTarget(string raw)
+  {
+    if (string.IsNullOrWhiteSpace(raw))
+    {
+      return null;
+    }
+
+    var candidate = raw.Contains('(') ? SymbolNormalizer.NormalizeFullyQualifiedMethodName(raw) : raw;
+    if (candidate is null)
+    {
+      return null;
+    }
+
+    if (candidate.Contains('('))
+    {
+      return candidate;
+    }
+
+    var lastDot = candidate.LastIndexOf('.');
+    if (lastDot <= 0)
+    {
+      return candidate;
+    }
+
+    var typePart = SymbolNormalizer.NormalizeTypeName(candidate[..lastDot]);
+    var memberPart = candidate[(lastDot + 1)..];
+    return string.IsNullOrWhiteSpace(typePart) || string.IsNullOrWhiteSpace(memberPart)
+      ? null
+      : $"{typePart}.{memberPart}";
+  }
+
+  private static string RemoveArityMarkers(string text)
+  {
+    return string.IsNullOrWhiteSpace(text)
+      ? text
+      : Regex.Replace(text, "`[0-9]+", string.Empty);
   }
 
   private static bool TryExtractCategory(AttributeArgumentSyntax argument, out string? category)

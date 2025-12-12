@@ -18,18 +18,6 @@ using MetricsReporter.Processing;
     "Microsoft.Maintainability",
     "CA1502:AvoidExcessiveComplexity",
     Justification = "This class orchestrates complex merging logic for assemblies, namespaces, types, and members with multiple filters, dummy node creation, and index management. The complexity comes from coordinating multiple dictionaries, filters, and conditional logic required to maintain tree consistency. Further simplification would require splitting into multiple classes that would introduce architectural overhead and reduce cohesion, or would harm readability by obscuring the orchestration flow.")]
-[SuppressMessage(
-    "AltCoverBranchCoverage",
-    "AltCoverBranchCoverage",
-    Scope = "type",
-    Target = "~T:MetricsReporter.Aggregation.StructuralElementMerger",
-    Justification = "Branch coverage is dominated by configuration-driven guard clauses (filters, dummy node handling, and optional metadata). Exercising every branch would require artificial assemblies, namespaces, and members that are impossible in real metrics documents and would not increase confidence beyond the existing behavioral tests that cover valid paths.")]
-[SuppressMessage(
-    "AltCoverSequenceCoverage",
-    "AltCoverSequenceCoverage",
-    Scope = "type",
-    Target = "~T:MetricsReporter.Aggregation.StructuralElementMerger",
-    Justification = "Sequence coverage suffers from the same configuration-driven guard clauses as branch coverage. Forcing every path would demand contrived metrics trees with excluded assemblies and dummy nodes that never occur in production inputs. Suppressing keeps the metrics report focused on actionable gaps.")]
 internal sealed class StructuralElementMerger
 {
   private readonly SolutionMetricsNode _solution;

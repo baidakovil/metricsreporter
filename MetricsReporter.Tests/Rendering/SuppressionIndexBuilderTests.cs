@@ -88,6 +88,51 @@ public sealed class SuppressionIndexBuilderTests
   }
 
   [Test]
+  public void Build_WithDuplicateEntries_LastInWins()
+  {
+    // Arrange
+    var suppressedSymbols = new List<SuppressedSymbolInfo>
+    {
+      new()
+      {
+        FullyQualifiedName = "Sample.Namespace.SampleType",
+        Metric = "RoslynClassCoupling",
+        RuleId = "CA1506",
+        Justification = "First"
+      },
+      new()
+      {
+        FullyQualifiedName = "Sample.Namespace.SampleType",
+        Metric = "RoslynClassCoupling",
+        RuleId = "CA1506",
+        Justification = "Second"
+      }
+    };
+
+    var report = new MetricsReport
+    {
+      Metadata = new ReportMetadata
+      {
+        SuppressedSymbols = suppressedSymbols
+      },
+      Solution = new SolutionMetricsNode
+      {
+        Name = "SampleSolution",
+        FullyQualifiedName = "SampleSolution",
+        Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+        Assemblies = new List<AssemblyMetricsNode>()
+      }
+    };
+
+    // Act
+    var result = SuppressionIndexBuilder.Build(report);
+
+    // Assert
+    result.Should().HaveCount(1);
+    result[("Sample.Namespace.SampleType", MetricIdentifier.RoslynClassCoupling)].Justification.Should().Be("Second");
+  }
+
+  [Test]
   public void Build_WithInvalidMetricName_SkipsEntry()
   {
     // Arrange

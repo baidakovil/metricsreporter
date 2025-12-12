@@ -47,11 +47,21 @@ For each method in the class that has insufficient branch coverage, identify:
 - Nullable reference type scenarios
 - Complex state transitions
 
-### 3. Cancel conditions (prefer suppression, not exclusion)
+### 3. Cancel conditions (prefer suppression over exclusion)
 
-Перед тем как писать тесты, оцени, нужно ли подавить метрику, а не исключать код из покрытия:
+Before writing tests, decide whether the metric should be suppressed instead of excluded. See full guidance in `docs/3-reference/3.4 - suppression-guidelines.md`.
 
-- Подавлять (рекомендуется): если метод/тип шумный для метрик, но его нужно оставить видимым в отчёте. Используй `[SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Justification = "...")]` и `[SuppressMessage("AltCoverSequenceCoverage", "AltCoverSequenceCoverage", Justification = "...")]`. Метрика останется в отчёте и в HTML, но будет помечена как suppressed.
+- Prefer suppression when at least one of these holds:
+  - The method requires complex fixtures or real Revit objects that cannot be reasonably mocked.
+  - Achieving coverage would force testing private methods (breaking encapsulation) rather than public behavior.
+  - The class is a thin wrapper/orchestrator with trivial logic where added tests would only assert delegation.
+  - Branches are configuration-driven guard rails already validated through higher-level integration paths and adding synthetic inputs would not increase confidence.
+  - The code path exists solely for defensive fallbacks (e.g., dummy nodes, excluded assemblies) that cannot occur in valid production inputs.
+- Two ways to place the attribute (same effect, differs only by location):
+  - **Assembly-level**: `[assembly: SuppressMessage(..., Target = "~T:Namespace.Type", Justification = "...")]` in `GlobalSuppressions.cs` (preferred when the rationale applies to the whole type or a nested type tree).
+  - **Symbol-level**: `[SuppressMessage(...)]` directly on the type/member (preferred when only a specific member is noisy).
+- Always set `Target` to the exact type/member (`~T:` for type, `~M:/~P:/~E:/~F:` for member kinds). Do not rely on `Scope`; the engine uses `Target`.
+- Exclude only if you intentionally want to remove the metric from the report entirely; exclusion hides data and history.
 
 ### 4. Write tests
 

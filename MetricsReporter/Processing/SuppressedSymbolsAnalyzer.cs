@@ -201,6 +201,17 @@ internal static class SuppressedSymbolsAnalyzer
       _fqnBuilder.PopType();
     }
 
+    public override void VisitCompilationUnit(CompilationUnitSyntax node)
+    {
+      if (node is null)
+      {
+        return;
+      }
+
+      TryRecordSuppression(node.AttributeLists, null, allowTargetResolution: true);
+      base.VisitCompilationUnit(node);
+    }
+
     public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
     {
       if (node is null)
@@ -252,11 +263,14 @@ internal static class SuppressedSymbolsAnalyzer
       base.VisitPropertyDeclaration(node);
     }
 
-    private void TryRecordSuppression(SyntaxList<AttributeListSyntax> attributeLists, string? fullyQualifiedName)
+    private void TryRecordSuppression(
+        SyntaxList<AttributeListSyntax> attributeLists,
+        string? fullyQualifiedName,
+        bool allowTargetResolution = false)
     {
       if (string.IsNullOrWhiteSpace(fullyQualifiedName))
       {
-        return;
+        fullyQualifiedName = null;
       }
 
       foreach (var attributeList in attributeLists)
@@ -264,6 +278,19 @@ internal static class SuppressedSymbolsAnalyzer
         foreach (var attribute in attributeList.Attributes)
         {
           if (!SuppressMessageAttributeParser.TryParse(attribute, out var ruleId, out var justification))
+          {
+            continue;
+          }
+
+          var symbolName = fullyQualifiedName;
+          if (allowTargetResolution &&
+              SuppressMessageAttributeParser.TryParseTargetFullyQualifiedName(attribute, out var targetFqn) &&
+              !string.IsNullOrWhiteSpace(targetFqn))
+          {
+            symbolName = targetFqn;
+          }
+
+          if (string.IsNullOrWhiteSpace(symbolName))
           {
             continue;
           }
@@ -278,7 +305,7 @@ internal static class SuppressedSymbolsAnalyzer
           _output.Add(new SuppressedSymbolInfo
           {
             FilePath = _relativePath,
-            FullyQualifiedName = fullyQualifiedName,
+            FullyQualifiedName = symbolName,
             RuleId = ruleId ?? string.Empty,
             Metric = metricName,
             Justification = justification

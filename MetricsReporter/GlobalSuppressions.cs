@@ -5,26 +5,8 @@ using System.Diagnostics.CodeAnalysis;
     "AltCoverBranchCoverage",
     "AltCoverBranchCoverage",
     Scope = "type",
-    Target = "~T:MetricsReporter.Aggregation.StructuralElementMerger",
-    Justification = "Branch coverage is dominated by configuration-driven guard clauses (filters, dummy node handling, and optional metadata). Exercising every branch would require artificial assemblies, namespaces, and members that are impossible in real metrics documents and would not increase confidence beyond the existing behavioral tests that cover valid paths.")]
-[assembly: SuppressMessage(
-    "AltCoverSequenceCoverage",
-    "AltCoverSequenceCoverage",
-    Scope = "type",
-    Target = "~T:MetricsReporter.Aggregation.StructuralElementMerger",
-    Justification = "Sequence coverage suffers from the same configuration-driven guard clauses as branch coverage. Forcing every path would demand contrived metrics trees with excluded assemblies and dummy nodes that never occur in production inputs. Suppressing keeps the metrics report focused on actionable gaps.")]
-[assembly: SuppressMessage(
-    "AltCoverBranchCoverage",
-    "AltCoverBranchCoverage",
-    Scope = "type",
     Target = "~T:MetricsReporter.Aggregation.MetricsAggregationService+AggregationWorkspaceWorkflow",
     Justification = "Workflow is exercised indirectly through MetricsAggregationService and AggregationWorkspace entry points; the remaining uncovered branches belong to defensive guards and rarely used helper entry points that are already validated by integration-style service tests.")]
-[assembly: SuppressMessage(
-    "AltCoverSequenceCoverage",
-    "AltCoverSequenceCoverage",
-    Scope = "type",
-    Target = "~T:MetricsReporter.Aggregation.MetricsAggregationService+AggregationWorkspaceWorkflow",
-    Justification = "Sequence coverage for this private workflow mirrors the branch coverage rationale: exercising every path would require reflection-only calls that do not increase confidence beyond the existing service-level tests.")]
 [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Scope = "member", Target = "~M:MetricsReporter.Aggregation.StructuralElementMerger.ResolveDeclaringType(System.String)", Justification = "Branch variations are defensive parsing helpers that do not affect report outcomes and are already exercised indirectly through higher-level merger tests.")]
 [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Scope = "member", Target = "~M:MetricsReporter.Aggregation.StructuralElementMerger.RemoveTypeFromIndexes(MetricsReporter.Aggregation.TypeEntry,System.String)", Justification = "Defensive cleanup logic is covered by integration scenarios; remaining branches remove orphaned dummy nodes without changing behavior.")]
 [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Scope = "member", Target = "~M:MetricsReporter.Aggregation.StructuralElementMerger.MergeExistingMetric(System.Collections.Generic.IDictionary{MetricsReporter.Model.MetricIdentifier,MetricsReporter.Model.MetricValue},MetricsReporter.Model.MetricIdentifier,MetricsReporter.Model.MetricValue,MetricsReporter.Model.MetricValue)", Justification = "Additional branches handle null or aggregate-only metric paths that are validated through higher-level metrics aggregation tests.")]
