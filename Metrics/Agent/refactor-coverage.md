@@ -53,9 +53,6 @@ For each method in the class that has insufficient branch coverage, identify:
 
 - Подавлять (рекомендуется): если метод/тип шумный для метрик, но его нужно оставить видимым в отчёте. Используй `[SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Justification = "...")]` и `[SuppressMessage("AltCoverSequenceCoverage", "AltCoverSequenceCoverage", Justification = "...")]`. Метрика останется в отчёте и в HTML, но будет помечена как suppressed.
 
-
-Если метод/тип подавлён, переходи к следующему. Если всё же решено исключить, добавь `[ExcludeFromCodeCoverage]` и продолжай по шагам.
-
 ### 4. Write tests
 
 If tests should be written, proceed as follows:
