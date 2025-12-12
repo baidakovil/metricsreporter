@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using MetricsReporter.Cli.Configuration;
 using MetricsReporter.Cli.Infrastructure;
 using MetricsReporter.Configuration;
-using MetricsReporter.Logging;
 using MetricsReporter.Services;
 using MetricsReporter.Services.Scripts;
 using Spectre.Console;
@@ -108,7 +107,7 @@ internal sealed class ScriptAggregationRunner
       }
 
       var aggregationLogPath = AggregationOptionsResolver.BuildLogPath(aggregationInputs, context.General.WorkingDirectory);
-      var aggregationOptions = AggregationOptionsResolver.BuildOptions(aggregationInputs, aggregationLogPath);
+      var aggregationOptions = AggregationOptionsResolver.BuildOptions(aggregationInputs, aggregationLogPath, context.General.Verbosity);
       var application = new MetricsReporterApplication();
       var aggregationExit = await application.RunAsync(aggregationOptions, cancellationToken).ConfigureAwait(false);
       if (aggregationExit != MetricsReporterExitCode.Success)

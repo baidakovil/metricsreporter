@@ -124,7 +124,7 @@ internal static class AggregationOptionsResolver
   /// <summary>
   /// Maps resolved inputs to pipeline options.
   /// </summary>
-  public static MetricsReporterOptions BuildOptions(ResolvedAggregationInputs inputs, string logPath)
+  public static MetricsReporterOptions BuildOptions(ResolvedAggregationInputs inputs, string logPath, string verbosity)
   {
     return new MetricsReporterOptions
     {
@@ -141,6 +141,7 @@ internal static class AggregationOptionsResolver
       OutputJsonPath = inputs.OutputJson ?? string.Empty,
       OutputHtmlPath = inputs.OutputHtml ?? string.Empty,
       LogFilePath = logPath,
+      Verbosity = verbosity,
       ExcludedMemberNamesPatterns = inputs.ExcludedMembers,
       ExcludedAssemblyNames = inputs.ExcludedAssemblies,
       ExcludedTypeNamePatterns = inputs.ExcludedTypes,

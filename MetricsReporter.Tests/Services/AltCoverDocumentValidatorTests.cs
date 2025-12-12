@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
 using MetricsReporter.Processing;
 using MetricsReporter.Services;
+using MetricsReporter.Tests.TestHelpers;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Tests for <see cref="AltCoverDocumentValidator"/>.
@@ -25,14 +26,14 @@ public sealed class AltCoverDocumentValidatorTests
       CreateDocument("coverage-one.xml", new ParsedCodeElement(CodeElementKind.Type, "TypeA", "Namespace.TypeA")),
       CreateDocument("coverage-two.xml", new ParsedCodeElement(CodeElementKind.Member, "MethodB", "Namespace.TypeB.MethodB(...)"))
     };
-    var logger = new TestLogger();
+    var logger = new TestLogger<AltCoverDocumentValidatorTests>();
 
     // Act
     var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
 
     // Assert
     result.Should().BeTrue();
-    logger.Errors.Should().BeEmpty();
+    logger.Entries.Should().BeEmpty();
   }
 
   [Test]
@@ -45,15 +46,16 @@ public sealed class AltCoverDocumentValidatorTests
       CreateDocument("coverage-one.xml", new ParsedCodeElement(CodeElementKind.Member, "MethodA", duplicateSymbol)),
       CreateDocument("coverage-two.xml", new ParsedCodeElement(CodeElementKind.Member, "MethodA", duplicateSymbol))
     };
-    var logger = new TestLogger();
+    var logger = new TestLogger<AltCoverDocumentValidatorTests>();
 
     // Act
     var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
 
     // Assert
     result.Should().BeFalse();
-    logger.Errors.Should().ContainSingle()
-        .Which.Should().Contain(duplicateSymbol);
+    logger.Entries.Should().ContainSingle(entry =>
+      entry.Level == LogLevel.Error &&
+      entry.Message.Contains(duplicateSymbol));
   }
 
   [Test]
@@ -67,14 +69,14 @@ public sealed class AltCoverDocumentValidatorTests
         new ParsedCodeElement(CodeElementKind.Member, "MethodA", duplicateSymbol),
         new ParsedCodeElement(CodeElementKind.Member, "MethodA", duplicateSymbol))
     };
-    var logger = new TestLogger();
+    var logger = new TestLogger<AltCoverDocumentValidatorTests>();
 
     // Act
     var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
 
     // Assert
     result.Should().BeTrue();
-    logger.Errors.Should().BeEmpty();
+    logger.Entries.Should().BeEmpty();
   }
 
   [Test]
@@ -85,14 +87,14 @@ public sealed class AltCoverDocumentValidatorTests
     {
       CreateDocument("coverage-one.xml", new ParsedCodeElement(CodeElementKind.Namespace, "NamespaceA", "NamespaceA"))
     };
-    var logger = new TestLogger();
+    var logger = new TestLogger<AltCoverDocumentValidatorTests>();
 
     // Act
     var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
 
     // Assert
     result.Should().BeTrue();
-    logger.Errors.Should().BeEmpty();
+    logger.Entries.Should().BeEmpty();
   }
 
   [Test]
@@ -105,15 +107,17 @@ public sealed class AltCoverDocumentValidatorTests
       CreateDocument(string.Empty, new ParsedCodeElement(CodeElementKind.Type, "TypeA", duplicateSymbol)),
       CreateDocument("coverage-two.xml", new ParsedCodeElement(CodeElementKind.Type, "TypeA", duplicateSymbol))
     };
-    var logger = new TestLogger();
+    var logger = new TestLogger<AltCoverDocumentValidatorTests>();
 
     // Act
     var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
 
     // Assert
     result.Should().BeFalse();
-    logger.Errors.Should().ContainSingle()
-      .Which.Should().Contain("AltCoverDocument#1").And.Contain("coverage-two.xml");
+    logger.Entries.Should().ContainSingle(entry =>
+      entry.Level == LogLevel.Error &&
+      entry.Message.Contains("AltCoverDocument#1") &&
+      entry.Message.Contains("coverage-two.xml"));
   }
 
   [Test]
@@ -124,14 +128,14 @@ public sealed class AltCoverDocumentValidatorTests
     {
       CreateDocument("coverage-one.xml", new ParsedCodeElement(CodeElementKind.Member, "MethodA", "   "))
     };
-    var logger = new TestLogger();
+    var logger = new TestLogger<AltCoverDocumentValidatorTests>();
 
     // Act
     var result = AltCoverDocumentValidator.TryValidateUniqueSymbols(documents, logger);
 
     // Assert
     result.Should().BeTrue();
-    logger.Errors.Should().BeEmpty();
+    logger.Entries.Should().BeEmpty();
   }
 
   private static ParsedMetricsDocument CreateDocument(string? sourcePath, params ParsedCodeElement[] elements)
@@ -141,20 +145,6 @@ public sealed class AltCoverDocumentValidatorTests
       Elements = new List<ParsedCodeElement>(elements)
     };
 
-  private sealed class TestLogger : ILogger
-  {
-    public List<string> Errors { get; } = [];
-
-    public void LogInformation(string message)
-    {
-      // Tests do not assert info-level logging.
-    }
-
-    public void LogError(string message, Exception? exception = null)
-    {
-      Errors.Add(message);
-    }
-  }
 }
 
 

@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
 using MetricsReporter.Processing;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Provides suppressed symbol metadata by either running Roslyn analysis or loading cached artefacts.
@@ -68,7 +68,7 @@ internal sealed class SuppressedSymbolsService : ISuppressedSymbolsService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to analyze suppressed symbols. Proceeding without suppression metadata.", ex);
+      logger.LogError(ex, "Failed to analyze suppressed symbols. Proceeding without suppression metadata.");
       return [];
     }
   }
@@ -92,7 +92,11 @@ internal sealed class SuppressedSymbolsService : ISuppressedSymbolsService
   {
     var foldersText = string.Join(", ", context.SourceCodeFolders);
     var excludedAssemblies = context.ExcludedAssemblyNames ?? string.Empty;
-    logger.LogInformation($"Analyzing suppressed symbols via Roslyn (root: '{context.SolutionRoot}', source folders: [{foldersText}], excluded assemblies: '{excludedAssemblies}').");
+    logger.LogInformation(
+      "Analyzing suppressed symbols via Roslyn root={SolutionRoot} sourceFolders=[{SourceFolders}] excludedAssemblies={ExcludedAssemblies}",
+      context.SolutionRoot,
+      foldersText,
+      excludedAssemblies);
   }
 
   private static SuppressedSymbolsReport ExecuteAnalysis(
@@ -125,7 +129,7 @@ internal sealed class SuppressedSymbolsService : ISuppressedSymbolsService
 
   private static void LogAnalysisCompletion(int symbolCount, ILogger logger)
   {
-    logger.LogInformation($"Suppressed symbols analysis completed. Entries: {symbolCount}");
+    logger.LogInformation("Suppressed symbols analysis completed. Entries={EntryCount}", symbolCount);
   }
 
   private sealed record SuppressedSymbolsAnalysisContext(

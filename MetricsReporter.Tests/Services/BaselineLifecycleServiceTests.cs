@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using MetricsReporter;
-using MetricsReporter.Logging;
 using MetricsReporter.Services;
+using MetricsReporter.Tests.TestHelpers;
+using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
 /// Unit tests for <see cref="BaselineLifecycleService"/> class.
@@ -194,20 +195,16 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       MetricsReportStoragePath = testDirectory
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = new TestLogger<BaselineLifecycleService>();
 
     // Act
     service!.LogContext(context, options, logger);
-    logger.Dispose();
 
     // Assert
-    File.Exists(logPath).Should().BeTrue();
-    var logContent = File.ReadAllText(logPath);
-    logContent.Should().Contain("Baseline debug");
-    logContent.Should().Contain("ReplaceMetricsBaseline=True");
-    logContent.Should().Contain("hadReportAtStart=True");
-    logContent.Should().Contain("hadBaselineAtStart=True");
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("Baseline debug"));
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("ReplaceMetricsBaseline=True"));
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("HadReportAtStart=True"));
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("HadBaselineAtStart=True"));
   }
 
   [Test]
@@ -222,17 +219,14 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       MetricsReportStoragePath = null
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = new TestLogger<BaselineLifecycleService>();
 
     // Act
     service!.LogContext(context, options, logger);
-    logger.Dispose();
 
     // Assert
-    var logContent = File.ReadAllText(logPath);
-    logContent.Should().Contain("BaselinePath='(null)'");
-    logContent.Should().Contain("MetricsReportStoragePath='(null)'");
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("BaselinePath=(null)"));
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("MetricsReportStoragePath=(null)"));
   }
 
   [Test]
@@ -246,8 +240,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = false
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.InitializeBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -267,8 +260,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.InitializeBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -288,8 +280,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.InitializeBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -312,8 +303,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.InitializeBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -335,17 +325,14 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = new TestLogger<BaselineLifecycleService>();
 
     // Act
     await service!.InitializeBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
-    logger.Dispose();
 
     // Assert
     File.Exists(baselinePath!).Should().BeFalse();
-    var logContent = File.ReadAllText(logPath);
-    logContent.Should().Contain("Baseline does not exist and previous report not found");
+    logger.Entries.Should().Contain(entry => entry.Message.Contains("Baseline does not exist and previous report not found"));
   }
 
   [Test]
@@ -397,8 +384,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = false
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.ReplaceBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -417,8 +403,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.ReplaceBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -437,8 +422,7 @@ public sealed class BaselineLifecycleServiceTests
       OutputJsonPath = reportPath!,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.ReplaceBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -463,8 +447,7 @@ public sealed class BaselineLifecycleServiceTests
       MetricsReportStoragePath = testDirectory,
       ReplaceMetricsBaseline = true
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = NullLogger<BaselineLifecycleService>.Instance;
 
     // Act
     await service!.ReplaceBaselineAsync(context, options, logger, CancellationToken.None).ConfigureAwait(false);

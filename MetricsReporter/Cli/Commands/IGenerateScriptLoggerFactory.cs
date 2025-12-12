@@ -1,5 +1,3 @@
-using MetricsReporter.Logging;
-
 namespace MetricsReporter.Cli.Commands;
 
 /// <summary>

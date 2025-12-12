@@ -2,9 +2,9 @@ namespace MetricsReporter.Services;
 
 using System;
 using System.Collections.Generic;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
 using MetricsReporter.Processing;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Validates AltCover documents to ensure unique symbol coverage across multiple files.
@@ -102,7 +102,11 @@ internal static class AltCoverDocumentValidator
           && !string.Equals(origin, documentId, StringComparison.OrdinalIgnoreCase))
       {
         logger.LogError(
-          $"Duplicate AltCover {DescribeKind(element.Kind)} '{symbolKey}' detected in '{origin}' and '{documentId}'. Ensure coverage XML inputs do not overlap.");
+          "Duplicate AltCover {SymbolKind} '{SymbolKey}' detected in '{Origin}' and '{DocumentId}'. Ensure coverage XML inputs do not overlap.",
+          DescribeKind(element.Kind),
+          symbolKey,
+          origin,
+          documentId);
         return false;
       }
 

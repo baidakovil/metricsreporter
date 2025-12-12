@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MetricsReporter.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace MetricsReporter.Services.Processes;
 
@@ -12,15 +14,74 @@ namespace MetricsReporter.Services.Processes;
 /// </summary>
 public sealed class ProcessRunner : IProcessRunner
 {
+  private readonly ILogger<ProcessRunner> _logger;
+
+  /// <summary>
+  /// Initializes a new instance of the <see cref="ProcessRunner"/> class.
+  /// </summary>
+  /// <param name="logger">Logger used to record process start/finish events.</param>
+  public ProcessRunner(ILogger<ProcessRunner> logger)
+  {
+    _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+  }
+
   /// <inheritdoc />
   public async Task<ProcessRunResult> RunAsync(ProcessRunRequest request, CancellationToken cancellationToken)
   {
     ArgumentNullException.ThrowIfNull(request);
 
+    _logger.LogInformation(
+      "Starting process {FileName} {Arguments} (cwd: {WorkingDirectory}, timeoutSeconds: {TimeoutSeconds})",
+      request.FileName,
+      request.Arguments,
+      request.WorkingDirectory,
+      request.Timeout.TotalSeconds);
+
     using var execution = ProcessExecutionScope.Start(request, cancellationToken);
     var waitResult = await execution.WaitForExitAsync(request.Timeout, cancellationToken).ConfigureAwait(false);
 
-    return execution.ToResult(waitResult);
+    var result = execution.ToResult(waitResult);
+    LogCompletion(request, result);
+    return result;
+  }
+
+  private void LogCompletion(ProcessRunRequest request, ProcessRunResult result)
+  {
+    var duration = result.FinishedAt - result.StartedAt;
+    if (result.TimedOut)
+    {
+      _logger.LogWarning(
+        "Process {FileName} timed out after {DurationSeconds:F0}s (cwd: {WorkingDirectory})",
+        request.FileName,
+        duration.TotalSeconds,
+        request.WorkingDirectory);
+    }
+    else
+    {
+      _logger.LogInformation(
+        "Process {FileName} exited with code {ExitCode} in {DurationSeconds:F0}s (cwd: {WorkingDirectory})",
+        request.FileName,
+        result.ExitCode,
+        duration.TotalSeconds,
+        request.WorkingDirectory);
+    }
+
+    if (result.ExitCode != 0 || result.TimedOut)
+    {
+      LogLimitedBuffer("stdout", result.StandardOutput);
+      LogLimitedBuffer("stderr", result.StandardError);
+    }
+  }
+
+  private void LogLimitedBuffer(string name, string content)
+  {
+    if (string.IsNullOrWhiteSpace(content))
+    {
+      return;
+    }
+
+    var truncated = LogTruncator.Truncate(content, LogTruncator.DefaultLimit);
+    _logger.LogDebug("{Stream} (truncated): {Content}", name, truncated);
   }
 
   private static Process CreateProcess(ProcessRunRequest request)

@@ -2,7 +2,7 @@ namespace MetricsReporter.Services;
 
 using System.Threading;
 using System.Threading.Tasks;
-using MetricsReporter.Logging;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Manages baseline file operations: creating baseline from previous report and replacing baseline with new report.

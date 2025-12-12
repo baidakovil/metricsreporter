@@ -2,7 +2,7 @@ namespace MetricsReporter.Services;
 
 using System.Threading;
 using System.Threading.Tasks;
-using MetricsReporter.Logging;
+using Microsoft.Extensions.Logging;
 using MetricsReporter.Model;
 
 /// <summary>

@@ -9,11 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Aggregation;
 using MetricsReporter.Configuration;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
 using MetricsReporter.Rendering;
 using MetricsReporter.Serialization;
 using MetricsReporter.Services.DTO;
+using MetricsReporter.Logging;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Coordinates the aggregation workflow and report generation.
@@ -56,15 +57,32 @@ public sealed class MetricsReporterApplication
   {
     ArgumentNullException.ThrowIfNull(options);
 
-    using var logger = new FileLogger(options.LogFilePath);
-    return await RunAsyncInternal(options, logger, cancellationToken).ConfigureAwait(false);
+    var minimumLevel = LoggerFactoryBuilder.FromVerbosity(options.Verbosity);
+    using var loggerFactory = LoggerFactoryBuilder.Create(options.LogFilePath, minimumLevel);
+    return await RunAsync(options, loggerFactory, cancellationToken).ConfigureAwait(false);
   }
 
-  private async Task<MetricsReporterExitCode> RunAsyncInternal(
-      MetricsReporterOptions options,
-      FileLogger logger,
-      CancellationToken cancellationToken)
+  /// <summary>
+  /// Executes the aggregation process with a preconfigured logger factory.
+  /// </summary>
+  public async Task<MetricsReporterExitCode> RunAsync(
+    MetricsReporterOptions options,
+    ILoggerFactory loggerFactory,
+    CancellationToken cancellationToken)
   {
+    ArgumentNullException.ThrowIfNull(options);
+    ArgumentNullException.ThrowIfNull(loggerFactory);
+
+    var logger = loggerFactory.CreateLogger<MetricsReporterApplication>();
+    using var scope = logger.BeginScope(new Dictionary<string, object?>
+    {
+      ["solution"] = options.SolutionName,
+      ["metricsDirectory"] = options.MetricsDirectory,
+      ["outputJson"] = options.OutputJsonPath,
+      ["outputHtml"] = options.OutputHtmlPath,
+      ["baseline"] = options.BaselinePath
+    });
+
     logger.LogInformation("Metrics Reporter started.");
 
     LogCommandLineArguments(logger);
@@ -87,10 +105,19 @@ public sealed class MetricsReporterApplication
       return thresholdsResult.ExitCode;
     }
 
-    var baselineContext = await InitializeBaselineContextAsync(options, logger, cancellationToken).ConfigureAwait(false);
+    var baselineLogger = loggerFactory.CreateLogger<BaselineLifecycleService>();
+    var suppressedLogger = loggerFactory.CreateLogger<SuppressedSymbolsService>();
+    var pipelineLogger = loggerFactory.CreateLogger<MetricsReportPipeline>();
+
+    var baselineContext = await InitializeBaselineContextAsync(options, baselineLogger, cancellationToken).ConfigureAwait(false);
 
     var reportGenerationContext = new ReportGenerationContext(options, thresholdsResult, baselineContext);
-    var executionResult = await ExecuteReportGenerationAsync(reportGenerationContext, logger, cancellationToken).ConfigureAwait(false);
+    var executionResult = await ExecuteReportGenerationAsync(
+        reportGenerationContext,
+        pipelineLogger,
+        suppressedLogger,
+        baselineLogger,
+        cancellationToken).ConfigureAwait(false);
     if (executionResult != MetricsReporterExitCode.Success)
     {
       return executionResult;
@@ -100,7 +127,7 @@ public sealed class MetricsReporterApplication
     return MetricsReporterExitCode.Success;
   }
 
-  private async Task<BaselineRunContext> InitializeBaselineContextAsync(MetricsReporterOptions options, FileLogger logger, CancellationToken cancellationToken)
+  private async Task<BaselineRunContext> InitializeBaselineContextAsync(MetricsReporterOptions options, ILogger logger, CancellationToken cancellationToken)
   {
     var baselineContext = _baselineLifecycle.CaptureContext(options);
     _baselineLifecycle.LogContext(baselineContext, options, logger);
@@ -114,34 +141,36 @@ public sealed class MetricsReporterApplication
       Justification = "Report generation orchestrator coordinates baseline lifecycle, suppressed symbols resolution, and pipeline execution through interfaces and DTOs; further decomposition would create artificial wrapper methods that degrade code readability without architectural benefit.")]
   private async Task<MetricsReporterExitCode> ExecuteReportGenerationAsync(
       ReportGenerationContext context,
-      FileLogger logger,
+      ILogger pipelineLogger,
+      ILogger suppressedLogger,
+      ILogger baselineLogger,
       CancellationToken cancellationToken)
   {
     var baseline = await _baselineLifecycle.LoadBaselineAsync(context.Options.BaselinePath, cancellationToken).ConfigureAwait(false);
-    var suppressedSymbols = await _suppressedSymbolsService.ResolveAsync(context.Options, logger, cancellationToken).ConfigureAwait(false);
+    var suppressedSymbols = await _suppressedSymbolsService.ResolveAsync(context.Options, suppressedLogger, cancellationToken).ConfigureAwait(false);
 
     var pipelineResult = await _reportPipeline.ExecuteAsync(
         context.Options,
         context.ThresholdsResult,
         baseline,
         suppressedSymbols,
-        logger,
+        pipelineLogger,
         cancellationToken).ConfigureAwait(false);
     if (pipelineResult != MetricsReporterExitCode.Success)
     {
       return pipelineResult;
     }
 
-    await _baselineLifecycle.ReplaceBaselineAsync(context.BaselineContext, context.Options, logger, cancellationToken).ConfigureAwait(false);
+    await _baselineLifecycle.ReplaceBaselineAsync(context.BaselineContext, context.Options, baselineLogger, cancellationToken).ConfigureAwait(false);
     return MetricsReporterExitCode.Success;
   }
 
-  private static void LogCommandLineArguments(FileLogger logger)
+  private static void LogCommandLineArguments(ILogger logger)
   {
     try
     {
       var cliArgs = Environment.GetCommandLineArgs();
-      logger.LogInformation($"CLI args: {string.Join(" | ", cliArgs)}");
+      logger.LogInformation("CLI args: {Args}", string.Join(" | ", cliArgs));
     }
     catch (Exception)
     {
@@ -156,7 +185,7 @@ public sealed class MetricsReporterApplication
   /// <param name="options">The options to validate.</param>
   /// <param name="logger">The logger to use for error messages.</param>
   /// <returns>The exit code indicating validation result.</returns>
-  private static MetricsReporterExitCode ValidateOptionsWithLogging(MetricsReporterOptions options, FileLogger logger)
+  private static MetricsReporterExitCode ValidateOptionsWithLogging(MetricsReporterOptions options, ILogger logger)
   {
     try
     {
@@ -165,7 +194,7 @@ public sealed class MetricsReporterApplication
     }
     catch (Exception ex)
     {
-      logger.LogError(ex.Message, ex);
+      logger.LogError(ex, "Options validation failed: {Message}", ex.Message);
       return MetricsReporterExitCode.ValidationError;
     }
   }
@@ -178,7 +207,7 @@ public sealed class MetricsReporterApplication
   /// <returns>A result containing the exit code and loaded thresholds.</returns>
   private static ThresholdLoadResult LoadThresholdsWithLogging(
       MetricsReporterOptions options,
-      FileLogger logger)
+      ILogger logger)
   {
     try
     {
@@ -187,7 +216,7 @@ public sealed class MetricsReporterApplication
     }
     catch (Exception ex)
     {
-      logger.LogError(ex.Message, ex);
+      logger.LogError(ex, "Failed to load thresholds: {Message}", ex.Message);
       return new ThresholdLoadResult(MetricsReporterExitCode.ValidationError, ThresholdConfiguration.Empty);
     }
   }
@@ -277,7 +306,7 @@ public sealed class MetricsReporterApplication
   /// </summary>
   private static async Task<MetricsReporterExitCode> GenerateHtmlFromJsonAsync(
       MetricsReporterOptions options,
-      FileLogger logger,
+      ILogger logger,
       CancellationToken cancellationToken)
   {
     var validationResult = ValidateHtmlGenerationOptions(options, logger);
@@ -298,7 +327,7 @@ public sealed class MetricsReporterApplication
     }
     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
     {
-      logger.LogError("Failed to write HTML output file.", ex);
+      logger.LogError(ex, "Failed to write HTML output file to {OutputHtmlPath}", options.OutputHtmlPath);
       return MetricsReporterExitCode.IoError;
     }
   }
@@ -309,7 +338,7 @@ public sealed class MetricsReporterApplication
   /// <param name="options">The options to validate.</param>
   /// <param name="logger">The logger to use for error messages.</param>
   /// <returns>The exit code indicating validation result.</returns>
-  private static MetricsReporterExitCode ValidateHtmlGenerationOptions(MetricsReporterOptions options, FileLogger logger)
+  private static MetricsReporterExitCode ValidateHtmlGenerationOptions(MetricsReporterOptions options, ILogger logger)
   {
     if (string.IsNullOrWhiteSpace(options.InputJsonPath))
     {
@@ -335,12 +364,13 @@ public sealed class MetricsReporterApplication
   /// <returns>The loaded metrics report, or <see langword="null"/> if loading failed.</returns>
   private static async Task<MetricsReport?> LoadReportForHtmlGenerationAsync(
       MetricsReporterOptions options,
-      FileLogger logger,
+      ILogger logger,
       CancellationToken cancellationToken)
   {
+    var startedAt = DateTimeOffset.UtcNow;
     try
     {
-      logger.LogInformation($"Loading metrics report from: {options.InputJsonPath}");
+      logger.LogInformation("Loading metrics report from {InputJsonPath}", options.InputJsonPath);
       var report = await JsonReportLoader.LoadAsync(options.InputJsonPath!, cancellationToken).ConfigureAwait(false);
 
       if (report is null)
@@ -349,16 +379,21 @@ public sealed class MetricsReporterApplication
         return null;
       }
 
+      var duration = DateTimeOffset.UtcNow - startedAt;
+      logger.LogInformation(
+        "Loaded metrics report from {InputJsonPath} in {DurationMs:N0} ms",
+        options.InputJsonPath,
+        duration.TotalMilliseconds);
       return report;
     }
     catch (FileNotFoundException ex)
     {
-      logger.LogError($"Input JSON file not found: {ex.Message}", ex);
+      logger.LogError(ex, "Input JSON file not found at {InputJsonPath}", options.InputJsonPath);
       return null;
     }
     catch (Exception ex)
     {
-      logger.LogError($"Failed to load JSON report: {ex.Message}", ex);
+      logger.LogError(ex, "Failed to load JSON report from {InputJsonPath}", options.InputJsonPath);
       return null;
     }
   }
@@ -374,14 +409,19 @@ public sealed class MetricsReporterApplication
   private static async Task<MetricsReporterExitCode> GenerateAndWriteHtmlAsync(
       MetricsReport report,
       MetricsReporterOptions options,
-      FileLogger logger,
+      ILogger logger,
       CancellationToken cancellationToken)
   {
+    var startedAt = DateTimeOffset.UtcNow;
     logger.LogInformation("Generating HTML report...");
     var html = HtmlReportGenerator.Generate(report);
 
     await ReportWriter.WriteHtmlAsync(html, options.OutputHtmlPath, cancellationToken).ConfigureAwait(false);
-    logger.LogInformation($"HTML report generated successfully: {options.OutputHtmlPath}");
+    var duration = DateTimeOffset.UtcNow - startedAt;
+    logger.LogInformation(
+      "HTML report generated successfully at {OutputHtmlPath} in {DurationMs:N0} ms",
+      options.OutputHtmlPath,
+      duration.TotalMilliseconds);
     return MetricsReporterExitCode.Success;
   }
 

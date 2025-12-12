@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Logging;
 using MetricsReporter.Services.Processes;
+using Microsoft.Extensions.Logging;
 
 namespace MetricsReporter.Services.Scripts;
 
@@ -70,7 +71,17 @@ public sealed class ScriptExecutionService
       return missingScript;
     }
 
-    context.Logger.LogInformation($"Starting script '{resolvedPath}' in '{context.WorkingDirectory}'.");
+    using var scope = context.Logger.BeginScope(new Dictionary<string, object?>
+    {
+      ["scriptPath"] = resolvedPath,
+      ["workingDirectory"] = context.WorkingDirectory
+    });
+
+    context.Logger.LogInformation(
+      "Starting script {ScriptPath} in {WorkingDirectory}. TimeoutSeconds={TimeoutSeconds}",
+      resolvedPath,
+      context.WorkingDirectory,
+      context.Timeout.TotalSeconds);
 
     return await TryRunProcessAsync(resolvedPath, context, cancellationToken).ConfigureAwait(false);
   }
@@ -99,7 +110,7 @@ public sealed class ScriptExecutionService
     if (result.TimedOut)
     {
       var message = $"Script '{resolvedPath}' timed out after {duration.TotalSeconds:N0}s.";
-      context.Logger.LogError(message);
+      context.Logger.LogError("Script {ScriptPath} timed out after {DurationSeconds:F0}s", resolvedPath, duration.TotalSeconds);
       LogOutputOnFailure(context.Logger, result, context.LogTruncationLimit);
       return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, message, result);
     }
@@ -107,7 +118,11 @@ public sealed class ScriptExecutionService
     if (result.ExitCode != 0)
     {
       var message = $"Script '{resolvedPath}' failed with exit code {result.ExitCode} (duration {duration.TotalSeconds:N0}s).";
-      context.Logger.LogError(message);
+      context.Logger.LogError(
+        "Script {ScriptPath} failed with exit code {ExitCode} after {DurationSeconds:F0}s",
+        resolvedPath,
+        result.ExitCode,
+        duration.TotalSeconds);
       LogOutputOnFailure(context.Logger, result, context.LogTruncationLimit);
       return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, message, result);
     }
@@ -129,28 +144,20 @@ public sealed class ScriptExecutionService
   {
     if (logTruncationLimit <= 0)
     {
-      logTruncationLimit = 4000;
+      logTruncationLimit = LogTruncator.DefaultLimit;
     }
 
     if (!string.IsNullOrWhiteSpace(result.StandardOutput))
     {
-      logger.LogError($"stdout (truncated): {Truncate(result.StandardOutput, logTruncationLimit)}");
+      var truncatedStdout = LogTruncator.Truncate(result.StandardOutput, logTruncationLimit);
+      logger.LogError("stdout (truncated): {Stdout}", truncatedStdout);
     }
 
     if (!string.IsNullOrWhiteSpace(result.StandardError))
     {
-      logger.LogError($"stderr (truncated): {Truncate(result.StandardError, logTruncationLimit)}");
+      var truncatedStderr = LogTruncator.Truncate(result.StandardError, logTruncationLimit);
+      logger.LogError("stderr (truncated): {Stderr}", truncatedStderr);
     }
-  }
-
-  private static string Truncate(string value, int limit)
-  {
-    if (value.Length <= limit)
-    {
-      return value;
-    }
-
-    return value[..limit] + "...";
   }
 
   private static bool IsProcessStartFailure(Exception exception)
@@ -178,7 +185,7 @@ public sealed class ScriptExecutionService
     }
     catch (Exception ex) when (IsProcessStartFailure(ex))
     {
-      context.Logger.LogError($"Failed to start script '{resolvedPath}'.", ex);
+      context.Logger.LogError(ex, "Failed to start script {ScriptPath}", resolvedPath);
       return ScriptExecutionResult.Failed(resolvedPath, MetricsReporterExitCode.ValidationError, ex.Message);
     }
 
@@ -195,7 +202,11 @@ public sealed class ScriptExecutionService
   private static void LogSuccess(ScriptExecutionContext context, string resolvedPath, ProcessRunResult result)
   {
     var duration = result.FinishedAt - result.StartedAt;
-    context.Logger.LogInformation($"Script '{resolvedPath}' completed in {duration.TotalSeconds:N0}s with exit code {result.ExitCode}.");
+    context.Logger.LogInformation(
+      "Script {ScriptPath} completed in {DurationSeconds:N0}s with exit code {ExitCode}",
+      resolvedPath,
+      duration.TotalSeconds,
+      result.ExitCode);
   }
 }
 

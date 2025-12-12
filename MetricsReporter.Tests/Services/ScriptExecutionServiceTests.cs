@@ -6,10 +6,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using MetricsReporter;
-using MetricsReporter.Logging;
 using MetricsReporter.Services.Processes;
 using MetricsReporter.Services.Scripts;
+using MetricsReporter.Tests.TestHelpers;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
@@ -20,7 +20,7 @@ internal sealed class ScriptExecutionServiceTests
 {
   private string _workingDirectory = null!;
   private IProcessRunner _processRunner = null!;
-  private ILogger _logger = null!;
+  private TestLogger<ScriptExecutionService> _logger = null!;
   private ScriptExecutionService _service = null!;
 
   [SetUp]
@@ -29,7 +29,7 @@ internal sealed class ScriptExecutionServiceTests
     _workingDirectory = Path.Combine(Path.GetTempPath(), $"script-tests-{Guid.NewGuid():N}");
     Directory.CreateDirectory(_workingDirectory);
     _processRunner = Substitute.For<IProcessRunner>();
-    _logger = Substitute.For<ILogger>();
+    _logger = new TestLogger<ScriptExecutionService>();
     _service = new ScriptExecutionService(_processRunner);
   }
 
@@ -90,8 +90,8 @@ internal sealed class ScriptExecutionServiceTests
     await _processRunner.Received(1).RunAsync(
       Arg.Is<ProcessRunRequest>(r => r.FileName == "pwsh" && r.Arguments.Contains(scriptPath) && r.WorkingDirectory == _workingDirectory),
       Arg.Any<CancellationToken>());
-    _logger.Received().LogInformation(Arg.Is<string>(m => m.Contains("Starting script")));
-    _logger.Received().LogInformation(Arg.Is<string>(m => m.Contains("completed")));
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Information && entry.Message.Contains("Starting script"));
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Information && entry.Message.Contains("completed"));
   }
 
   [Test]
@@ -112,7 +112,7 @@ internal sealed class ScriptExecutionServiceTests
     result.FailedScript.Should().Be(script1);
     result.ExitCode.Should().Be(MetricsReporterExitCode.ValidationError);
     await _processRunner.Received(1).RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>());
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("failed with exit code 1")), null);
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("failed with exit code 1"));
   }
 
   [Test]
@@ -132,7 +132,7 @@ internal sealed class ScriptExecutionServiceTests
     result.FailedScript.Should().Be(script);
     result.ExitCode.Should().Be(MetricsReporterExitCode.ValidationError);
     result.ErrorMessage.Should().Contain("timed out");
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("timed out")), null);
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("timed out"));
   }
 
   [Test]
@@ -148,8 +148,8 @@ internal sealed class ScriptExecutionServiceTests
     _ = await _service.RunAsync(new[] { script }, context, CancellationToken.None).ConfigureAwait(false);
 
     // Assert
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("stdout (truncated)") && m.Contains("...")), null);
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("stderr (truncated)") && m.Contains("...")), null);
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("stdout (truncated)") && entry.Message.Contains("..."));
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("stderr (truncated)") && entry.Message.Contains("..."));
   }
 
   [Test]
@@ -170,7 +170,7 @@ internal sealed class ScriptExecutionServiceTests
     result.ExitCode.Should().Be(MetricsReporterExitCode.ValidationError);
     result.ErrorMessage.Should().Be(exception.Message);
     await _processRunner.Received(1).RunAsync(Arg.Any<ProcessRunRequest>(), Arg.Any<CancellationToken>());
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("Failed to start script")), exception);
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("Failed to start script"));
   }
 
   [Test]
@@ -204,8 +204,8 @@ internal sealed class ScriptExecutionServiceTests
     _ = await _service.RunAsync(new[] { script }, context, CancellationToken.None).ConfigureAwait(false);
 
     // Assert
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("stdout (truncated)") && m.Contains("...")), null);
-    _logger.Received().LogError(Arg.Is<string>(m => m.Contains("stderr (truncated)") && m.Contains("...")), null);
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("stdout (truncated)") && entry.Message.Contains("..."));
+    _logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("stderr (truncated)") && entry.Message.Contains("..."));
   }
 
   private ScriptExecutionContext CreateContext(int logTruncationLimit = 4000)

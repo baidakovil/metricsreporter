@@ -5,6 +5,7 @@ using MetricsReporter.Configuration;
 using MetricsReporter.Services.Processes;
 using MetricsReporter.Services.Scripts;
 using MetricsReporter.Tool.Infrastructure;
+using Microsoft.Extensions.Logging;
 using Spectre.Console.Cli;
 
 namespace MetricsReporter.Tool;
@@ -36,6 +37,17 @@ internal static class ServiceCollectionFactory
   public static ServiceCollection Create()
   {
     var services = new ServiceCollection();
+    services.AddLogging(builder =>
+    {
+      builder.SetMinimumLevel(LogLevel.Information);
+      builder.AddSimpleConsole(options =>
+      {
+        options.SingleLine = true;
+        options.TimestampFormat = "HH:mm:ss ";
+        options.UseUtcTimestamp = true;
+        options.IncludeScopes = true;
+      });
+    });
     services.AddSingleton<MetricsReporterConfigLoader>();
     services.AddSingleton<IProcessRunner, ProcessRunner>();
     services.AddSingleton<ScriptExecutionService>();

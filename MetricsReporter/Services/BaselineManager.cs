@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MetricsReporter.Logging;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Manages baseline file operations: creating baseline from previous report and replacing baseline with new report (including archiving old baselines).
@@ -48,13 +48,17 @@ public sealed class BaselineManager : IBaselineManager
     // Don't create baseline if it already exists
     if (File.Exists(parameters.BaselinePath))
     {
-      logger.LogInformation($"Baseline already exists at: {parameters.BaselinePath}. Skipping creation from previous report.");
+      logger.LogInformation(
+        "Baseline already exists at {BaselinePath}. Skipping creation from previous report.",
+        parameters.BaselinePath);
       return false;
     }
 
     if (!File.Exists(parameters.PreviousReportPath))
     {
-      logger.LogInformation($"Previous report file not found: {parameters.PreviousReportPath}. Baseline will not be created.");
+      logger.LogInformation(
+        "Previous report file not found at {PreviousReportPath}. Baseline will not be created.",
+        parameters.PreviousReportPath);
       return false;
     }
 
@@ -65,18 +69,25 @@ public sealed class BaselineManager : IBaselineManager
       if (!string.IsNullOrWhiteSpace(baselineDir) && !Directory.Exists(baselineDir))
       {
         Directory.CreateDirectory(baselineDir);
-        logger.LogInformation($"Created baseline directory: {baselineDir}");
+        logger.LogInformation("Created baseline directory {BaselineDirectory}", baselineDir);
       }
 
       // Copy previous report to baseline location
       await CopyFileAsync(parameters.PreviousReportPath, parameters.BaselinePath, cancellationToken).ConfigureAwait(false);
-      logger.LogInformation($"Baseline created from previous report: {parameters.BaselinePath} <- {parameters.PreviousReportPath}");
+      logger.LogInformation(
+        "Baseline created from previous report {PreviousReportPath} -> {BaselinePath}",
+        parameters.PreviousReportPath,
+        parameters.BaselinePath);
 
       return true;
     }
     catch (Exception ex)
     {
-      logger.LogError($"Failed to create baseline from previous report: {ex.Message}", ex);
+      logger.LogError(
+        ex,
+        "Failed to create baseline from previous report {PreviousReportPath} -> {BaselinePath}",
+        parameters.PreviousReportPath,
+        parameters.BaselinePath);
       return false;
     }
   }
@@ -123,7 +134,7 @@ public sealed class BaselineManager : IBaselineManager
   {
     if (!File.Exists(parameters.ReportPath))
     {
-      logger.LogError($"Report file not found for baseline replacement: {parameters.ReportPath}");
+      logger.LogError("Report file not found for baseline replacement at {ReportPath}", parameters.ReportPath);
       return false;
     }
 
@@ -140,18 +151,25 @@ public sealed class BaselineManager : IBaselineManager
       if (!string.IsNullOrWhiteSpace(baselineDir) && !Directory.Exists(baselineDir))
       {
         Directory.CreateDirectory(baselineDir);
-        logger.LogInformation($"Created baseline directory: {baselineDir}");
+        logger.LogInformation("Created baseline directory {BaselineDirectory}", baselineDir);
       }
 
       // Copy new report to baseline location (copy to preserve original report)
       await CopyFileAsync(parameters.ReportPath, parameters.BaselinePath, cancellationToken).ConfigureAwait(false);
-      logger.LogInformation($"Baseline replaced: {parameters.BaselinePath} <- {parameters.ReportPath}");
+      logger.LogInformation(
+        "Baseline replaced {BaselinePath} <- {ReportPath}",
+        parameters.BaselinePath,
+        parameters.ReportPath);
 
       return true;
     }
     catch (Exception ex)
     {
-      logger.LogError($"Failed to replace baseline: {ex.Message}", ex);
+      logger.LogError(
+        ex,
+        "Failed to replace baseline {BaselinePath} with report {ReportPath}",
+        parameters.BaselinePath,
+        parameters.ReportPath);
       return false;
     }
   }
@@ -187,7 +205,7 @@ public sealed class BaselineManager : IBaselineManager
       if (!Directory.Exists(storagePath))
       {
         Directory.CreateDirectory(storagePath);
-        logger.LogInformation($"Created storage directory: {storagePath}");
+        logger.LogInformation("Created storage directory {StoragePath}", storagePath);
       }
 
       cancellationToken.ThrowIfCancellationRequested();
@@ -203,12 +221,15 @@ public sealed class BaselineManager : IBaselineManager
 
       // Move (not copy) the old baseline to archive location
       File.Move(baselinePath, archivedPath);
-      logger.LogInformation($"Old baseline archived: {baselinePath} -> {archivedPath}");
+      logger.LogInformation(
+        "Old baseline archived from {BaselinePath} to {ArchivedPath}",
+        baselinePath,
+        archivedPath);
       return Task.CompletedTask;
     }
     catch (Exception ex)
     {
-      logger.LogError($"Failed to archive old baseline: {ex.Message}", ex);
+      logger.LogError(ex, "Failed to archive old baseline at {BaselinePath}", baselinePath);
       throw;
     }
   }

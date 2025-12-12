@@ -7,13 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Aggregation;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
 using MetricsReporter.Processing;
 using MetricsReporter.Processing.Parsers;
 using MetricsReporter.Rendering;
 using MetricsReporter.Serialization;
 using MetricsReporter.Services.DTO;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Handles parsing metrics sources, building aggregation input, and writing final reports.
@@ -225,7 +225,7 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to build metrics report.", ex);
+      logger.LogError(ex, "Failed to build metrics report for solution {Solution}", options.SolutionName);
       return null;
     }
   }
@@ -249,7 +249,11 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
     }
     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
     {
-      logger.LogError("Failed to write output files.", ex);
+      logger.LogError(
+        ex,
+        "Failed to write output files to {OutputJson} and {OutputHtml}",
+        options.OutputJsonPath,
+        options.OutputHtmlPath);
       return MetricsReporterExitCode.IoError;
     }
   }
@@ -262,12 +266,12 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
   {
     try
     {
-      logger.LogInformation($"Parsing metrics: {path}");
+      logger.LogInformation("Parsing metrics file {Path}", path);
       return await parser.ParseAsync(path, cancellationToken).ConfigureAwait(false);
     }
     catch (Exception ex)
     {
-      logger.LogError($"Failed to parse metrics file: {path}", ex);
+      logger.LogError(ex, "Failed to parse metrics file {Path}", path);
       return null;
     }
   }

@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Configuration;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Handles parsing metrics sources, building aggregation input, and writing final reports.

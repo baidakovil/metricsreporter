@@ -4,8 +4,8 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Manages baseline detection, initialization, loading, and replacement.
@@ -42,12 +42,14 @@ internal sealed class BaselineLifecycleService : IBaselineLifecycleService
   public void LogContext(BaselineRunContext context, MetricsReporterOptions options, ILogger logger)
   {
     logger.LogInformation(
-      $"Baseline debug: ReplaceMetricsBaseline={options.ReplaceMetricsBaseline}, " +
-      $"EffectiveReplaceBaseline={context.ReplaceBaselineEnabled}, " +
-      $"BaselinePath='{options.BaselinePath ?? "(null)"}', " +
-      $"OutputJsonPath='{options.OutputJsonPath}', " +
-      $"MetricsReportStoragePath='{options.MetricsReportStoragePath ?? "(null)"}', " +
-      $"hadReportAtStart={context.HadReportAtStart}, hadBaselineAtStart={context.HadBaselineAtStart}");
+      "Baseline debug ReplaceMetricsBaseline={ReplaceMetricsBaseline} EffectiveReplaceBaseline={EffectiveReplaceBaseline} BaselinePath={BaselinePath} OutputJsonPath={OutputJsonPath} MetricsReportStoragePath={MetricsReportStoragePath} HadReportAtStart={HadReportAtStart} HadBaselineAtStart={HadBaselineAtStart}",
+      options.ReplaceMetricsBaseline,
+      context.ReplaceBaselineEnabled,
+      options.BaselinePath ?? "(null)",
+      options.OutputJsonPath,
+      options.MetricsReportStoragePath ?? "(null)",
+      context.HadReportAtStart,
+      context.HadBaselineAtStart);
   }
 
   /// <summary>
@@ -68,7 +70,9 @@ internal sealed class BaselineLifecycleService : IBaselineLifecycleService
 
     if (context.HadReportAtStart)
     {
-      logger.LogInformation("Baseline does not exist. Creating baseline from previous report...");
+      logger.LogInformation(
+        "Baseline does not exist. Creating baseline from previous report at {ReportPath}",
+        options.OutputJsonPath);
       await _baselineManager.CreateBaselineFromPreviousReportAsync(
           options.OutputJsonPath,
           options.BaselinePath,
@@ -77,7 +81,9 @@ internal sealed class BaselineLifecycleService : IBaselineLifecycleService
       return;
     }
 
-    logger.LogInformation("Baseline does not exist and previous report not found. New report will be generated without baseline.");
+    logger.LogInformation(
+      "Baseline does not exist and previous report not found at {ReportPath}. New report will be generated without baseline.",
+      options.OutputJsonPath);
   }
 
   /// <summary>

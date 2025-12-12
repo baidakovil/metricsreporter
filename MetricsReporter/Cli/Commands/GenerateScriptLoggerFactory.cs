@@ -1,4 +1,6 @@
 using MetricsReporter.Logging;
+using MetricsReporter.Services.Scripts;
+using Microsoft.Extensions.Logging;
 
 namespace MetricsReporter.Cli.Commands;
 
@@ -12,9 +14,10 @@ internal sealed class GenerateScriptLoggerFactory : IGenerateScriptLoggerFactory
   {
     ArgumentNullException.ThrowIfNull(request);
 
-    var fileLogger = new FileLogger(request.LogPath);
-    var logger = new VerbosityAwareLogger(fileLogger, request.Verbosity);
-    return new ScriptLoggerScope(logger, fileLogger);
+    var minimumLevel = LoggerFactoryBuilder.FromVerbosity(request.Verbosity);
+    var factory = LoggerFactoryBuilder.Create(request.LogPath, minimumLevel);
+    var logger = factory.CreateLogger<ScriptExecutionService>();
+    return new ScriptLoggerScope(logger, factory);
   }
 }
 

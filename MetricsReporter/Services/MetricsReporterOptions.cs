@@ -75,6 +75,11 @@ public sealed class MetricsReporterOptions
   public string LogFilePath { get; init; } = string.Empty;
 
   /// <summary>
+  /// Verbosity value controlling minimum log level (quiet|minimal|normal|detailed).
+  /// </summary>
+  public string Verbosity { get; init; } = "normal";
+
+  /// <summary>
   /// Comma-separated or semicolon-separated list of member name patterns to exclude from metrics reports.
   /// </summary>
   /// <remarks>

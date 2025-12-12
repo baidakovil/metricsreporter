@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Cli.Infrastructure;
-using MetricsReporter.Logging;
 using MetricsReporter.Services.Scripts;
 using Spectre.Console;
 

@@ -1,5 +1,5 @@
 using System;
-using MetricsReporter.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace MetricsReporter.Cli.Commands;
 
@@ -8,10 +8,10 @@ namespace MetricsReporter.Cli.Commands;
 /// </summary>
 internal sealed class ScriptLoggerScope : IDisposable
 {
-  public ScriptLoggerScope(ILogger logger, IDisposable disposable)
+  public ScriptLoggerScope(ILogger logger, ILoggerFactory factory)
   {
     Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    _disposable = disposable ?? throw new ArgumentNullException(nameof(disposable));
+    _factory = factory ?? throw new ArgumentNullException(nameof(factory));
   }
 
   /// <summary>
@@ -19,11 +19,11 @@ internal sealed class ScriptLoggerScope : IDisposable
   /// </summary>
   public ILogger Logger { get; }
 
-  private readonly IDisposable _disposable;
+  private readonly ILoggerFactory _factory;
 
   public void Dispose()
   {
-    _disposable.Dispose();
+    _factory.Dispose();
   }
 }
 

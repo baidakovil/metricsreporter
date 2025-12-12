@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
-using MetricsReporter.Logging;
 using MetricsReporter.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
 /// Unit tests for <see cref="BaselineManager"/> class.
@@ -17,7 +17,6 @@ using MetricsReporter.Services;
 public sealed class BaselineManagerTests
 {
   private string? testDirectory;
-  private string? logFilePath;
   private BaselineManager? baselineManager;
 
   [SetUp]
@@ -25,7 +24,6 @@ public sealed class BaselineManagerTests
   {
     testDirectory = Path.Combine(Path.GetTempPath(), "RCA_BaselineManagerTests", Guid.NewGuid().ToString());
     Directory.CreateDirectory(testDirectory);
-    logFilePath = Path.Combine(testDirectory, "test.log");
     baselineManager = new BaselineManager();
   }
 
@@ -59,7 +57,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(reportPath, reportContent);
     await File.WriteAllTextAsync(baselinePath, oldBaselineContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -90,7 +88,7 @@ public sealed class BaselineManagerTests
 
     await File.WriteAllTextAsync(reportPath, reportContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -122,7 +120,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(reportPath, reportContent);
     await File.WriteAllTextAsync(baselinePath, oldBaselineContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, null, logger, CancellationToken.None).ConfigureAwait(false);
@@ -147,7 +145,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(reportPath, reportContent);
     await File.WriteAllTextAsync(baselinePath, oldBaselineContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, string.Empty, logger, CancellationToken.None).ConfigureAwait(false);
@@ -168,7 +166,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(reportPath, """{"new": "data"}""");
     await File.WriteAllTextAsync(baselinePath, """{"old": "data"}""");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -192,7 +190,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(reportPath, """{"new": "data"}""");
     await File.WriteAllTextAsync(baselinePath, """{"old": "data"}""");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -212,7 +210,7 @@ public sealed class BaselineManagerTests
 
     await File.WriteAllTextAsync(reportPath, """{"new": "data"}""");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -230,7 +228,7 @@ public sealed class BaselineManagerTests
     var baselinePath = Path.Combine(testDirectory!, "baseline.json");
     var storagePath = Path.Combine(testDirectory!, "storage");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -251,7 +249,7 @@ public sealed class BaselineManagerTests
 
     await File.WriteAllTextAsync(reportPath, reportContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     await baselineManager!.ReplaceBaselineAsync(reportPath, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -274,7 +272,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(reportPath1, """{"v1": "data"}""");
     await File.WriteAllTextAsync(baselinePath, """{"v0": "data"}""");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act - Replace baseline twice with a small delay to ensure different timestamps
     await baselineManager!.ReplaceBaselineAsync(reportPath1, baselinePath, storagePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -300,7 +298,7 @@ public sealed class BaselineManagerTests
     const string reportContent = """{"previous": "data"}""";
     await File.WriteAllTextAsync(previousReportPath, reportContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.CreateBaselineFromPreviousReportAsync(previousReportPath, baselinePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -322,7 +320,7 @@ public sealed class BaselineManagerTests
     await File.WriteAllTextAsync(previousReportPath, """{"previous": "data"}""");
     await File.WriteAllTextAsync(baselinePath, """{"existing": "baseline"}""");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.CreateBaselineFromPreviousReportAsync(previousReportPath, baselinePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -340,7 +338,7 @@ public sealed class BaselineManagerTests
     var previousReportPath = Path.Combine(testDirectory!, "report.json");
     var baselinePath = Path.Combine(testDirectory!, "baseline.json");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.CreateBaselineFromPreviousReportAsync(previousReportPath, baselinePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -360,7 +358,7 @@ public sealed class BaselineManagerTests
 
     await File.WriteAllTextAsync(previousReportPath, """{"previous": "data"}""");
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     var result = await baselineManager!.CreateBaselineFromPreviousReportAsync(previousReportPath, baselinePath, logger, CancellationToken.None).ConfigureAwait(false);
@@ -381,7 +379,7 @@ public sealed class BaselineManagerTests
     const string reportContent = """{"previous": "data"}""";
     await File.WriteAllTextAsync(previousReportPath, reportContent);
 
-    using var logger = new FileLogger(logFilePath!);
+    var logger = NullLogger<BaselineManager>.Instance;
 
     // Act
     await baselineManager!.CreateBaselineFromPreviousReportAsync(previousReportPath, baselinePath, logger, CancellationToken.None).ConfigureAwait(false);

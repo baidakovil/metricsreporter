@@ -3,8 +3,8 @@ namespace MetricsReporter.Services;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Provides suppressed symbol metadata by either running Roslyn analysis or loading cached artefacts.

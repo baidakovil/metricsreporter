@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using MetricsReporter;
-using MetricsReporter.Logging;
 using MetricsReporter.Model;
 using MetricsReporter.Services;
 using MetricsReporter.Serialization;
 using System.Text.Json;
+using MetricsReporter.Tests.TestHelpers;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Unit tests for <see cref="SuppressedSymbolsService"/> class.
@@ -49,6 +50,9 @@ public sealed class SuppressedSymbolsServiceTests
     }
   }
 
+  private static TestLogger<SuppressedSymbolsService> CreateLogger()
+    => new();
+
   [Test]
   public async Task ResolveAsync_WithAnalyzeDisabledAndNullPath_ReturnsEmptyList()
   {
@@ -58,8 +62,7 @@ public sealed class SuppressedSymbolsServiceTests
       AnalyzeSuppressedSymbols = false,
       SuppressedSymbolsPath = null
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -78,8 +81,7 @@ public sealed class SuppressedSymbolsServiceTests
       AnalyzeSuppressedSymbols = false,
       SuppressedSymbolsPath = string.Empty
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -99,8 +101,7 @@ public sealed class SuppressedSymbolsServiceTests
       AnalyzeSuppressedSymbols = false,
       SuppressedSymbolsPath = nonExistentPath
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -138,8 +139,7 @@ public sealed class SuppressedSymbolsServiceTests
       AnalyzeSuppressedSymbols = false,
       SuppressedSymbolsPath = suppressedSymbolsPath
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -162,18 +162,15 @@ public sealed class SuppressedSymbolsServiceTests
       SolutionDirectory = testDirectory,
       SourceCodeFolders = Array.Empty<string>()
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
-    logger.Dispose();
 
     // Assert
     result.Should().NotBeNull();
     result.Should().BeEmpty("should return empty list when analysis fails");
-    var logContent = File.ReadAllText(logPath);
-    logContent.Should().Contain("Failed to analyze suppressed symbols");
+    logger.Entries.Should().Contain(entry => entry.Level == LogLevel.Error && entry.Message.Contains("Failed to analyze suppressed symbols"));
   }
 
   [Test]
@@ -187,8 +184,7 @@ public sealed class SuppressedSymbolsServiceTests
       SolutionDirectory = testDirectory,
       SourceCodeFolders = Array.Empty<string>()
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -216,8 +212,7 @@ public sealed class SuppressedSymbolsServiceTests
       SolutionDirectory = testDirectory,
       SourceCodeFolders = new[] { "src" }
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -253,8 +248,7 @@ public sealed class SuppressedSymbolsServiceTests
       SolutionDirectory = testDirectory,
       SourceCodeFolders = new[] { "src" }
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -277,8 +271,7 @@ public sealed class SuppressedSymbolsServiceTests
       AnalyzeSuppressedSymbols = false,
       SuppressedSymbolsPath = suppressedSymbolsPath
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act & Assert - Should throw JsonException when JSON is invalid
     var action = async () => await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -296,8 +289,7 @@ public sealed class SuppressedSymbolsServiceTests
       SolutionDirectory = testDirectory,
       SourceCodeFolders = Array.Empty<string>()
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
     using var cts = new CancellationTokenSource();
     cts.Cancel();
 
@@ -320,8 +312,7 @@ public sealed class SuppressedSymbolsServiceTests
       SolutionDirectory = testDirectory,
       SourceCodeFolders = Array.Empty<string>()
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -347,8 +338,7 @@ public sealed class SuppressedSymbolsServiceTests
       MetricsDirectory = metricsDir,
       SourceCodeFolders = Array.Empty<string>()
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);
@@ -385,8 +375,7 @@ public sealed class SuppressedSymbolsServiceTests
       SourceCodeFolders = new[] { "src" },
       ExcludedAssemblyNames = "Sample.Assembly"
     };
-    var logPath = Path.Combine(testDirectory!, Guid.NewGuid().ToString("N") + ".log");
-    using var logger = new FileLogger(logPath);
+    var logger = CreateLogger();
 
     // Act
     var result = await service!.ResolveAsync(options, logger, CancellationToken.None).ConfigureAwait(false);

@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Cli.Infrastructure;
-using MetricsReporter.Logging;
 using MetricsReporter.Services.Scripts;
+using Microsoft.Extensions.Logging;
 
 namespace MetricsReporter.Cli.Commands;
 
