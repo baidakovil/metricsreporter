@@ -11,6 +11,7 @@
     "report": "Metrics/MetricsReport.g.json",
     "readReport": "Metrics/MetricsReport.g.json",
     "baseline": "Metrics/MetricsTemp/MetricsBaseline.g.json",
+    "baselineStoragePath": "C:\\Users\\baidakov\\AppData\\Local\\RCA\\Metrics",
     "suppressedSymbols": "Metrics/MetricsTemp/SuppressedSymbols.g.json",
     "thresholds": "Metrics/MetricsRules/MetricsReporterThresholds.json",
     "solutionDirectory": ".",
@@ -33,7 +34,7 @@
       "Metrics/Sarif/MetricsReporter.Tool.sarif",
       "Metrics/Sarif/MetricsReporter.Tests.sarif"
     ],
-    "excludedMembers": "*b__*,<Create>*,*<Main>*,<Clone>$,ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync,Deconstruct,GetHashCode,ToString,Equals,PrintMembers,op_Equality,op_Inequality,get_*,set_*,add_*,remove_*",
+    "excludedMembers": "*b__*,*d__*,<Create>*,*<Main>*,<Clone>$,ctor,cctor,MoveNext,SetStateMachine,MoveNextAsync,DisposeAsync,Deconstruct,GetHashCode,ToString,Equals,PrintMembers,op_Equality,op_Inequality,get_*,set_*,add_*,remove_*",
     "excludedTypes": "<>c,<-ctor>",
     "excludedAssemblies": "Tests",
     "solutionName": "metricsreporter",
@@ -42,7 +43,7 @@
     "excludeFields": true,
     "excludeEvents": false,
     "analyzeSuppressedSymbols": true,
-    "replaceBaseline": true
+    "replaceBaseline": false
   },
   "scripts": {
     "generate": [
