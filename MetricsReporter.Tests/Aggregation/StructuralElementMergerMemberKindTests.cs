@@ -48,25 +48,25 @@ public sealed class StructuralElementMergerMemberKindTests
   }
 
   [Test]
-  public void MergeMember_RoslynPropertyOverridesAltCoverMethod()
+  public void MergeMember_RoslynPropertyOverridesOpenCoverMethod()
   {
-    // Arrange: AltCover (method) arrives first, Roslyn (property) later.
+    // Arrange: OpenCover (method) arrives first, Roslyn (property) later.
     var (merger, solution) = CreateMerger(excludeFields: false);
     MergeAssembly(merger, "Sample.Assembly");
     var fqn = "Sample.Assembly.Sample.Type.Count";
     var typeFqn = "Sample.Assembly.Sample.Type";
     var assembly = "Sample.Assembly";
-    var altCoverMethod = CreateMemberElement(fqn, typeFqn, assembly, MemberKind.Method, hasSarif: false);
+    var openCoverMethod = CreateMemberElement(fqn, typeFqn, assembly, MemberKind.Method, hasSarif: false);
     var roslynProperty = CreateMemberElement(fqn, typeFqn, assembly, MemberKind.Property, hasSarif: false);
 
     // Act
-    merger.MergeMember(altCoverMethod);
+    merger.MergeMember(openCoverMethod);
     merger.MergeMember(roslynProperty);
 
     // Assert
     var type = solution.Assemblies[0].Namespaces[0].Types[0];
     type.Members.Should().ContainSingle();
-    type.Members[0].MemberKind.Should().Be(MemberKind.Property, "Roslyn-provided kind should override AltCover Method kind");
+    type.Members[0].MemberKind.Should().Be(MemberKind.Property, "Roslyn-provided kind should override OpenCover Method kind");
   }
 
   private static (StructuralElementMerger Merger, SolutionMetricsNode Solution) CreateMerger(bool excludeFields)

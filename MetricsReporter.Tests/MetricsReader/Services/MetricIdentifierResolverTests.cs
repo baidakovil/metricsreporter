@@ -42,7 +42,7 @@ internal sealed class MetricIdentifierResolverTests
   {
     var aliases = new Dictionary<MetricIdentifier, IReadOnlyList<string>>
     {
-      [MetricIdentifier.AltCoverBranchCoverage] = new[] { "branch" },
+      [MetricIdentifier.OpenCoverBranchCoverage] = new[] { "branch" },
       [MetricIdentifier.RoslynCyclomaticComplexity] = new[] { "branch" }
     };
 

@@ -30,50 +30,50 @@
     <MetricsTargetsAnchorProject Condition="'$(MetricsTargetsAnchorProject)' == ''">MetricsReporter</MetricsTargetsAnchorProject>
   </PropertyGroup>
 
-  <!-- AltCover coverage configuration -->
+  <!-- OpenCover coverage configuration -->
   <PropertyGroup>
     <!-- Output locations -->
-    <AltCoverOutputDir Condition="'$(AltCoverOutputDir)' == ''">$(MetricsDir)\AltCover</AltCoverOutputDir>
-    <AltCoverHtmlOutputDir Condition="'$(AltCoverHtmlOutputDir)' == ''">$(AltCoverOutputDir)\Html</AltCoverHtmlOutputDir>
+    <OpenCoverOutputDir Condition="'$(OpenCoverOutputDir)' == ''">$(MetricsDir)\OpenCover</OpenCoverOutputDir>
+    <OpenCoverHtmlOutputDir Condition="'$(OpenCoverHtmlOutputDir)' == ''">$(OpenCoverOutputDir)\Html</OpenCoverHtmlOutputDir>
     <!-- Feature flags -->
-    <AltCoverInstrumentationEnabled Condition="'$(AltCoverInstrumentationEnabled)' == ''">false</AltCoverInstrumentationEnabled>
-    <AltCoverCollectionEnabled Condition="'$(AltCoverCollectionEnabled)' == ''">false</AltCoverCollectionEnabled>
-    <AltCoverHtmlReportEnabled Condition="'$(AltCoverHtmlReportEnabled)' == ''">false</AltCoverHtmlReportEnabled>
-    <AltCoverVerbose Condition="'$(AltCoverVerbose)' == ''">true</AltCoverVerbose>
-    <AltCoverInstrumentedTargetFramework Condition="'$(AltCoverInstrumentedTargetFramework)' == ''">net8.0</AltCoverInstrumentedTargetFramework>
+    <OpenCoverInstrumentationEnabled Condition="'$(OpenCoverInstrumentationEnabled)' == ''">false</OpenCoverInstrumentationEnabled>
+    <OpenCoverCollectionEnabled Condition="'$(OpenCoverCollectionEnabled)' == ''">false</OpenCoverCollectionEnabled>
+    <OpenCoverHtmlReportEnabled Condition="'$(OpenCoverHtmlReportEnabled)' == ''">false</OpenCoverHtmlReportEnabled>
+    <OpenCoverVerbose Condition="'$(OpenCoverVerbose)' == ''">true</OpenCoverVerbose>
+    <OpenCoverInstrumentedTargetFramework Condition="'$(OpenCoverInstrumentedTargetFramework)' == ''">net8.0</OpenCoverInstrumentedTargetFramework>
     <!-- Tool commands -->
-    <AltCoverToolCommand Condition="'$(AltCoverToolCommand)' == ''">dotnet tool run altcover</AltCoverToolCommand>
+    <OpenCoverToolCommand Condition="'$(OpenCoverToolCommand)' == ''">dotnet tool run altcover</OpenCoverToolCommand>
     <ReportGeneratorToolCommand Condition="'$(ReportGeneratorToolCommand)' == ''">dotnet tool run reportgenerator</ReportGeneratorToolCommand>
     <!-- Filters and formatting -->
-    <!-- AltCoverAttributeFilter:
+    <!-- OpenCoverAttributeFilter:
          - Leave empty to keep all symbols in coverage and handle “noise” via SuppressMessage so HTML shows suppressed rows.
-         - Set to System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute only when you truly want AltCover to drop symbols entirely. -->
-    <AltCoverAssemblyFilter Condition="'$(AltCoverAssemblyFilter)' == ''">Spectre</AltCoverAssemblyFilter>
-    <AltCoverTypeFilter Condition="'$(AltCoverTypeFilter)' == ''"></AltCoverTypeFilter>
-    <AltCoverMethodFilter Condition="'$(AltCoverMethodFilter)' == ''"></AltCoverMethodFilter>
-    <AltCoverAttributeFilter Condition="'$(AltCoverAttributeFilter)' == ''"></AltCoverAttributeFilter>
-    <AltCoverUseOpenCover Condition="'$(AltCoverUseOpenCover)' == ''">true</AltCoverUseOpenCover>
-    <AltCoverAdditionalInstrumentationArgs Condition="'$(AltCoverAdditionalInstrumentationArgs)' == ''"></AltCoverAdditionalInstrumentationArgs>
+         - Set to System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute only when you truly want OpenCover to drop symbols entirely. -->
+    <OpenCoverAssemblyFilter Condition="'$(OpenCoverAssemblyFilter)' == ''">Spectre</OpenCoverAssemblyFilter>
+    <OpenCoverTypeFilter Condition="'$(OpenCoverTypeFilter)' == ''"></OpenCoverTypeFilter>
+    <OpenCoverMethodFilter Condition="'$(OpenCoverMethodFilter)' == ''"></OpenCoverMethodFilter>
+    <OpenCoverAttributeFilter Condition="'$(OpenCoverAttributeFilter)' == ''"></OpenCoverAttributeFilter>
+    <OpenCoverReportFormatEnabled Condition="'$(OpenCoverReportFormatEnabled)' == ''">true</OpenCoverReportFormatEnabled>
+    <OpenCoverAdditionalInstrumentationArgs Condition="'$(OpenCoverAdditionalInstrumentationArgs)' == ''"></OpenCoverAdditionalInstrumentationArgs>
     <!-- Collection anchor (runs once after tests) -->
-    <AltCoverCollectorAnchorProject Condition="'$(AltCoverCollectorAnchorProject)' == ''">MetricsReporter.Tests</AltCoverCollectorAnchorProject>
+    <OpenCoverCollectorAnchorProject Condition="'$(OpenCoverCollectorAnchorProject)' == ''">MetricsReporter.Tests</OpenCoverCollectorAnchorProject>
   </PropertyGroup>
 
   <!-- Item group describing instrumented projects and their coverage outputs (explicit entries, no Identity usage) -->
   <ItemGroup>
-    <AltCoverProject Include="MetricsReporter">
+    <OpenCoverProject Include="MetricsReporter">
       <ProjectName>MetricsReporter</ProjectName>
-      <ProjectOutputDir>$(_MetricsRoot)\MetricsReporter\bin\$(Configuration)\$(AltCoverInstrumentedTargetFramework)</ProjectOutputDir>
-      <CoverageFile>$(AltCoverOutputDir)\MetricsReporter.coverage.xml</CoverageFile>
-      <TemplateCoverageFile>$(AltCoverOutputDir)\MetricsReporter.coverage.template.xml</TemplateCoverageFile>
+      <ProjectOutputDir>$(_MetricsRoot)\MetricsReporter\bin\$(Configuration)\$(OpenCoverInstrumentedTargetFramework)</ProjectOutputDir>
+      <CoverageFile>$(OpenCoverOutputDir)\MetricsReporter.coverage.xml</CoverageFile>
+      <TemplateCoverageFile>$(OpenCoverOutputDir)\MetricsReporter.coverage.template.xml</TemplateCoverageFile>
       <ProjectFile>$(_MetricsRoot)\MetricsReporter\MetricsReporter.csproj</ProjectFile>
-    </AltCoverProject>
-    <AltCoverProject Include="MetricsReporter.Tool">
+    </OpenCoverProject>
+    <OpenCoverProject Include="MetricsReporter.Tool">
       <ProjectName>MetricsReporter.Tool</ProjectName>
-      <ProjectOutputDir>$(_MetricsRoot)\MetricsReporter.Tool\bin\$(Configuration)\$(AltCoverInstrumentedTargetFramework)</ProjectOutputDir>
-      <CoverageFile>$(AltCoverOutputDir)\MetricsReporter.Tool.coverage.xml</CoverageFile>
-      <TemplateCoverageFile>$(AltCoverOutputDir)\MetricsReporter.Tool.coverage.template.xml</TemplateCoverageFile>
+      <ProjectOutputDir>$(_MetricsRoot)\MetricsReporter.Tool\bin\$(Configuration)\$(OpenCoverInstrumentedTargetFramework)</ProjectOutputDir>
+      <CoverageFile>$(OpenCoverOutputDir)\MetricsReporter.Tool.coverage.xml</CoverageFile>
+      <TemplateCoverageFile>$(OpenCoverOutputDir)\MetricsReporter.Tool.coverage.template.xml</TemplateCoverageFile>
       <ProjectFile>$(_MetricsRoot)\MetricsReporter.Tool\MetricsReporter.Tool.csproj</ProjectFile>
-    </AltCoverProject>
+    </OpenCoverProject>
   </ItemGroup>
 </Project>
 

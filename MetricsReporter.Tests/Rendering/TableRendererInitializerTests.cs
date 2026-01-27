@@ -505,10 +505,10 @@ public sealed class TableRendererInitializerTests
     // Arrange
     var metricOrder = new[]
     {
-      MetricIdentifier.AltCoverSequenceCoverage,
-      MetricIdentifier.AltCoverBranchCoverage,
-      MetricIdentifier.AltCoverNPathComplexity,
-      MetricIdentifier.AltCoverCyclomaticComplexity,
+      MetricIdentifier.OpenCoverSequenceCoverage,
+      MetricIdentifier.OpenCoverBranchCoverage,
+      MetricIdentifier.OpenCoverNPathComplexity,
+      MetricIdentifier.OpenCoverCyclomaticComplexity,
       MetricIdentifier.RoslynCyclomaticComplexity,
       MetricIdentifier.RoslynMaintainabilityIndex,
       MetricIdentifier.RoslynClassCoupling,
@@ -520,8 +520,8 @@ public sealed class TableRendererInitializerTests
     };
     var metricUnits = new Dictionary<MetricIdentifier, string?>
     {
-      [MetricIdentifier.AltCoverSequenceCoverage] = "%",
-      [MetricIdentifier.AltCoverBranchCoverage] = "%",
+      [MetricIdentifier.OpenCoverSequenceCoverage] = "%",
+      [MetricIdentifier.OpenCoverBranchCoverage] = "%",
       [MetricIdentifier.RoslynMaintainabilityIndex] = "score"
     };
     var report = new MetricsReport

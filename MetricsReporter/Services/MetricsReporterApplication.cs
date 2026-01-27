@@ -260,7 +260,7 @@ public sealed class MetricsReporterApplication
 
   private static IEnumerable<string> EnumerateInputFiles(MetricsReporterOptions options)
   {
-    foreach (var path in options.AltCoverPaths)
+    foreach (var path in options.OpenCoverPaths)
     {
       if (!string.IsNullOrWhiteSpace(path))
       {

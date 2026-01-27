@@ -53,7 +53,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
       Baseline = null,
@@ -112,7 +112,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -168,7 +168,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -232,7 +232,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -273,7 +273,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
       Baseline = null,
@@ -295,7 +295,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -349,7 +349,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -407,7 +407,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -475,7 +475,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -541,7 +541,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -607,7 +607,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,
@@ -687,7 +687,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument1, sarifDocument2 },
       Baseline = null,

@@ -17,7 +17,7 @@ using MetricsReporter.Processing.Parsers;
 /// Integration tests for symbol normalization across different metric sources.
 /// </summary>
 /// <remarks>
-/// These tests verify that symbols from AltCover and Roslyn are properly normalized
+/// These tests verify that symbols from OpenCover and Roslyn are properly normalized
 /// and merged into a single entry in the final metrics report, even when they have
 /// different parameter representations.
 /// </remarks>
@@ -37,18 +37,18 @@ public sealed class SymbolNormalizationIntegrationTests
       => new();
 
   [Test]
-  public async Task BuildReport_AltCoverAndRoslynSameMethod_MergesIntoOneEntry()
+  public async Task BuildReport_OpenCoverAndRoslynSameMethod_MergesIntoOneEntry()
   {
-    // Arrange - Create AltCover document with fully qualified parameter types
-    var altCoverXml = CreateAltCoverXml(
+    // Arrange - Create OpenCover document with fully qualified parameter types
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp",
         methodName: "void Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)",
         methodCoverage: 50.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     // Create Roslyn document with short parameter types and nullable annotations
     var roslynXml = CreateRoslynXml(
@@ -65,7 +65,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -91,21 +91,21 @@ public sealed class SymbolNormalizationIntegrationTests
 
       // Critical assertion: Should have only ONE member, not two
       var members = typeNode.Members.Where(m => m.Name == "OnApplicationIdling").ToList();
-      members.Should().HaveCount(1, because: "AltCover and Roslyn methods should be merged into one entry");
+      members.Should().HaveCount(1, because: "OpenCover and Roslyn methods should be merged into one entry");
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Rca.Loader.LoaderApp.OnApplicationIdling(...)");
 
       // Both metrics should be present
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-      member.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(50.0m);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+      member.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(50.0m);
 
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
       member.Metrics[MetricIdentifier.RoslynMaintainabilityIndex].Value.Should().Be(80m);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -114,15 +114,15 @@ public sealed class SymbolNormalizationIntegrationTests
   public async Task BuildReport_PropertyGetterFromBothSources_MergesIntoOneEntry()
   {
     // Arrange
-    var altCoverXml = CreateAltCoverXml(
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Rca.Network",
         className: "Rca.Network.NetworkPlaceholder",
         methodName: "System.Boolean get_IsReady()",
         methodCoverage: 100.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     var roslynXml = CreateRoslynXml(
         assemblyName: "Rca.Network, Version=1.0.0.0",
@@ -138,7 +138,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -167,12 +167,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Rca.Network.NetworkPlaceholder.get_IsReady(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -181,15 +181,15 @@ public sealed class SymbolNormalizationIntegrationTests
   public async Task BuildReport_SimpleMethodWithDifferentParameterFormats_MergesCorrectly()
   {
     // Arrange
-    var altCoverXml = CreateAltCoverXml(
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Test.Assembly",
         className: "Test.Assembly.TestClass",
         methodName: "void Method(System.Object, System.String)",
         methodCoverage: 75.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     var roslynXml = CreateRoslynXml(
         assemblyName: "Test.Assembly, Version=1.0.0.0",
@@ -205,7 +205,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -234,12 +234,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Test.Assembly.TestClass.Method(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -248,15 +248,15 @@ public sealed class SymbolNormalizationIntegrationTests
   public async Task BuildReport_MethodWithGenericParameters_MergesCorrectly()
   {
     // Arrange
-    var altCoverXml = CreateAltCoverXml(
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Test.Assembly",
         className: "Test.Assembly.TestClass",
         methodName: "void Process(System.Collections.Generic.List<System.String>)",
         methodCoverage: 75.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     var roslynXml = CreateRoslynXml(
         assemblyName: "Test.Assembly, Version=1.0.0.0",
@@ -272,7 +272,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -301,12 +301,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Test.Assembly.TestClass.Process(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -315,15 +315,15 @@ public sealed class SymbolNormalizationIntegrationTests
   public async Task BuildReport_MethodWithReturnType_MergesCorrectly()
   {
     // Arrange
-    var altCoverXml = CreateAltCoverXml(
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Test.Assembly",
         className: "Test.Assembly.TestClass",
         methodName: "System.String GetValue(System.Int32)",
         methodCoverage: 75.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     var roslynXml = CreateRoslynXml(
         assemblyName: "Test.Assembly, Version=1.0.0.0",
@@ -339,7 +339,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -368,12 +368,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Test.Assembly.TestClass.GetValue(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -381,16 +381,16 @@ public sealed class SymbolNormalizationIntegrationTests
   [Test]
   public async Task BuildReport_GenericMethodRegisterFromBothSources_MergesIntoOneEntry()
   {
-    // Arrange - AltCover format with generic type parameter
-    var altCoverXml = CreateAltCoverXml(
+    // Arrange - OpenCover format with generic type parameter
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader.Contracts",
         className: "Rca.Loader.Contracts.SharedServiceRegistry",
         methodName: "System.Void Rca.Loader.Contracts.SharedServiceRegistry::Register(TInterface)",
         methodCoverage: 87.5m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     // Roslyn format with generic method signature
     var roslynXml = CreateRoslynXml(
@@ -407,7 +407,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -436,12 +436,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Rca.Loader.Contracts.SharedServiceRegistry.Register(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -449,16 +449,16 @@ public sealed class SymbolNormalizationIntegrationTests
   [Test]
   public async Task BuildReport_GenericMethodResolveFromBothSources_MergesIntoOneEntry()
   {
-    // Arrange - AltCover format
-    var altCoverXml = CreateAltCoverXml(
+    // Arrange - OpenCover format
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader.Contracts",
         className: "Rca.Loader.Contracts.SharedServiceRegistry",
         methodName: "TInterface Rca.Loader.Contracts.SharedServiceRegistry::Resolve()",
         methodCoverage: 87.5m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     // Roslyn format
     var roslynXml = CreateRoslynXml(
@@ -475,7 +475,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -504,12 +504,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Rca.Loader.Contracts.SharedServiceRegistry.Resolve(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -517,16 +517,16 @@ public sealed class SymbolNormalizationIntegrationTests
   [Test]
   public async Task BuildReport_ToStringMethodFromBothSources_MergesIntoOneEntry()
   {
-    // Arrange - AltCover format
-    var altCoverXml = CreateAltCoverXml(
+    // Arrange - OpenCover format
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Rca.Logging.Contracts",
         className: "Rca.Logging.Contracts.LogEntryDto",
         methodName: "System.String Rca.Logging.Contracts.LogEntryDto::ToString()",
         methodCoverage: 0.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     // Roslyn format (typically not in Roslyn metrics, but test for completeness)
     var roslynXml = CreateRoslynXml(
@@ -543,7 +543,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -572,12 +572,12 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Rca.Logging.Contracts.LogEntryDto.ToString(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
@@ -585,16 +585,16 @@ public sealed class SymbolNormalizationIntegrationTests
   [Test]
   public async Task BuildReport_EqualsMethodFromBothSources_MergesIntoOneEntry()
   {
-    // Arrange - AltCover format
-    var altCoverXml = CreateAltCoverXml(
+    // Arrange - OpenCover format
+    var openCoverXml = CreateOpenCoverXml(
         assemblyName: "Rca.Logging.Contracts",
         className: "Rca.Logging.Contracts.LogEntryDto",
         methodName: "System.Boolean Rca.Logging.Contracts.LogEntryDto::Equals(Rca.Logging.Contracts.LogEntryDto)",
         methodCoverage: 100.0m);
 
-    var altCoverFile = CreateTempFile(altCoverXml);
-    var altCoverParser = new AltCoverMetricsParser();
-    var altCoverDocument = await altCoverParser.ParseAsync(altCoverFile, CancellationToken.None);
+    var openCoverFile = CreateTempFile(openCoverXml);
+    var openCoverParser = new OpenCoverMetricsParser();
+    var openCoverDocument = await openCoverParser.ParseAsync(openCoverFile, CancellationToken.None);
 
     // Roslyn format
     var roslynXml = CreateRoslynXml(
@@ -611,7 +611,7 @@ public sealed class SymbolNormalizationIntegrationTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -640,17 +640,17 @@ public sealed class SymbolNormalizationIntegrationTests
 
       var member = members[0];
       member.FullyQualifiedName.Should().Be("Rca.Logging.Contracts.LogEntryDto.Equals(...)");
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
       member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
     }
     finally
     {
-      File.Delete(altCoverFile);
+      File.Delete(openCoverFile);
       File.Delete(roslynFile);
     }
   }
 
-  private static string CreateAltCoverXml(
+  private static string CreateOpenCoverXml(
       string assemblyName,
       string className,
       string methodName,

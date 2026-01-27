@@ -38,7 +38,7 @@ public sealed class MetricsReporterConfigLoader
     "readReport",
     "thresholds",
     "thresholdsInline",
-    "altcover",
+    "opencover",
     "roslyn",
     "sarif",
     "baseline",

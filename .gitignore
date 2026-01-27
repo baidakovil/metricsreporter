@@ -15,7 +15,7 @@
 /Metrics/Sarif/
 /build/_nupkg_inspect/
 /Metrics/MetricsReporter.read.log
-/Metrics/AltCover/
+/Metrics/OpenCover/
 
 # Generated metrics baselines
 *.g.json

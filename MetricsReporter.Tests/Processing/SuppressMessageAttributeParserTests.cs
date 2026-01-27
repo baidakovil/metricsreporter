@@ -35,12 +35,12 @@ public sealed class SuppressMessageAttributeParserTests
   }
 
   [Test]
-  public void TryParse_SuppressMessageWithAltCoverBranchCoverageCategory_ReturnsTrue()
+  public void TryParse_SuppressMessageWithOpenCoverBranchCoverageCategory_ReturnsTrue()
   {
     // Arrange
     var code = """
       using System.Diagnostics.CodeAnalysis;
-      [SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Justification = "Coverage suppression")]
+      [SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Justification = "Coverage suppression")]
       public class TestClass
       {
       }
@@ -54,17 +54,17 @@ public sealed class SuppressMessageAttributeParserTests
 
     // Assert
     result.Should().BeTrue();
-    ruleId.Should().Be("AltCoverBranchCoverage");
+    ruleId.Should().Be("OpenCoverBranchCoverage");
     justification.Should().Be("Coverage suppression");
   }
 
   [Test]
-  public void TryParse_SuppressMessageWithAltCoverSequenceCoverageCategory_ReturnsTrue()
+  public void TryParse_SuppressMessageWithOpenCoverSequenceCoverageCategory_ReturnsTrue()
   {
     // Arrange
     var code = """
       using System.Diagnostics.CodeAnalysis;
-      [SuppressMessage("AltCoverSequenceCoverage", "AltCoverSequenceCoverage")]
+      [SuppressMessage("OpenCoverSequenceCoverage", "OpenCoverSequenceCoverage")]
       public class TestClass
       {
       }
@@ -78,7 +78,7 @@ public sealed class SuppressMessageAttributeParserTests
 
     // Assert
     result.Should().BeTrue();
-    ruleId.Should().Be("AltCoverSequenceCoverage");
+    ruleId.Should().Be("OpenCoverSequenceCoverage");
     justification.Should().BeNull();
   }
 
@@ -88,7 +88,7 @@ public sealed class SuppressMessageAttributeParserTests
     // Arrange
     var code = """
       using System.Diagnostics.CodeAnalysis;
-      [SuppressMessage("UnknownMetric", "AltCoverBranchCoverage")]
+      [SuppressMessage("UnknownMetric", "OpenCoverBranchCoverage")]
       public class TestClass
       {
       }
@@ -298,8 +298,8 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Scope = "type",
           Target = "~T:Sample.App.Worker+Nested",
           Justification = "Assembly-level type suppression")]
@@ -323,8 +323,8 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Scope = "member",
           Target = "~M:Sample.App.Worker.Do(System.Int32)",
           Justification = "Assembly-level method suppression")]
@@ -349,12 +349,12 @@ public sealed class SuppressMessageAttributeParserTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Target = "~M:Sample.App.Worker.Do(System.Int32)")]
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Target = "~M:Sample.App.Worker.Do(System.String,System.Boolean)")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
@@ -380,8 +380,8 @@ public sealed class SuppressMessageAttributeParserTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Target = "~M:Sample.App.Worker`1.Process`1(System.Collections.Generic.List{System.String})")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
@@ -403,9 +403,9 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [assembly: SuppressMessage("AltCoverSequenceCoverage", "AltCoverSequenceCoverage", Target = "~P:Sample.App.Worker.Value")]
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~E:Sample.App.Worker.Changed")]
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~F:Sample.App.Worker._flag")]
+      [assembly: SuppressMessage("OpenCoverSequenceCoverage", "OpenCoverSequenceCoverage", Target = "~P:Sample.App.Worker.Value")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~E:Sample.App.Worker.Changed")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~F:Sample.App.Worker._flag")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();
@@ -429,8 +429,8 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~M:Sample.App.Worker.#ctor(System.Int32)")]
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~M:Sample.App.Worker.#cctor")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~M:Sample.App.Worker.#ctor(System.Int32)")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~M:Sample.App.Worker.#cctor")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();
@@ -451,8 +451,8 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~M:Sample.App.Worker.op_Equality(Sample.App.Worker,Sample.App.Worker)")]
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~M:Sample.App.Worker.Item(System.Int32)")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~M:Sample.App.Worker.op_Equality(Sample.App.Worker,Sample.App.Worker)")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~M:Sample.App.Worker.Item(System.Int32)")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();
@@ -473,7 +473,7 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~T:Sample.App.Outer+Middle+Inner")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~T:Sample.App.Outer+Middle+Inner")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();
@@ -494,7 +494,7 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [module: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~T:Sample.App.Worker")]
+      [module: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~T:Sample.App.Worker")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();
@@ -515,7 +515,7 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();
@@ -536,7 +536,7 @@ public sealed class SuppressMessageAttributeParserTests
     var code = """
       using System.Diagnostics.CodeAnalysis;
 
-      [assembly: SuppressMessage("AltCoverBranchCoverage", "AltCoverBranchCoverage", Target = "~X:Sample.App.Worker")]
+      [assembly: SuppressMessage("OpenCoverBranchCoverage", "OpenCoverBranchCoverage", Target = "~X:Sample.App.Worker")]
       """;
     var syntaxTree = CSharpSyntaxTree.ParseText(code);
     var root = syntaxTree.GetRoot();

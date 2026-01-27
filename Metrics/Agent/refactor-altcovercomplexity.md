@@ -24,7 +24,7 @@ Using the `metricsreporter read` command, get the first "problematic" symbol tha
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter read --namespace <given_namespace> --metric AltCoverCyclomaticComplexity --symbol-kind Any
+dotnet tool run metricsreporter read --namespace <given_namespace> --metric OpenCoverCyclomaticComplexity --symbol-kind Any
 ```
 
 If you receive a message that no suitable symbols are found (instead of an object with fields `symbolFqn`, `symbolType`, `metric`, `value`, `threshold`, `delta`, `filePath`, `status`, `isSuppressed`), this means there are no problematic symbols: complete the task.
@@ -61,7 +61,7 @@ Using the `metricsreporter test` command, verify that the symbol you worked on i
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter test --symbol <symbol_been_refactored> --metric AltCoverCyclomaticComplexity
+dotnet tool run metricsreporter test --symbol <symbol_been_refactored> --metric OpenCoverCyclomaticComplexity
 ```
 
 If you see `"isOk": false` in the response, return to step 2 with this symbol. The number of additional refactoring attempts to achieve the required metric: 5 attempts per symbol (applies to both classes and methods). If after the fifth additional attempt the required metric is not achieved, then add a suppression attribute with a Justification message in English that fully explains the essence of the problem, if any (for example, that five attempts were insufficient for a proper refactoring), or simply a description of the reason why this symbol cannot be refactored (for example, that it contains complex business logic with many conditional branches that cannot be simplified without losing domain clarity).

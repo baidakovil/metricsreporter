@@ -269,7 +269,7 @@ public sealed class SuppressedSymbolsAnalyzerTests
   }
 
   [Test]
-  public void Analyze_AltCoverBranchCoverage_Suppression_IsDiscovered()
+  public void Analyze_OpenCoverBranchCoverage_Suppression_IsDiscovered()
   {
     // Arrange
     var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
@@ -283,8 +283,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       public class SampleType
       {
         [SuppressMessage(
-            "AltCoverBranchCoverage",
-            "AltCoverBranchCoverage",
+            "OpenCoverBranchCoverage",
+            "OpenCoverBranchCoverage",
             Justification = "Suppress noisy branch coverage.")]
         public void SuppressedMethod()
         {
@@ -302,14 +302,14 @@ public sealed class SuppressedSymbolsAnalyzerTests
     // Assert
     report.SuppressedSymbols.Should().ContainSingle(
       s =>
-        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
-        s.RuleId == "AltCoverBranchCoverage" &&
+        s.Metric == nameof(MetricIdentifier.OpenCoverBranchCoverage) &&
+        s.RuleId == "OpenCoverBranchCoverage" &&
         s.FullyQualifiedName == "Sample.Namespace.SampleType.SuppressedMethod(...)" &&
         s.Justification == "Suppress noisy branch coverage.");
   }
 
   [Test]
-  public void Analyze_AltCoverSequenceCoverage_Suppression_IsDiscovered()
+  public void Analyze_OpenCoverSequenceCoverage_Suppression_IsDiscovered()
   {
     // Arrange
     var srcDir = Path.Combine(_rootDirectory, "src", "Sample.Assembly");
@@ -321,8 +321,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       namespace Sample.Namespace;
 
       [SuppressMessage(
-          "AltCoverSequenceCoverage",
-          "AltCoverSequenceCoverage",
+          "OpenCoverSequenceCoverage",
+          "OpenCoverSequenceCoverage",
           Justification = "Suppress sequence coverage at type level.")]
       public class SampleType
       {
@@ -339,8 +339,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
     // Assert
     report.SuppressedSymbols.Should().Contain(
       s =>
-        s.Metric == nameof(MetricIdentifier.AltCoverSequenceCoverage) &&
-        s.RuleId == "AltCoverSequenceCoverage" &&
+        s.Metric == nameof(MetricIdentifier.OpenCoverSequenceCoverage) &&
+        s.RuleId == "OpenCoverSequenceCoverage" &&
         s.FullyQualifiedName == "Sample.Namespace.SampleType" &&
         s.Justification == "Suppress sequence coverage at type level.");
   }
@@ -356,8 +356,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Scope = "type",
           Target = "~T:Sample.Namespace.GlobalType",
           Justification = "Assembly-level type suppression")]
@@ -373,8 +373,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
     // Assert
     report.SuppressedSymbols.Should().Contain(
       s =>
-        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
-        s.RuleId == "AltCoverBranchCoverage" &&
+        s.Metric == nameof(MetricIdentifier.OpenCoverBranchCoverage) &&
+        s.RuleId == "OpenCoverBranchCoverage" &&
         s.FullyQualifiedName == "Sample.Namespace.GlobalType" &&
         s.Justification == "Assembly-level type suppression");
   }
@@ -390,8 +390,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Scope = "member",
           Target = "~M:Sample.Namespace.GlobalType.DoWork(System.String)",
           Justification = "Assembly-level method suppression")]
@@ -407,8 +407,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
     // Assert
     report.SuppressedSymbols.Should().Contain(
       s =>
-        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
-        s.RuleId == "AltCoverBranchCoverage" &&
+        s.Metric == nameof(MetricIdentifier.OpenCoverBranchCoverage) &&
+        s.RuleId == "OpenCoverBranchCoverage" &&
         s.FullyQualifiedName == "Sample.Namespace.GlobalType.DoWork(...)" &&
         s.Justification == "Assembly-level method suppression");
   }
@@ -424,8 +424,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       using System.Diagnostics.CodeAnalysis;
 
       [module: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Target = "~T:Sample.Namespace.ModuleType",
           Justification = "Module-level suppression")]
       """;
@@ -440,7 +440,7 @@ public sealed class SuppressedSymbolsAnalyzerTests
     // Assert
     report.SuppressedSymbols.Should().Contain(
       s =>
-        s.Metric == nameof(MetricIdentifier.AltCoverBranchCoverage) &&
+        s.Metric == nameof(MetricIdentifier.OpenCoverBranchCoverage) &&
         s.FullyQualifiedName == "Sample.Namespace.ModuleType" &&
         s.Justification == "Module-level suppression");
   }
@@ -456,8 +456,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Target = "~X:Sample.Namespace.Invalid",
           Justification = "Should be ignored")]
       """;
@@ -484,8 +484,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Justification = "Missing target should be ignored")]
       """;
 
@@ -511,8 +511,8 @@ public sealed class SuppressedSymbolsAnalyzerTests
       using System.Diagnostics.CodeAnalysis;
 
       [assembly: SuppressMessage(
-          "AltCoverBranchCoverage",
-          "AltCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverBranchCoverage",
           Target = "~T:Sample.Namespace.Concatenated",
           Justification = "Part1 " + "Part2")]
       """;

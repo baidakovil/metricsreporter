@@ -46,17 +46,17 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "metricsDir": { "type": "string", "description": "Root directory for metrics artifacts (AltCover/Roslyn/SARIF/baseline)." },
+        "metricsDir": { "type": "string", "description": "Root directory for metrics artifacts (OpenCover/Roslyn/SARIF/baseline)." },
         "solutionName": { "type": "string", "description": "Solution name displayed in reports." },
         "baselineReference": { "type": "string", "description": "Optional baseline reference label." },
         "report": { "type": "string", "description": "Output JSON path for the generate command." },
         "readReport": { "type": "string", "description": "Input JSON path for read/test commands." },
         "thresholds": { "type": "string", "description": "Path to thresholds JSON file." },
         "thresholdsInline": { "type": "string", "description": "Inline thresholds JSON payload." },
-        "altcover": {
+        "opencover": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "AltCover/OpenCover coverage XML paths."
+          "description": "OpenCover coverage XML paths."
         },
         "roslyn": {
           "type": "array",
@@ -173,10 +173,10 @@
       "description": "Optional aliases for metric identifiers. Keys must match MetricIdentifier values; values are arrays of non-empty alias strings.",
       "propertyNames": {
         "enum": [
-          "AltCoverSequenceCoverage",
-          "AltCoverBranchCoverage",
-          "AltCoverCyclomaticComplexity",
-          "AltCoverNPathComplexity",
+          "OpenCoverSequenceCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverCyclomaticComplexity",
+          "OpenCoverNPathComplexity",
           "RoslynMaintainabilityIndex",
           "RoslynCyclomaticComplexity",
           "RoslynClassCoupling",
@@ -243,7 +243,7 @@
         "metricsReportStoragePath": { "type": "string" },
         "coverageHtmlDir": { "type": "string" },
         "solutionDir": { "type": "string" },
-        "altcover": {
+        "opencover": {
           "type": "array",
           "items": { "type": "string" }
         },
@@ -328,10 +328,10 @@
       "description": "Optional aliases for metric identifiers. Keys must match MetricIdentifier values; values are arrays of non-empty alias strings.",
       "propertyNames": {
         "enum": [
-          "AltCoverSequenceCoverage",
-          "AltCoverBranchCoverage",
-          "AltCoverCyclomaticComplexity",
-          "AltCoverNPathComplexity",
+          "OpenCoverSequenceCoverage",
+          "OpenCoverBranchCoverage",
+          "OpenCoverCyclomaticComplexity",
+          "OpenCoverNPathComplexity",
           "RoslynMaintainabilityIndex",
           "RoslynCyclomaticComplexity",
           "RoslynClassCoupling",

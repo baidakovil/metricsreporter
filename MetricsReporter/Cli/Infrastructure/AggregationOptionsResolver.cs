@@ -31,7 +31,7 @@ internal static class AggregationOptionsResolver
     return new ResolvedAggregationInputs(
       SolutionName: FirstNonEmpty(envPaths.SolutionName, filePaths.SolutionName) ?? "Solution",
       MetricsDir: MakeAbsolute(metricsDir, workingDirectory),
-      AltCover: ResolveList(envPaths.AltCover, filePaths.AltCover, workingDirectory),
+      OpenCover: ResolveList(envPaths.OpenCover, filePaths.OpenCover, workingDirectory),
       Roslyn: ResolveList(envPaths.Roslyn, filePaths.Roslyn, workingDirectory),
       Sarif: ResolveList(envPaths.Sarif, filePaths.Sarif, workingDirectory),
       Baseline: MakeAbsolute(FirstNonEmpty(envPaths.Baseline, filePaths.Baseline), workingDirectory),
@@ -130,7 +130,7 @@ internal static class AggregationOptionsResolver
     {
       SolutionName = inputs.SolutionName ?? "Solution",
       MetricsDirectory = inputs.MetricsDir ?? string.Empty,
-      AltCoverPaths = inputs.AltCover,
+      OpenCoverPaths = inputs.OpenCover,
       RoslynPaths = inputs.Roslyn,
       SarifPaths = inputs.Sarif,
       BaselinePath = inputs.Baseline,
@@ -219,7 +219,7 @@ internal static class AggregationOptionsResolver
 internal sealed record ResolvedAggregationInputs(
   string? SolutionName,
   string? MetricsDir,
-  string[] AltCover,
+  string[] OpenCover,
   string[] Roslyn,
   string[] Sarif,
   string? Baseline,

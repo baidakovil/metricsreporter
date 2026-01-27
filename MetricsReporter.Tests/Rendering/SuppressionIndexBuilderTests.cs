@@ -350,9 +350,9 @@ public sealed class SuppressionIndexBuilderTests
       new()
       {
         FullyQualifiedName = "Sample.Namespace.SampleType",
-        Metric = "AltCoverSequenceCoverage",
+        Metric = "OpenCoverSequenceCoverage",
         RuleId = "CA0001",
-        Justification = "AltCover"
+        Justification = "OpenCover"
       },
       new()
       {
@@ -390,7 +390,7 @@ public sealed class SuppressionIndexBuilderTests
 
     // Assert
     result.Should().HaveCount(3);
-    result.Should().ContainKey(("Sample.Namespace.SampleType", MetricIdentifier.AltCoverSequenceCoverage));
+    result.Should().ContainKey(("Sample.Namespace.SampleType", MetricIdentifier.OpenCoverSequenceCoverage));
     result.Should().ContainKey(("Sample.Namespace.SampleType.DoWork()", MetricIdentifier.RoslynClassCoupling));
     result.Should().ContainKey(("Sample.Namespace.SampleType.Process()", MetricIdentifier.SarifCaRuleViolations));
   }

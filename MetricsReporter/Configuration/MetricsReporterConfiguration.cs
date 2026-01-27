@@ -106,9 +106,9 @@ public sealed class PathsConfiguration
   public string? ThresholdsInline { get; init; }
 
   /// <summary>
-  /// Gets AltCover/OpenCover coverage paths.
+  /// Gets OpenCover coverage paths.
   /// </summary>
-  public IReadOnlyList<string>? AltCover { get; init; }
+  public IReadOnlyList<string>? OpenCover { get; init; }
 
   /// <summary>
   /// Gets Roslyn metrics XML paths.

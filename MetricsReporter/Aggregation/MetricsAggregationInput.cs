@@ -16,9 +16,9 @@ public sealed class MetricsAggregationInput
   public string SolutionName { get; init; } = "UnknownSolution";
 
   /// <summary>
-  /// AltCover/OpenCover documents.
+  /// OpenCover documents.
   /// </summary>
-  public IList<ParsedMetricsDocument> AltCoverDocuments { get; init; } = [];
+  public IList<ParsedMetricsDocument> OpenCoverDocuments { get; init; } = [];
 
   /// <summary>
   /// Roslyn code metrics documents.

@@ -1,7 +1,7 @@
-# Increase test coverage for AltCover branch coverage
+# Increase test coverage for OpenCover branch coverage
 
-- Refactor code in the given namespace to achieve the required `AltCoverBranchCoverage` metric: all methods in classes must have sufficient branch coverage 75 for methods and 50 for classes. The goal is to ensure comprehensive test coverage for all code paths, including edge cases and error conditions.
-- When working with coverage metrics, use the exact metric identifiers (e.g., `AltCoverBranchCoverage`, `AltCoverSequenceCoverage`) — aliases like `Coverage` are not supported.
+- Refactor code in the given namespace to achieve the required `OpenCoverBranchCoverage` metric: all methods in classes must have sufficient branch coverage 75 for methods and 50 for classes. The goal is to ensure comprehensive test coverage for all code paths, including edge cases and error conditions.
+- When working with coverage metrics, use the exact metric identifiers (e.g., `OpenCoverBranchCoverage`, `OpenCoverSequenceCoverage`) — aliases like `Coverage` are not supported.
 
 ## Requirements
 
@@ -25,12 +25,12 @@
 
 ### 1. Get problematic class
 
-Using the `metricsreporter read` command, get the first "problematic" class that requires test coverage improvement. A problematic class is one that contains methods with insufficient branch coverage (`metricsreporter` handles this comparison automatically). Use `--group-by type` to get classes grouped by type. Always specify the full metric identifier (e.g., `AltCoverBranchCoverage`).
+Using the `metricsreporter read` command, get the first "problematic" class that requires test coverage improvement. A problematic class is one that contains methods with insufficient branch coverage (`metricsreporter` handles this comparison automatically). Use `--group-by type` to get classes grouped by type. Always specify the full metric identifier (e.g., `OpenCoverBranchCoverage`).
 
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter read --namespace <given_namespace> --metric AltCoverBranchCoverage --group-by type
+dotnet tool run metricsreporter read --namespace <given_namespace> --metric OpenCoverBranchCoverage --group-by type
 ```
 
 If you receive a message that no suitable symbols are found (instead of an object with fields `metric`, `namespace`, `symbolKind`, `groupBy`, `violationsGroupsCount`, `violationsGroups`), this means there are no problematic classes: complete the task.
@@ -92,7 +92,7 @@ Using the `metricsreporter read` command with `--all` flag, verify that all meth
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter read --namespace <class_full_name> --metric AltCoverBranchCoverage --all
+dotnet tool run metricsreporter read --namespace <class_full_name> --metric OpenCoverBranchCoverage --all
 ```
 
 Where `<class_full_name>` is the fully qualified name of the class (type) for which tests were written.

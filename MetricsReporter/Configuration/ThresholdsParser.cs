@@ -336,10 +336,10 @@ public sealed class ThresholdsParser
   {
     return new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
-      [MetricIdentifier.AltCoverSequenceCoverage] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(75, 60, true) },
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(70, 55, true) },
-      [MetricIdentifier.AltCoverCyclomaticComplexity] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(15, 30, false) },
-      [MetricIdentifier.AltCoverNPathComplexity] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(200, 400, false) },
+      [MetricIdentifier.OpenCoverSequenceCoverage] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(75, 60, true) },
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(70, 55, true) },
+      [MetricIdentifier.OpenCoverCyclomaticComplexity] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(15, 30, false) },
+      [MetricIdentifier.OpenCoverNPathComplexity] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(200, 400, false) },
       [MetricIdentifier.RoslynMaintainabilityIndex] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(65, 40, true) },
       [MetricIdentifier.RoslynCyclomaticComplexity] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(12, 25, false) },
       [MetricIdentifier.RoslynClassCoupling] = new MetricThresholdDefinition { Levels = CreateUniformThresholds(50, 80, false) },

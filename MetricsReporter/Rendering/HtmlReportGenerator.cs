@@ -15,14 +15,14 @@ using MetricsReporter.Serialization;
 /// </summary>
 public sealed class HtmlReportGenerator
 {
-  // Explicit ordering required by the user: altcover -> roslyn -> sarif
+  // Explicit ordering required by the user: opencover -> roslyn -> sarif
   private static readonly MetricIdentifier[] MetricOrder = new[]
   {
-        // AltCover: sequence, branch, npath, cyclomatic (cyclomatic placed last in altcover group)
-        MetricIdentifier.AltCoverSequenceCoverage,
-        MetricIdentifier.AltCoverBranchCoverage,
-        MetricIdentifier.AltCoverNPathComplexity,
-        MetricIdentifier.AltCoverCyclomaticComplexity,
+        // OpenCover: sequence, branch, npath, cyclomatic (cyclomatic placed last in opencover group)
+        MetricIdentifier.OpenCoverSequenceCoverage,
+        MetricIdentifier.OpenCoverBranchCoverage,
+        MetricIdentifier.OpenCoverNPathComplexity,
+        MetricIdentifier.OpenCoverCyclomaticComplexity,
 
         // Roslyn: cyclomatic first in roslyn group, then maintainability, coupling, depth, source lines, executable lines
         MetricIdentifier.RoslynCyclomaticComplexity,

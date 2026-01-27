@@ -25,7 +25,7 @@ public sealed class MetricsAggregationServiceTests
     thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
       [MetricIdentifier.RoslynMaintainabilityIndex] = ThresholdTestFactory.CreateDefinition(65, 40, true),
-      [MetricIdentifier.AltCoverSequenceCoverage] = ThresholdTestFactory.CreateDefinition(70, 50, true),
+      [MetricIdentifier.OpenCoverSequenceCoverage] = ThresholdTestFactory.CreateDefinition(70, 50, true),
       [MetricIdentifier.SarifCaRuleViolations] = ThresholdTestFactory.CreateDefinition(1, 2, false)
     };
   }
@@ -91,7 +91,7 @@ public sealed class MetricsAggregationServiceTests
             }
     };
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -107,7 +107,7 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 18 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(95, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(95, "percent")
                     }
                 }
             }
@@ -133,7 +133,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
       Baseline = baselineReport,
@@ -160,7 +160,7 @@ public sealed class MetricsAggregationServiceTests
     existingMember.Metrics[MetricIdentifier.RoslynMaintainabilityIndex].Value.Should().Be(80);
     existingMember.Metrics[MetricIdentifier.RoslynMaintainabilityIndex].Delta.Should().Be(5);
     existingMember.Metrics[MetricIdentifier.RoslynMaintainabilityIndex].Status.Should().Be(ThresholdStatus.Success);
-    existingMember.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(95);
+    existingMember.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(95);
     existingMember.Metrics[MetricIdentifier.SarifCaRuleViolations].Value.Should().Be(1);
 
     newMember.IsNew.Should().BeTrue();
@@ -177,7 +177,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "EmptySolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
@@ -240,7 +240,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { document },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -315,7 +315,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { document },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -383,7 +383,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { document },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -426,7 +426,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "InclusiveSolution",
       SarifDocuments = new List<ParsedMetricsDocument>(),
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -468,7 +468,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "InclusiveSolution",
       SarifDocuments = new List<ParsedMetricsDocument>(),
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -518,7 +518,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "InclusiveSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -570,7 +570,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "InclusiveSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -587,7 +587,7 @@ public sealed class MetricsAggregationServiceTests
   }
 
   [Test]
-  public void BuildReport_ExcludesConstructorMethods_FromAltCover()
+  public void BuildReport_ExcludesConstructorMethods_FromOpenCover()
   {
     // Arrange
     const string assemblyName = "Sample.Assembly";
@@ -596,7 +596,7 @@ public sealed class MetricsAggregationServiceTests
     const string staticConstructorFqn = "Sample.Namespace.SampleType..cctor(...)";
     const string normalMethodFqn = "Sample.Namespace.SampleType.DoWork(...)";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -610,7 +610,7 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = typeFqn,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent")
                     }
                 },
                 new(CodeElementKind.Member, ".cctor", staticConstructorFqn)
@@ -618,7 +618,7 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = typeFqn,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent")
                     }
                 },
                 new(CodeElementKind.Member, "DoWork", normalMethodFqn)
@@ -626,7 +626,7 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = typeFqn,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(95, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(95, "percent")
                     }
                 }
             }
@@ -635,7 +635,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -714,7 +714,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -808,7 +808,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -893,7 +893,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -929,9 +929,9 @@ public sealed class MetricsAggregationServiceTests
   }
 
   [Test]
-  public void BuildReport_MergesRoslynAndAltCover_ForSameMember()
+  public void BuildReport_MergesRoslynAndOpenCover_ForSameMember()
   {
-    // Arrange: same member appears in Roslyn (Maintainability) and AltCover (coverage); should merge into one node with both metrics.
+    // Arrange: same member appears in Roslyn (Maintainability) and OpenCover (coverage); should merge into one node with both metrics.
     const string assemblyName = "Sample.Assembly";
     const string namespaceFqn = "Sample.Namespace";
     const string typeFqn = "Sample.Namespace.SampleType";
@@ -955,7 +955,7 @@ public sealed class MetricsAggregationServiceTests
       }
     };
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -967,7 +967,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = typeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(55, "%")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(55, "%")
           }
         }
       }
@@ -976,7 +976,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -995,13 +995,13 @@ public sealed class MetricsAggregationServiceTests
     type.Members.Should().ContainSingle(m => m.FullyQualifiedName == memberFqn);
     var member = type.Members.Single(m => m.FullyQualifiedName == memberFqn);
     member.Metrics.Should().ContainKey(MetricIdentifier.RoslynMaintainabilityIndex);
-    member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+    member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
   }
 
   [Test]
   public void BuildReport_HandlesNestedTypesAndGlobalNamespace()
   {
-    // Arrange: AltCover uses '+' for nested types; global namespace should be preserved; ctor must be filtered by provided patterns.
+    // Arrange: OpenCover uses '+' for nested types; global namespace should be preserved; ctor must be filtered by provided patterns.
     const string assemblyName = "Sample.Assembly";
     const string globalNamespace = "<global namespace>";
     const string nestedTypeFqn = "Outer+Inner";
@@ -1010,7 +1010,7 @@ public sealed class MetricsAggregationServiceTests
     const string globalTypeFqn = "<global namespace>.Helper";
     const string globalMethodFqn = "<global namespace>.Helper.Run(...)";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -1022,7 +1022,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = nestedTypeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "%")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "%")
           }
         },
         new(CodeElementKind.Member, "Process", nestedMethodFqn)
@@ -1030,7 +1030,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = nestedTypeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(75, "%")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(75, "%")
           }
         },
         new(CodeElementKind.Type, "Helper", globalTypeFqn) { ParentFullyQualifiedName = globalNamespace },
@@ -1039,7 +1039,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = globalTypeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(90, "%")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(90, "%")
           }
         }
       }
@@ -1048,7 +1048,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1103,7 +1103,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1227,7 +1227,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
       Baseline = null,
@@ -1261,7 +1261,7 @@ public sealed class MetricsAggregationServiceTests
 
     var filePath = @"C:\Repo\Sample.cs";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -1280,19 +1280,19 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(80, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(60, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(80, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(60, "percent")
                     }
                 },
-                // User method with zero AltCover coverage
+                // User method with zero OpenCover coverage
                 new(CodeElementKind.Member, "DoWork", memberFqn)
                 {
                     ParentFullyQualifiedName = typeFqn,
                     Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(0, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(0, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(0, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(0, "percent")
                     }
                 }
             }
@@ -1301,7 +1301,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1322,8 +1322,8 @@ public sealed class MetricsAggregationServiceTests
 
     // Method should receive iterator coverage and be marked accordingly
     var method = type.Members.Should().ContainSingle(m => m.FullyQualifiedName == memberFqn).Subject;
-    method.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(80);
-    method.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(60);
+    method.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(80);
+    method.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(60);
     method.IncludesIteratorStateMachineCoverage.Should().BeTrue();
   }
 
@@ -1339,7 +1339,7 @@ public sealed class MetricsAggregationServiceTests
 
     var filePath = @"C:\Repo\Sample.cs";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -1358,18 +1358,18 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(80, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(60, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(80, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(60, "percent")
                     }
                 },
-                // User method that has no AltCover branch metric (typical async/iterator pattern)
+                // User method that has no OpenCover branch metric (typical async/iterator pattern)
                 new(CodeElementKind.Member, "DoWork", memberFqn)
                 {
                     ParentFullyQualifiedName = typeFqn,
                     Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(0, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(0, "percent")
                     }
                 }
             }
@@ -1378,7 +1378,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1399,8 +1399,8 @@ public sealed class MetricsAggregationServiceTests
 
     // Method should receive sequence coverage but not branch coverage from iterator state machine
     var method = type.Members.Should().ContainSingle(m => m.FullyQualifiedName == memberFqn).Subject;
-    method.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(80);
-    method.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage);
+    method.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(80);
+    method.Metrics.Should().NotContainKey(MetricIdentifier.OpenCoverBranchCoverage);
     method.IncludesIteratorStateMachineCoverage.Should().BeTrue();
   }
 
@@ -1412,7 +1412,7 @@ public sealed class MetricsAggregationServiceTests
     const string namespaceFqn = "Sample.Namespace";
     const string typeFqn = "Sample.Namespace.HelperType";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -1426,8 +1426,8 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = namespaceFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent"),
-            [MetricIdentifier.AltCoverBranchCoverage] = Metric(0, "percent")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent"),
+            [MetricIdentifier.OpenCoverBranchCoverage] = Metric(0, "percent")
           }
         },
         // Method without branch coverage metric (e.g. helper with linear code only)
@@ -1436,7 +1436,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = typeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent")
           }
         }
       }
@@ -1445,7 +1445,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1461,9 +1461,9 @@ public sealed class MetricsAggregationServiceTests
     var @namespace = assembly.Namespaces.Should().ContainSingle(n => n.Name == namespaceFqn).Subject;
     var type = @namespace.Types.Should().ContainSingle(t => t.FullyQualifiedName == typeFqn).Subject;
 
-    type.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-    type.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage,
-      "Type-level AltCoverBranchCoverage should be removed when no member has branch coverage.");
+    type.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+    type.Metrics.Should().NotContainKey(MetricIdentifier.OpenCoverBranchCoverage,
+      "Type-level OpenCoverBranchCoverage should be removed when no member has branch coverage.");
   }
 
   [Test]
@@ -1475,7 +1475,7 @@ public sealed class MetricsAggregationServiceTests
     const string namespaceFqn = "Sample.Namespace";
     const string typeFqn = "Sample.Namespace.HelperType";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -1489,8 +1489,8 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = namespaceFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent"),
-            [MetricIdentifier.AltCoverBranchCoverage] = Metric(50, "percent")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent"),
+            [MetricIdentifier.OpenCoverBranchCoverage] = Metric(50, "percent")
           }
         },
         new(CodeElementKind.Member, "DoWork", typeFqn + ".DoWork(...)")
@@ -1498,7 +1498,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = typeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent")
           }
         }
       }
@@ -1507,7 +1507,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1520,8 +1520,8 @@ public sealed class MetricsAggregationServiceTests
 
     // Assert
     var type = report.Solution.Assemblies.Single().Namespaces.Single().Types.Single();
-    type.Metrics.Should().ContainKey(MetricIdentifier.AltCoverBranchCoverage);
-    type.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(50);
+    type.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverBranchCoverage);
+    type.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(50);
   }
 
   [Test]
@@ -1533,7 +1533,7 @@ public sealed class MetricsAggregationServiceTests
     const string namespaceFqn = "Sample.Namespace";
     const string typeFqn = "Sample.Namespace.HelperType";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -1547,8 +1547,8 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = namespaceFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent"),
-            [MetricIdentifier.AltCoverBranchCoverage] = new MetricValue
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent"),
+            [MetricIdentifier.OpenCoverBranchCoverage] = new MetricValue
             {
               Value = null,
               Status = ThresholdStatus.NotApplicable
@@ -1560,7 +1560,7 @@ public sealed class MetricsAggregationServiceTests
           ParentFullyQualifiedName = typeFqn,
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverSequenceCoverage] = Metric(100, "percent")
+            [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(100, "percent")
           }
         }
       }
@@ -1569,7 +1569,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1582,7 +1582,7 @@ public sealed class MetricsAggregationServiceTests
 
     // Assert
     var type = report.Solution.Assemblies.Single().Namespaces.Single().Types.Single();
-    type.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage);
+    type.Metrics.Should().NotContainKey(MetricIdentifier.OpenCoverBranchCoverage);
   }
 
   [Test]
@@ -1594,7 +1594,7 @@ public sealed class MetricsAggregationServiceTests
     const string typeFqn = "Sample.Namespace.SampleType";
     const string iteratorTypeFqn = "Sample.Namespace.SampleType+<Missing>d__1";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -1612,8 +1612,8 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(50, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(40, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(50, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(40, "percent")
                     }
                 }
             }
@@ -1622,7 +1622,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1653,7 +1653,7 @@ public sealed class MetricsAggregationServiceTests
 
     var filePath = @"C:\Repo\Sample.cs";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -1672,8 +1672,8 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(80, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(60, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(80, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(60, "percent")
                     }
                 },
                 // User method already has non-zero coverage
@@ -1683,8 +1683,8 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(10, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(5, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(10, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(5, "percent")
                     }
                 }
             }
@@ -1693,7 +1693,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1713,8 +1713,8 @@ public sealed class MetricsAggregationServiceTests
     @namespace.Types.Should().Contain(t => t.FullyQualifiedName == iteratorTypeFqn);
 
     var method = type.Members.Should().ContainSingle(m => m.FullyQualifiedName == memberFqn).Subject;
-    method.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(10);
-    method.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(5);
+    method.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(10);
+    method.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(5);
     method.IncludesIteratorStateMachineCoverage.Should().BeFalse();
   }
 
@@ -1734,7 +1734,7 @@ public sealed class MetricsAggregationServiceTests
 
     const string filePath = @"C:\Repo\Logging.cs";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -1765,8 +1765,8 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(75, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(50, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(75, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(50, "percent")
                     }
                 },
                 new(CodeElementKind.Member, "BeginScope", plusTypeFqn + ".BeginScope(...)")
@@ -1775,7 +1775,7 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(80, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(80, "percent")
                     }
                 },
                 new(CodeElementKind.Member, "IsEnabled", plusTypeFqn + ".IsEnabled(...)")
@@ -1784,7 +1784,7 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 21, EndLine = 30 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(60, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(60, "percent")
                     }
                 },
                 new(CodeElementKind.Member, "Log", plusTypeFqn + ".Log(...)")
@@ -1793,7 +1793,7 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 31, EndLine = 40 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(90, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(90, "percent")
                     }
                 },
                 // Inner plus type without coverage but with a method
@@ -1802,8 +1802,8 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(0, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(0, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(0, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(0, "percent")
                     }
                 },
                 new(CodeElementKind.Member, "Dispose", plusInnerTypeFqn + ".Dispose(...)")
@@ -1812,7 +1812,7 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 41, EndLine = 45 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(50, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(50, "percent")
                     }
                 }
             }
@@ -1821,7 +1821,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1849,24 +1849,24 @@ public sealed class MetricsAggregationServiceTests
     var nullScopeType = rootNamespace.Types.Should().ContainSingle(t => t.FullyQualifiedName == dotInnerTypeFqn).Subject;
 
     // Type-level coverage transferred
-    loaderInternalLoggerType.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(75);
-    loaderInternalLoggerType.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(50);
+    loaderInternalLoggerType.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(75);
+    loaderInternalLoggerType.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(50);
 
     // Method-level coverage transferred and flagged
     var beginScope = loaderInternalLoggerType.Members.Should().ContainSingle(m => m.Name == "BeginScope").Subject;
-    beginScope.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(80);
+    beginScope.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(80);
     beginScope.IncludesIteratorStateMachineCoverage.Should().BeTrue();
 
     var isEnabled = loaderInternalLoggerType.Members.Should().ContainSingle(m => m.Name == "IsEnabled").Subject;
-    isEnabled.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(60);
+    isEnabled.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(60);
     isEnabled.IncludesIteratorStateMachineCoverage.Should().BeTrue();
 
     var log = loaderInternalLoggerType.Members.Should().ContainSingle(m => m.Name == "Log").Subject;
-    log.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(90);
+    log.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(90);
     log.IncludesIteratorStateMachineCoverage.Should().BeTrue();
 
     var dispose = nullScopeType.Members.Should().ContainSingle(m => m.Name == "Dispose").Subject;
-    dispose.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(50);
+    dispose.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(50);
     dispose.IncludesIteratorStateMachineCoverage.Should().BeTrue();
   }
 
@@ -1905,7 +1905,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
       Thresholds = thresholds,
@@ -1931,7 +1931,7 @@ public sealed class MetricsAggregationServiceTests
     const string outerTypeFqn = "MyCompany.Services.Core.StructuralElementMerger";
     const string nestedTypeFqn = "MyCompany.Services.Core.StructuralElementMerger.MemberResolutionContext";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -1940,7 +1940,7 @@ public sealed class MetricsAggregationServiceTests
         {
           ParentFullyQualifiedName = assemblyName
         },
-        // AltCover classes report the assembly as parent, forcing namespace inference to rely on the index.
+        // OpenCover classes report the assembly as parent, forcing namespace inference to rely on the index.
         new(CodeElementKind.Type, "MyCompany.Services.Core.StructuralElementMerger", outerTypeFqn)
         {
           ParentFullyQualifiedName = assemblyName,
@@ -1957,7 +1957,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -1984,7 +1984,7 @@ public sealed class MetricsAggregationServiceTests
     const string inferredNamespace = "Sample.Namespace";
     const string typeFqn = "Sample.Namespace.TypeWithoutNamespaceElement";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -2000,7 +2000,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -2028,7 +2028,7 @@ public sealed class MetricsAggregationServiceTests
 
     var filePath = @"C:\Repo\Sample.cs";
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
             {
@@ -2047,8 +2047,8 @@ public sealed class MetricsAggregationServiceTests
                     ParentFullyQualifiedName = assemblyName,
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(0, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(0, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(0, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(0, "percent")
                     }
                 },
                 // User method also with zero coverage
@@ -2058,8 +2058,8 @@ public sealed class MetricsAggregationServiceTests
                     Source = new SourceLocation { Path = filePath, StartLine = 10, EndLine = 20 },
                     Metrics = new Dictionary<MetricIdentifier, MetricValue>
                     {
-                        [MetricIdentifier.AltCoverSequenceCoverage] = Metric(0, "percent"),
-                        [MetricIdentifier.AltCoverBranchCoverage] = Metric(0, "percent")
+                        [MetricIdentifier.OpenCoverSequenceCoverage] = Metric(0, "percent"),
+                        [MetricIdentifier.OpenCoverBranchCoverage] = Metric(0, "percent")
                     }
                 }
             }
@@ -2068,7 +2068,7 @@ public sealed class MetricsAggregationServiceTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "SampleSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
@@ -2089,8 +2089,8 @@ public sealed class MetricsAggregationServiceTests
 
     // Method remains with zero coverage and without iterator flag
     var method = type.Members.Should().ContainSingle(m => m.FullyQualifiedName == memberFqn).Subject;
-    method.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(0);
-    method.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(0);
+    method.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(0);
+    method.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(0);
     method.IncludesIteratorStateMachineCoverage.Should().BeFalse();
   }
 
@@ -2136,7 +2136,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
       Thresholds = thresholds,
@@ -2200,7 +2200,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
       Thresholds = thresholds,
@@ -2289,7 +2289,7 @@ public sealed class MetricsAggregationServiceTests
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
     };
@@ -2322,7 +2322,7 @@ public sealed class MetricsAggregationServiceTests
     {
       Metrics = new Dictionary<MetricIdentifier, MetricValue>
       {
-        [MetricIdentifier.AltCoverSequenceCoverage] = new()
+        [MetricIdentifier.OpenCoverSequenceCoverage] = new()
         {
           Value = null,
           Status = ThresholdStatus.NotApplicable
@@ -2338,9 +2338,9 @@ public sealed class MetricsAggregationServiceTests
       Breakdown = SarifBreakdownTestHelper.Single("CA0001")
     };
 
-    mergeMetric!.Invoke(null, new object[] { node, MetricIdentifier.AltCoverSequenceCoverage, incoming, false });
+    mergeMetric!.Invoke(null, new object[] { node, MetricIdentifier.OpenCoverSequenceCoverage, incoming, false });
 
-    var updated = node.Metrics[MetricIdentifier.AltCoverSequenceCoverage];
+    var updated = node.Metrics[MetricIdentifier.OpenCoverSequenceCoverage];
     updated.Value.Should().Be(5);
     updated.Delta.Should().Be(1);
     updated.Status.Should().Be(ThresholdStatus.Warning);
@@ -2353,9 +2353,9 @@ public sealed class MetricsAggregationServiceTests
       Status = ThresholdStatus.Error
     };
 
-    mergeMetric.Invoke(null, new object[] { node, MetricIdentifier.AltCoverSequenceCoverage, nullValueMetric, true });
+    mergeMetric.Invoke(null, new object[] { node, MetricIdentifier.OpenCoverSequenceCoverage, nullValueMetric, true });
 
-    node.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(5, "null metrics should be ignored when aggregating");
+    node.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(5, "null metrics should be ignored when aggregating");
   }
 
   [Test]
@@ -2394,7 +2394,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = null,
       Thresholds = thresholds,
@@ -2435,7 +2435,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -2445,8 +2445,8 @@ public sealed class MetricsAggregationServiceTests
     var report = service.BuildReport(input);
 
     // Assert
-    report.Metadata.MetricDescriptors.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-    report.Metadata.MetricDescriptors[MetricIdentifier.AltCoverSequenceCoverage].Unit.Should().Be("percent");
+    report.Metadata.MetricDescriptors.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+    report.Metadata.MetricDescriptors[MetricIdentifier.OpenCoverSequenceCoverage].Unit.Should().Be("percent");
     report.Metadata.MetricDescriptors[MetricIdentifier.RoslynMaintainabilityIndex].Unit.Should().Be("score");
   }
 
@@ -2494,7 +2494,7 @@ public sealed class MetricsAggregationServiceTests
     {
       SolutionName = "SampleSolution",
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Baseline = baseline,
       Thresholds = thresholds,

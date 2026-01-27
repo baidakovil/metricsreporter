@@ -96,8 +96,8 @@
       "requirements": [
         {
           "kind": "atLeastOne",
-          "settings": [ "AltCoverPaths", "RoslynPaths", "SarifPaths" ],
-          "message": "No metrics inputs found (altcover/roslyn/sarif); report will be empty."
+          "settings": [ "OpenCoverPaths", "RoslynPaths", "SarifPaths" ],
+          "message": "No metrics inputs found (opencover/roslyn/sarif); report will be empty."
         }
       ]
     },

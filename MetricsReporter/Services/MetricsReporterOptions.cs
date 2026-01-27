@@ -19,9 +19,9 @@ public sealed class MetricsReporterOptions
   public string SolutionName { get; init; } = "Solution";
 
   /// <summary>
-  /// Paths to AltCover/OpenCover coverage XML files.
+  /// Paths to OpenCover coverage XML files.
   /// </summary>
-  public IReadOnlyCollection<string> AltCoverPaths { get; init; } = [];
+  public IReadOnlyCollection<string> OpenCoverPaths { get; init; } = [];
 
   /// <summary>
   /// Paths to Roslyn code metrics XML reports.

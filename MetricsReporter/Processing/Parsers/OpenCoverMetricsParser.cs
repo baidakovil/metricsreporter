@@ -10,12 +10,10 @@ using System.Xml.Linq;
 using MetricsReporter.Model;
 
 /// <summary>
-/// Parses AltCover/OpenCover XML reports.
+/// Parses OpenCover XML reports using a namespace-agnostic, tolerant strategy.
 /// </summary>
-public sealed class AltCoverMetricsParser : IMetricsSourceParser
+public sealed class OpenCoverMetricsParser : IMetricsSourceParser
 {
-  private static readonly XNamespace XmlNamespace = XNamespace.None;
-
   /// <inheritdoc />
   public async Task<ParsedMetricsDocument> ParseAsync(string path, CancellationToken cancellationToken)
   {
@@ -34,8 +32,8 @@ public sealed class AltCoverMetricsParser : IMetricsSourceParser
   private static async Task<List<ParsedCodeElement>> ReadCodeElementsAsync(string path, CancellationToken cancellationToken)
   {
     var document = await LoadXmlDocumentAsync(path, cancellationToken).ConfigureAwait(false);
-    var coverageSession = ExtractCoverageSession(document);
-    var modules = ExtractModules(coverageSession);
+    var coverageRoot = ExtractCoverageRoot(document);
+    var modules = ExtractModules(coverageRoot);
     return modules.SelectMany(ParseModule).ToList();
   }
 
@@ -52,35 +50,49 @@ public sealed class AltCoverMetricsParser : IMetricsSourceParser
   }
 
   /// <summary>
-  /// Extracts the CoverageSession root element from the XML document.
+  /// Extracts the OpenCover root element from the XML document.
   /// </summary>
   /// <param name="document">The XML document to extract from.</param>
-  /// <returns>The CoverageSession element.</returns>
-  /// <exception cref="InvalidOperationException">Thrown when CoverageSession root element is not found.</exception>
-  private static XElement ExtractCoverageSession(XDocument document)
+  /// <returns>The element that contains OpenCover coverage data.</returns>
+  private static XElement ExtractCoverageRoot(XDocument document)
   {
-    return document.Element(XmlNamespace + "CoverageSession")
-           ?? throw new InvalidOperationException("CoverageSession root element not found.");
+    var root = document.Root ?? throw new InvalidOperationException("Coverage XML document has no root element.");
+
+    if (IsCoverageRoot(root))
+    {
+      return root;
+    }
+
+    return root.Descendants().FirstOrDefault(IsCoverageRoot) ?? root;
   }
 
   /// <summary>
-  /// Extracts module elements from the CoverageSession element.
+  /// Extracts module elements from the OpenCover root element.
   /// </summary>
-  /// <param name="coverageSession">The CoverageSession element containing modules.</param>
+  /// <param name="coverageRoot">The OpenCover root element containing modules.</param>
   /// <returns>Enumerable collection of Module elements.</returns>
-  private static IEnumerable<XElement> ExtractModules(XElement coverageSession)
+  private static IEnumerable<XElement> ExtractModules(XElement coverageRoot)
   {
-    return coverageSession
-        .Element(XmlNamespace + "Modules")
-        ?.Elements(XmlNamespace + "Module")
-        ?? Enumerable.Empty<XElement>();
+    var modulesElement = coverageRoot.ElementByLocalName("Modules")
+                         ?? coverageRoot.DescendantsByLocalName("Modules").FirstOrDefault();
+
+    if (modulesElement is not null)
+    {
+      return modulesElement.ElementsByLocalName("Module");
+    }
+
+    return coverageRoot.DescendantsByLocalName("Module");
   }
+
+  private static bool IsCoverageRoot(XElement element)
+    => string.Equals(element.Name.LocalName, "CoverageSession", StringComparison.OrdinalIgnoreCase)
+       || string.Equals(element.Name.LocalName, "Coverage", StringComparison.OrdinalIgnoreCase);
 
   private static IEnumerable<ParsedCodeElement> ParseModule(XElement module)
   {
-    var assemblyName = module.Element(XmlNamespace + "ModuleName")?.Value ?? "<unknown-assembly>";
+    var assemblyName = module.ElementByLocalName("ModuleName")?.Value ?? "<unknown-assembly>";
     var assemblyNode = CreateNode(CodeElementKind.Assembly, assemblyName, assemblyName, null);
-    AltCoverMetricMapper.PopulateSummaryMetrics(assemblyNode.Metrics, module.Element(XmlNamespace + "Summary"));
+    OpenCoverMetricMapper.PopulateSummaryMetrics(assemblyNode.Metrics, module.ElementByLocalName("Summary"));
     yield return assemblyNode;
 
     var files = BuildFileMap(module);
@@ -93,12 +105,12 @@ public sealed class AltCoverMetricsParser : IMetricsSourceParser
 
   private static Dictionary<string, string> BuildFileMap(XElement module)
   {
-    return module.Element(XmlNamespace + "Files")?
-               .Elements(XmlNamespace + "File")
+    return module.ElementByLocalName("Files")?
+               .ElementsByLocalName("File")
                .Select(file => new
                {
-                 Id = file.Attribute("uid")?.Value,
-                 Path = file.Attribute("fullPath")?.Value
+                 Id = file.AttributeByLocalName("uid")?.Value,
+                 Path = file.AttributeByLocalName("fullPath")?.Value
                })
                .Where(file => file.Id is not null && file.Path is not null)
                .ToDictionary(file => file.Id!, file => file.Path!, StringComparer.OrdinalIgnoreCase)
@@ -110,18 +122,16 @@ public sealed class AltCoverMetricsParser : IMetricsSourceParser
       ParsedCodeElement assemblyNode,
       Dictionary<string, string> files)
   {
-    var classesElement = module.Element(XmlNamespace + "Classes");
-    if (classesElement is null)
-    {
-      yield break;
-    }
+    var classesElement = module.ElementByLocalName("Classes");
+    var classElements = classesElement?.ElementsByLocalName("Class")
+                        ?? module.DescendantsByLocalName("Class");
 
-    foreach (var classElement in classesElement.Elements(XmlNamespace + "Class"))
+    foreach (var classElement in classElements)
     {
       var classNode = CreateClassNode(classElement, assemblyNode);
       yield return classNode;
 
-      foreach (var member in AltCoverMethodParser.ParseMethods(classElement, classNode, files, XmlNamespace))
+      foreach (var member in OpenCoverMethodParser.ParseMethods(classElement, classNode, files))
       {
         yield return member;
       }
@@ -130,14 +140,14 @@ public sealed class AltCoverMetricsParser : IMetricsSourceParser
 
   private static ParsedCodeElement CreateClassNode(XElement classElement, ParsedCodeElement assemblyNode)
   {
-    var className = classElement.Element(XmlNamespace + "FullName")?.Value ?? "<unknown-class>";
+    var className = classElement.ElementByLocalName("FullName")?.Value ?? "<unknown-class>";
     var classNode = CreateNode(
         CodeElementKind.Type,
         className,
         NormalizeTypeName(className),
         assemblyNode.FullyQualifiedName);
 
-    AltCoverMetricMapper.PopulateSummaryMetrics(classNode.Metrics, classElement.Element(XmlNamespace + "Summary"));
+    OpenCoverMetricMapper.PopulateSummaryMetrics(classNode.Metrics, classElement.ElementByLocalName("Summary"));
     return classNode;
   }
 
@@ -154,8 +164,7 @@ public sealed class AltCoverMetricsParser : IMetricsSourceParser
       return fullName;
     }
 
-    // AltCover uses Namespace.Type/Nested to describe nested types.
+    // OpenCover uses Namespace.Type/Nested to describe nested types.
     return fullName.Replace('/', '+');
   }
 }
-

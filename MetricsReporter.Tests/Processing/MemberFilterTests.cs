@@ -60,7 +60,7 @@ public sealed class MemberFilterTests
   }
 
   [Test]
-  public void ShouldExcludeMethodByFqn_ExcludesAltCoverConstructor()
+  public void ShouldExcludeMethodByFqn_ExcludesOpenCoverConstructor()
   {
     // Arrange
     const string constructorFqn = "Namespace.Type..ctor(...)";
@@ -71,7 +71,7 @@ public sealed class MemberFilterTests
   }
 
   [Test]
-  public void ShouldExcludeMethodByFqn_ExcludesAltCoverStaticConstructor()
+  public void ShouldExcludeMethodByFqn_ExcludesOpenCoverStaticConstructor()
   {
     // Arrange
     const string staticConstructorFqn = "Namespace.Type..cctor(...)";

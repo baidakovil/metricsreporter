@@ -17,7 +17,7 @@ public sealed class ThresholdsParserTests
 
     // Assert
     result.Should().HaveCount(Enum.GetValues<MetricIdentifier>().Length);
-    result[MetricIdentifier.AltCoverSequenceCoverage].Levels[MetricSymbolLevel.Type].HigherIsBetter.Should().BeTrue();
+    result[MetricIdentifier.OpenCoverSequenceCoverage].Levels[MetricSymbolLevel.Type].HigherIsBetter.Should().BeTrue();
     result[MetricIdentifier.SarifCaRuleViolations].Levels[MetricSymbolLevel.Type].HigherIsBetter.Should().BeFalse();
   }
 
@@ -29,7 +29,7 @@ public sealed class ThresholdsParserTests
         {
           "metrics": [
             {
-              "name": "AltCoverSequenceCoverage",
+              "name": "OpenCoverSequenceCoverage",
               "higherIsBetter": true,
               "symbolThresholds": {
                 "Type": { "warning": 80, "error": 70 }
@@ -50,8 +50,8 @@ public sealed class ThresholdsParserTests
     var result = ThresholdsParser.Parse(customJson);
 
     // Assert
-    result[MetricIdentifier.AltCoverSequenceCoverage].Levels[MetricSymbolLevel.Type].Warning.Should().Be(80);
-    result[MetricIdentifier.AltCoverSequenceCoverage].Levels[MetricSymbolLevel.Type].Error.Should().Be(70);
+    result[MetricIdentifier.OpenCoverSequenceCoverage].Levels[MetricSymbolLevel.Type].Warning.Should().Be(80);
+    result[MetricIdentifier.OpenCoverSequenceCoverage].Levels[MetricSymbolLevel.Type].Error.Should().Be(70);
     result[MetricIdentifier.SarifCaRuleViolations].Levels[MetricSymbolLevel.Type].Warning.Should().Be(1);
     result[MetricIdentifier.SarifCaRuleViolations].Levels[MetricSymbolLevel.Type].Error.Should().Be(2);
   }
@@ -133,8 +133,8 @@ public sealed class ThresholdsParserTests
 
     // Assert
     result.Should().HaveCount(Enum.GetValues<MetricIdentifier>().Length);
-    result[MetricIdentifier.AltCoverBranchCoverage].Levels[MetricSymbolLevel.Type].Warning.Should().Be(70);
-    result[MetricIdentifier.AltCoverBranchCoverage].Levels[MetricSymbolLevel.Type].Error.Should().Be(55);
+    result[MetricIdentifier.OpenCoverBranchCoverage].Levels[MetricSymbolLevel.Type].Warning.Should().Be(70);
+    result[MetricIdentifier.OpenCoverBranchCoverage].Levels[MetricSymbolLevel.Type].Error.Should().Be(55);
   }
 
   [Test]
@@ -177,7 +177,7 @@ public sealed class ThresholdsParserTests
   public void Parse_InvalidJson_ThrowsInvalidOperationException()
   {
     // Arrange
-    const string invalidJson = "{'AltCoverSequenceCoverage':{'warning':}";
+    const string invalidJson = "{'OpenCoverSequenceCoverage':{'warning':}";
 
     // Act
     var act = () => ThresholdsParser.Parse(invalidJson);

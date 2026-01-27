@@ -387,13 +387,13 @@ public sealed class MetricCellRendererTests
     // Arrange
     var metricOrder = new[]
     {
-      MetricIdentifier.AltCoverSequenceCoverage,
+      MetricIdentifier.OpenCoverSequenceCoverage,
       MetricIdentifier.RoslynClassCoupling,
       MetricIdentifier.SarifCaRuleViolations
     };
     var metricUnits = new Dictionary<MetricIdentifier, string?>
     {
-      [MetricIdentifier.AltCoverSequenceCoverage] = "%",
+      [MetricIdentifier.OpenCoverSequenceCoverage] = "%",
       [MetricIdentifier.RoslynClassCoupling] = null,
       [MetricIdentifier.SarifCaRuleViolations] = null
     };
@@ -405,7 +405,7 @@ public sealed class MetricCellRendererTests
       FullyQualifiedName = "Sample.Namespace.SampleType",
       Metrics = new Dictionary<MetricIdentifier, MetricValue>
       {
-        [MetricIdentifier.AltCoverSequenceCoverage] = new MetricValue { Value = 75, Status = ThresholdStatus.Success },
+        [MetricIdentifier.OpenCoverSequenceCoverage] = new MetricValue { Value = 75, Status = ThresholdStatus.Success },
         [MetricIdentifier.RoslynClassCoupling] = new MetricValue { Value = 25, Status = ThresholdStatus.Success },
         [MetricIdentifier.SarifCaRuleViolations] = new MetricValue { Value = 0, Status = ThresholdStatus.Success }
       }
@@ -418,7 +418,7 @@ public sealed class MetricCellRendererTests
 
     // Assert
     var result = builder.ToString();
-    result.Should().Contain("AltCoverSequenceCoverage");
+    result.Should().Contain("OpenCoverSequenceCoverage");
     result.Should().Contain("RoslynClassCoupling");
     result.Should().Contain("SarifCaRuleViolations");
   }

@@ -113,7 +113,7 @@ internal static class GenerateInputResolver
     return new ResolvedGenerateInputs(
       SolutionName: solutionName,
       MetricsDir: CommandPathResolver.MakeAbsolute(metricsDir, workingDirectory),
-      AltCover: ResolveList(settings.AltCover, envPaths.AltCover, filePaths.AltCover, workingDirectory),
+      OpenCover: ResolveList(settings.OpenCover, envPaths.OpenCover, filePaths.OpenCover, workingDirectory),
       Roslyn: ResolveList(settings.Roslyn, envPaths.Roslyn, filePaths.Roslyn, workingDirectory),
       Sarif: ResolveList(settings.Sarif, envPaths.Sarif, filePaths.Sarif, workingDirectory),
       Baseline: CommandPathResolver.MakeAbsolute(baseline, workingDirectory),
@@ -262,7 +262,7 @@ internal sealed record GenerateInputResolutionResult(bool Succeeded, int? ExitCo
 internal sealed record ResolvedGenerateInputs(
   string SolutionName,
   string? MetricsDir,
-  string[] AltCover,
+  string[] OpenCover,
   string[] Roslyn,
   string[] Sarif,
   string? Baseline,

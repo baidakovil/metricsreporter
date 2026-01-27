@@ -70,8 +70,8 @@ internal static class CommandAppConfigurator
       config.ValidateExamples();
 
       config.AddCommand<GenerateCommand>("generate")
-        .WithDescription("Aggregates metrics from AltCover/Roslyn/SARIF inputs and produces metrics-report.json/metrics-report.html.")
-        .WithExample("generate", "--metrics-dir", "build/Metrics", "--altcover", "coverage.xml", "--roslyn", "metrics.xml", "--sarif", "analyzers.sarif", "--output-json", "build/Metrics/Report/MetricsReport.g.json")
+        .WithDescription("Aggregates metrics from OpenCover/Roslyn/SARIF inputs and produces metrics-report.json/metrics-report.html.")
+        .WithExample("generate", "--metrics-dir", "build/Metrics", "--opencover", "coverage.xml", "--roslyn", "metrics.xml", "--sarif", "analyzers.sarif", "--output-json", "build/Metrics/Report/MetricsReport.g.json")
         .WithExample("generate", "--input-json", "build/Metrics/Report/MetricsReport.g.json", "--output-html", "build/Metrics/Report/MetricsReport.html");
 
       config.AddCommand<ReadCommand>("read")

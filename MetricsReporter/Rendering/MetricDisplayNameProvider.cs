@@ -23,10 +23,10 @@ internal static class MetricDisplayNameProvider
   private static readonly Dictionary<MetricIdentifier, string> DisplayNames =
     new()
     {
-      [MetricIdentifier.AltCoverSequenceCoverage] = "Sequence Coverage",
-      [MetricIdentifier.AltCoverBranchCoverage] = "Branch Coverage",
-      [MetricIdentifier.AltCoverCyclomaticComplexity] = "Cyclomatic (AltCover)",
-      [MetricIdentifier.AltCoverNPathComplexity] = "NPath",
+      [MetricIdentifier.OpenCoverSequenceCoverage] = "Sequence Coverage",
+      [MetricIdentifier.OpenCoverBranchCoverage] = "Branch Coverage",
+      [MetricIdentifier.OpenCoverCyclomaticComplexity] = "Cyclomatic (OpenCover)",
+      [MetricIdentifier.OpenCoverNPathComplexity] = "NPath",
       [MetricIdentifier.RoslynMaintainabilityIndex] = "Maintainability",
       [MetricIdentifier.RoslynCyclomaticComplexity] = "Cyclomatic (Roslyn)",
       [MetricIdentifier.RoslynClassCoupling] = "Class Coupling",

@@ -70,7 +70,7 @@ public sealed class TableStructureBuilderTests
     var result = builder.ToString();
     result.Should().Contain("<table id=\"metrics-table\"");
     result.Should().Contain("<thead>");
-    result.Should().Contain("data-col-group=\"AltCover\"");
+    result.Should().Contain("data-col-group=\"OpenCover\"");
     result.Should().Contain("data-col-group=\"Roslyn\"");
     result.Should().Contain("data-col-group=\"Sarif\"");
     result.Should().Contain("data-col=\"RoslynClassCoupling\"");
@@ -84,7 +84,7 @@ public sealed class TableStructureBuilderTests
     // Arrange
     var metricOrder = new[]
     {
-      MetricIdentifier.AltCoverSequenceCoverage,
+      MetricIdentifier.OpenCoverSequenceCoverage,
       MetricIdentifier.RoslynClassCoupling,
       MetricIdentifier.SarifCaRuleViolations
     };
@@ -95,7 +95,7 @@ public sealed class TableStructureBuilderTests
 
     // Assert
     var result = builder.ToString();
-    result.Should().Contain("AltCover");
+    result.Should().Contain("OpenCover");
     result.Should().Contain("Roslyn");
     result.Should().Contain("Sarif");
   }

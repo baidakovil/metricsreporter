@@ -106,7 +106,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -228,7 +228,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -318,7 +318,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -439,7 +439,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -541,7 +541,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -586,7 +586,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "TestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
       Baseline = null,
@@ -675,7 +675,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -756,7 +756,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -884,7 +884,7 @@ public sealed class MetricsAggregationServiceRuleDescriptionsFilteringTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()

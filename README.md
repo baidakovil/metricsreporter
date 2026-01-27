@@ -1,6 +1,6 @@
 # MetricsReporter
 
-MetricsReporter is a .NET 8 library and CLI for aggregating code metrics (AltCover, Roslyn, SARIF) into unified JSON/HTML reports. The CLI is shipped as a `dotnet tool` wrapper over the library so that consumers can either reference the package or run the tool directly.
+MetricsReporter is a .NET 8 library and CLI for aggregating code metrics (OpenCover, Roslyn, SARIF) into unified JSON/HTML reports. The CLI is shipped as a `dotnet tool` wrapper over the library so that consumers can either reference the package or run the tool directly.
 
 ## Projects
 - `MetricsReporter` — class library (`PackageId: MetricsReporter`).

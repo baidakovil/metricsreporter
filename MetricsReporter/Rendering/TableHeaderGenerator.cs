@@ -18,10 +18,10 @@ internal static class TableHeaderGenerator
   public static void GenerateHeader(MetricIdentifier[] metricOrder, StringBuilder builder)
   {
     builder.AppendLine("  <thead>");
-    // First header row: group labels (AltCover, Roslyn, Sarif)
+    // First header row: group labels (OpenCover, Roslyn, Sarif)
     builder.AppendLine("    <tr>");
     builder.AppendLine("      <th data-col=\"symbol\" rowspan=\"2\">Symbol</th>");
-    builder.AppendLine("      <th colspan=\"4\" data-col-group=\"AltCover\">AltCover</th>");
+    builder.AppendLine("      <th colspan=\"4\" data-col-group=\"OpenCover\">OpenCover</th>");
     builder.AppendLine("      <th colspan=\"6\" data-col-group=\"Roslyn\">Roslyn</th>");
     builder.AppendLine("      <th colspan=\"2\" data-col-group=\"Sarif\">Sarif</th>");
     builder.AppendLine("    </tr>");

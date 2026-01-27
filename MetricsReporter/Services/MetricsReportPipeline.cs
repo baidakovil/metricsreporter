@@ -20,21 +20,21 @@ using Microsoft.Extensions.Logging;
 /// </summary>
 internal sealed class MetricsReportPipeline : IMetricsReportPipeline
 {
-  private readonly AltCoverMetricsParser _altCoverParser;
+  private readonly OpenCoverMetricsParser _openCoverParser;
   private readonly RoslynMetricsParser _roslynParser;
   private readonly SarifMetricsParser _sarifParser;
 
   public MetricsReportPipeline()
-    : this(new AltCoverMetricsParser(), new RoslynMetricsParser(), new SarifMetricsParser())
+    : this(new OpenCoverMetricsParser(), new RoslynMetricsParser(), new SarifMetricsParser())
   {
   }
 
   internal MetricsReportPipeline(
-      AltCoverMetricsParser altCoverParser,
+      OpenCoverMetricsParser openCoverParser,
       RoslynMetricsParser roslynParser,
       SarifMetricsParser sarifParser)
   {
-    _altCoverParser = altCoverParser;
+    _openCoverParser = openCoverParser;
     _roslynParser = roslynParser;
     _sarifParser = sarifParser;
   }
@@ -57,7 +57,7 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
       return documentsResult.ExitCode;
     }
 
-    if (!AltCoverDocumentValidator.TryValidateUniqueSymbols(documentsResult.AltCoverDocuments, logger))
+    if (!OpenCoverDocumentValidator.TryValidateUniqueSymbols(documentsResult.OpenCoverDocuments, logger))
     {
       return MetricsReporterExitCode.ParsingError;
     }
@@ -86,8 +86,8 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
       ILogger logger,
       CancellationToken cancellationToken)
   {
-    var altCoverDocuments = await ParseAltCoverDocumentsAsync(options, logger, cancellationToken).ConfigureAwait(false);
-    if (altCoverDocuments is null)
+    var openCoverDocuments = await ParseOpenCoverDocumentsAsync(options, logger, cancellationToken).ConfigureAwait(false);
+    if (openCoverDocuments is null)
     {
       return new ParsedDocumentsResult(MetricsReporterExitCode.ParsingError, [], [], []);
     }
@@ -95,38 +95,38 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
     var roslynDocuments = await ParseRoslynDocumentsAsync(options, logger, cancellationToken).ConfigureAwait(false);
     if (roslynDocuments is null)
     {
-      return new ParsedDocumentsResult(MetricsReporterExitCode.ParsingError, altCoverDocuments, [], []);
+      return new ParsedDocumentsResult(MetricsReporterExitCode.ParsingError, openCoverDocuments, [], []);
     }
 
     var sarifDocuments = await ParseSarifDocumentsAsync(options, logger, cancellationToken).ConfigureAwait(false);
     if (sarifDocuments is null)
     {
-      return new ParsedDocumentsResult(MetricsReporterExitCode.ParsingError, altCoverDocuments, roslynDocuments, []);
+      return new ParsedDocumentsResult(MetricsReporterExitCode.ParsingError, openCoverDocuments, roslynDocuments, []);
     }
 
     logger.LogInformation(
-      "Metrics parsed successfully: {AltCoverCount} AltCover, {RoslynCount} Roslyn, {SarifCount} Sarif",
-      altCoverDocuments.Count,
+      "Metrics parsed successfully: {OpenCoverCount} OpenCover, {RoslynCount} Roslyn, {SarifCount} Sarif",
+      openCoverDocuments.Count,
       roslynDocuments.Count,
       sarifDocuments.Count);
 
-    return new ParsedDocumentsResult(MetricsReporterExitCode.Success, altCoverDocuments, roslynDocuments, sarifDocuments);
+    return new ParsedDocumentsResult(MetricsReporterExitCode.Success, openCoverDocuments, roslynDocuments, sarifDocuments);
   }
 
-  private async Task<IList<ParsedMetricsDocument>?> ParseAltCoverDocumentsAsync(
+  private async Task<IList<ParsedMetricsDocument>?> ParseOpenCoverDocumentsAsync(
       MetricsReporterOptions options,
       ILogger logger,
       CancellationToken cancellationToken)
   {
     var documents = new List<ParsedMetricsDocument>();
-    foreach (var path in options.AltCoverPaths)
+    foreach (var path in options.OpenCoverPaths)
     {
       if (string.IsNullOrWhiteSpace(path))
       {
         continue;
       }
 
-      var document = await ParseSafeAsync(_altCoverParser, path, logger, cancellationToken).ConfigureAwait(false);
+      var document = await ParseSafeAsync(_openCoverParser, path, logger, cancellationToken).ConfigureAwait(false);
       if (document is null)
       {
         return null;
@@ -189,7 +189,7 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
     return new MetricsAggregationInput
     {
       SolutionName = context.Options.SolutionName,
-      AltCoverDocuments = documentsResult.AltCoverDocuments,
+      OpenCoverDocuments = documentsResult.OpenCoverDocuments,
       RoslynDocuments = documentsResult.RoslynDocuments,
       SarifDocuments = documentsResult.SarifDocuments,
       Baseline = context.Baseline,

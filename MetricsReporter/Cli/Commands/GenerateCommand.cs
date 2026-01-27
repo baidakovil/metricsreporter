@@ -13,7 +13,7 @@ using Spectre.Console.Cli;
 namespace MetricsReporter.Cli.Commands;
 
 /// <summary>
-/// Generates metrics reports (JSON/HTML) from AltCover, Roslyn, and SARIF inputs.
+/// Generates metrics reports (JSON/HTML) from OpenCover, Roslyn, and SARIF inputs.
 /// </summary>
 internal sealed class GenerateCommand : AsyncCommand<GenerateSettings>
 {

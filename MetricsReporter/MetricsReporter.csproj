@@ -3,7 +3,7 @@
     <AssemblyName>MetricsReporter</AssemblyName>
     <RootNamespace>MetricsReporter</RootNamespace>
     <PackageId>MetricsReporter</PackageId>
-    <Description>Metrics aggregation and reporting library for SARIF, AltCover, and Roslyn code metrics.</Description>
+    <Description>Metrics aggregation and reporting library for SARIF, OpenCover, and Roslyn code metrics.</Description>
     <PackageTags>metrics;coverage;sarif;roslyn;dotnet</PackageTags>
   </PropertyGroup>
   <ItemGroup>

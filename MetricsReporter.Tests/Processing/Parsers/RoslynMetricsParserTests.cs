@@ -18,7 +18,7 @@ using MetricsReporter.Processing.Parsers;
 /// <remarks>
 /// These tests verify that RoslynMetricsParser correctly normalizes method signatures
 /// from Roslyn XML format to unified format, ensuring symbols can be properly merged
-/// with symbols from other sources (e.g., AltCover).
+/// with symbols from other sources (e.g., OpenCover).
 /// </remarks>
 [TestFixture]
 [Category("Unit")]
@@ -353,10 +353,10 @@ public sealed class RoslynMetricsParserTests
   }
 
   [Test]
-  public async Task ParseAsync_AltCoverAndRoslyn_ProduceSameNormalizedName()
+  public async Task ParseAsync_OpenCoverAndRoslyn_ProduceSameNormalizedName()
   {
-    // Arrange - This test verifies that AltCover and Roslyn formats normalize to the same result
-    // AltCover format: "void Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)"
+    // Arrange - This test verifies that OpenCover and Roslyn formats normalize to the same result
+    // OpenCover format: "void Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)"
     // Roslyn format: "void OnApplicationIdling(object? sender, IdlingEventArgs e)"
     // Both should normalize to: "Rca.Loader.LoaderApp.OnApplicationIdling(...)"
 

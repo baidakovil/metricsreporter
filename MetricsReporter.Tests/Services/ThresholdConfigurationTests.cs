@@ -58,7 +58,7 @@ public sealed class ThresholdConfigurationTests
           [MetricSymbolLevel.Type] = new MetricThreshold { Warning = 40, Error = 50, HigherIsBetter = false }
         }
       },
-      [MetricIdentifier.AltCoverSequenceCoverage] = new MetricThresholdDefinition
+      [MetricIdentifier.OpenCoverSequenceCoverage] = new MetricThresholdDefinition
       {
         Levels = new Dictionary<MetricSymbolLevel, MetricThreshold>
         {
@@ -76,7 +76,7 @@ public sealed class ThresholdConfigurationTests
     dictionary.Should().NotBeNull();
     dictionary.Should().HaveCount(2);
     dictionary.Should().ContainKey(MetricIdentifier.RoslynClassCoupling);
-    dictionary.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
+    dictionary.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
   }
 
   [Test]

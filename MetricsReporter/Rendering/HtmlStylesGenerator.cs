@@ -233,8 +233,8 @@ internal static class HtmlStylesGenerator
     builder.AppendLine(".metrics th[data-col='symbol'], .metrics td.symbol, .metrics th.symbol { border-right: var(--border-dark-width) solid var(--border-dark-color); }");
     builder.AppendLine(".metrics thead th[data-col='symbol'] { border-bottom: var(--border-dark-width) solid var(--border-dark-color) !important; }");
 
-    builder.AppendLine(".metrics th[data-col='AltCoverCyclomaticComplexity'], .metrics td.metric[data-col='AltCoverCyclomaticComplexity'], .metrics th.metric[data-col='AltCoverCyclomaticComplexity'] { border-right: var(--border-dark-width) solid var(--border-dark-color); }");
-    builder.AppendLine(".metrics th[data-col-group='AltCover'] { border-right: var(--border-dark-width) solid var(--border-dark-color); }");
+    builder.AppendLine(".metrics th[data-col='OpenCoverCyclomaticComplexity'], .metrics td.metric[data-col='OpenCoverCyclomaticComplexity'], .metrics th.metric[data-col='OpenCoverCyclomaticComplexity'] { border-right: var(--border-dark-width) solid var(--border-dark-color); }");
+    builder.AppendLine(".metrics th[data-col-group='OpenCover'] { border-right: var(--border-dark-width) solid var(--border-dark-color); }");
 
     builder.AppendLine(".metrics th[data-col='RoslynCyclomaticComplexity'], .metrics td.metric[data-col='RoslynCyclomaticComplexity'], .metrics th.metric[data-col='RoslynCyclomaticComplexity'] { border-left: var(--border-dark-width) solid var(--border-dark-color); }");
     builder.AppendLine(".metrics th[data-col='RoslynExecutableLines'], .metrics td.metric[data-col='RoslynExecutableLines'], .metrics th.metric[data-col='RoslynExecutableLines'] { border-right: var(--border-dark-width) solid var(--border-dark-color); }");

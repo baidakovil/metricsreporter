@@ -11,10 +11,10 @@ internal static class MetricDescriptorCatalog
   private static readonly Dictionary<MetricIdentifier, MetricDescriptor> Descriptors =
       new Dictionary<MetricIdentifier, MetricDescriptor>
       {
-        [MetricIdentifier.AltCoverSequenceCoverage] = new() { Unit = "percent" },
-        [MetricIdentifier.AltCoverBranchCoverage] = new() { Unit = "percent" },
-        [MetricIdentifier.AltCoverCyclomaticComplexity] = new() { Unit = "count" },
-        [MetricIdentifier.AltCoverNPathComplexity] = new() { Unit = "count" },
+        [MetricIdentifier.OpenCoverSequenceCoverage] = new() { Unit = "percent" },
+        [MetricIdentifier.OpenCoverBranchCoverage] = new() { Unit = "percent" },
+        [MetricIdentifier.OpenCoverCyclomaticComplexity] = new() { Unit = "count" },
+        [MetricIdentifier.OpenCoverNPathComplexity] = new() { Unit = "count" },
         [MetricIdentifier.RoslynMaintainabilityIndex] = new() { Unit = "score" },
         [MetricIdentifier.RoslynCyclomaticComplexity] = new() { Unit = "count" },
         [MetricIdentifier.RoslynClassCoupling] = new() { Unit = "count" },

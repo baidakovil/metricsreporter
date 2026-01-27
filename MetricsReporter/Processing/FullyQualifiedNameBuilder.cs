@@ -89,7 +89,7 @@ internal sealed class FullyQualifiedNameBuilder
       return null;
     }
 
-    // Always include "(...)" so the normalized form matches AltCover/Roslyn convention.
+    // Always include "(...)" so the normalized form matches OpenCover/Roslyn convention.
     var raw = $"{typeFqn}.{memberIdentifier}(...)";
     return SymbolNormalizer.NormalizeFullyQualifiedMethodName(raw);
   }

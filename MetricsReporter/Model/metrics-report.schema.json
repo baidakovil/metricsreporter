@@ -41,10 +41,10 @@
     "metricsBag": {
       "type": "object",
       "properties": {
-        "AltCoverSequenceCoverage": { "$ref": "#/definitions/metricValue" },
-        "AltCoverBranchCoverage": { "$ref": "#/definitions/metricValue" },
-        "AltCoverCyclomaticComplexity": { "$ref": "#/definitions/metricValue" },
-        "AltCoverNPathComplexity": { "$ref": "#/definitions/metricValue" },
+        "OpenCoverSequenceCoverage": { "$ref": "#/definitions/metricValue" },
+        "OpenCoverBranchCoverage": { "$ref": "#/definitions/metricValue" },
+        "OpenCoverCyclomaticComplexity": { "$ref": "#/definitions/metricValue" },
+        "OpenCoverNPathComplexity": { "$ref": "#/definitions/metricValue" },
         "RoslynMaintainabilityIndex": { "$ref": "#/definitions/metricValue" },
         "RoslynCyclomaticComplexity": { "$ref": "#/definitions/metricValue" },
         "RoslynClassCoupling": { "$ref": "#/definitions/metricValue" },
@@ -244,10 +244,10 @@
           "description": "Optional aliases for metric identifiers. Keys are MetricIdentifier values; values are arrays of alias strings.",
           "propertyNames": {
             "enum": [
-              "AltCoverSequenceCoverage",
-              "AltCoverBranchCoverage",
-              "AltCoverCyclomaticComplexity",
-              "AltCoverNPathComplexity",
+              "OpenCoverSequenceCoverage",
+              "OpenCoverBranchCoverage",
+              "OpenCoverCyclomaticComplexity",
+              "OpenCoverNPathComplexity",
               "RoslynMaintainabilityIndex",
               "RoslynCyclomaticComplexity",
               "RoslynClassCoupling",

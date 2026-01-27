@@ -89,7 +89,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -192,7 +192,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -284,7 +284,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -372,7 +372,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -464,7 +464,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -549,7 +549,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -647,7 +647,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()
@@ -798,7 +798,7 @@ public sealed class BreakdownAggregationTests
     {
       SolutionName = "SampleSolution",
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       Thresholds = thresholds,
       Paths = new ReportPaths()

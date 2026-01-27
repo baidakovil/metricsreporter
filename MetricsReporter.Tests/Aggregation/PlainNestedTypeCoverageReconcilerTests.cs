@@ -22,8 +22,8 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
 
     var plusType = CreateTypeEntry(
         plusTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 10m)),
-        CreateMember("Method(...)", plusMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 2m))));
+        CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 10m)),
+        CreateMember("Method(...)", plusMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 2m))));
     var dotType = CreateTypeEntry(dotTypeKey);
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)
@@ -45,12 +45,12 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     types.Should().ContainKey(dotTypeKey);
 
     var reconciledType = types[dotTypeKey].Node;
-    reconciledType.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-    reconciledType.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(10m);
+    reconciledType.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+    reconciledType.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(10m);
 
     reconciledType.Members.Should().ContainSingle();
     var reconciledMember = reconciledType.Members[0];
-    reconciledMember.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(2m);
+    reconciledMember.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(2m);
     reconciledMember.IncludesIteratorStateMachineCoverage.Should().BeTrue();
     reconciledMember.FullyQualifiedName.Should().Be("My.Namespace.Outer.Inner.Method(System.String)");
     members.Should().ContainKey("My.Namespace.Outer.Inner.Method(System.String)");
@@ -65,10 +65,10 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
 
     var plusType = CreateTypeEntry(
         plusTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 1m)));
+        CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 1m)));
     var dotType = CreateTypeEntry(
         dotTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 5m)));
+        CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 5m)));
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)
     {
@@ -85,7 +85,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
 
     removedTypes.Should().BeEmpty();
     types.Should().ContainKeys(plusTypeKey, dotTypeKey);
-    types[dotTypeKey].Node.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(5m);
+    types[dotTypeKey].Node.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(5m);
   }
 
   // Validates reconciliation halts when both iterator and dot members already carry coverage to avoid corrupting metrics.
@@ -101,12 +101,12 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
 
     var plusType = CreateTypeEntry(
         plusTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 0m)),
-        CreateMember("Method(...)", plusMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 3m))));
+        CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 0m)),
+        CreateMember("Method(...)", plusMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 3m))));
     var dotType = CreateTypeEntry(
         dotTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 0m)),
-        CreateMember("Method(...)", dotMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 4m))));
+        CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 0m)),
+        CreateMember("Method(...)", dotMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 4m))));
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)
     {
@@ -124,7 +124,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     removedTypes.Should().BeEmpty();
     types.Should().ContainKeys(plusTypeKey, dotTypeKey);
     types[dotTypeKey].Node.Members.Should().ContainSingle();
-    types[dotTypeKey].Node.Members[0].Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(4m);
+    types[dotTypeKey].Node.Members[0].Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(4m);
   }
 
   // Verifies iterator types remain when a matching dot type cannot be located, preserving original metrics.
@@ -134,7 +134,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusTypeKey = "My.Namespace.Outer+Inner";
     var plusType = CreateTypeEntry(
         plusTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 1m)));
+        CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 1m)));
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)
     {
@@ -159,7 +159,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusTypeKey = "My.Namespace.Outer+<Inner>";
     var plusType = CreateTypeEntry(
         plusTypeKey,
-        CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 1m)));
+        CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 1m)));
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)
     {
@@ -188,12 +188,12 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusType = CreateTypeEntry(
         plusTypeKey,
         metrics: new Dictionary<MetricIdentifier, MetricValue>(),
-        CreateMember("Method(...)", methodFqn, CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 1m))));
+        CreateMember("Method(...)", methodFqn, CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 1m))));
 
     var dotType = CreateTypeEntry(
         dotTypeKey,
         metrics: new Dictionary<MetricIdentifier, MetricValue>(),
-        CreateMember("Other(...)", $"{dotTypeKey}.Other()", CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 0m))));
+        CreateMember("Other(...)", $"{dotTypeKey}.Other()", CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 0m))));
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)
     {
@@ -217,7 +217,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     reconciledType.Members.Should().HaveCount(2);
 
     var reconciledMember = reconciledType.Members.Should().ContainSingle(m => m.FullyQualifiedName == "My.Namespace.Outer.Inner.Method()").Subject;
-    reconciledMember.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(1m);
+    reconciledMember.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(1m);
     reconciledMember.IncludesIteratorStateMachineCoverage.Should().BeTrue();
     members.Should().ContainKey("My.Namespace.Outer.Inner.Method()");
   }
@@ -229,8 +229,8 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusTypeKey = "My.Namespace.Outer+Inner";
     var dotTypeKey = "My.Namespace.Outer.Inner";
 
-    var namelessMember = CreateMember(string.Empty, string.Empty, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 5m)));
-    var zeroCoverageMember = CreateMember("Method", $"{plusTypeKey}.Method", CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 0m)));
+    var namelessMember = CreateMember(string.Empty, string.Empty, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 5m)));
+    var zeroCoverageMember = CreateMember("Method", $"{plusTypeKey}.Method", CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 0m)));
 
     var plusType = CreateTypeEntry(
         plusTypeKey,
@@ -269,10 +269,10 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusType = CreateTypeEntry(
         plusTypeKey,
         metrics: new Dictionary<MetricIdentifier, MetricValue>(),
-        CreateMember("Method(...)", plusMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 3m))));
+        CreateMember("Method(...)", plusMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 3m))));
 
-    var firstDotMember = CreateMember("Method(...)", dotMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 0m)));
-    var secondDotMember = CreateMember("Method(...)", alternateDotMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 0m)));
+    var firstDotMember = CreateMember("Method(...)", dotMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 0m)));
+    var secondDotMember = CreateMember("Method(...)", alternateDotMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 0m)));
     var dotType = CreateTypeEntry(
         dotTypeKey,
         metrics: new Dictionary<MetricIdentifier, MetricValue>(),
@@ -289,8 +289,8 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
 
     types.Should().ContainKey(dotTypeKey);
     types.Should().NotContainKey(plusTypeKey);
-    firstDotMember.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(3m);
-    secondDotMember.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(0m);
+    firstDotMember.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(3m);
+    secondDotMember.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(0m);
     firstDotMember.IncludesIteratorStateMachineCoverage.Should().BeTrue();
     secondDotMember.IncludesIteratorStateMachineCoverage.Should().BeFalse();
   }
@@ -305,7 +305,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusMember = CreateMember(
         "OtherMethod(...)",
         "Another.Namespace.OtherMethod(System.Int32)",
-        CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 2m)));
+        CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 2m)));
 
     var plusType = CreateTypeEntry(
         plusTypeKey,
@@ -327,7 +327,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var reconciledMember = types[dotTypeKey].Node.Members.Should().ContainSingle().Subject;
     reconciledMember.FullyQualifiedName.Should().Be($"{dotTypeKey}.OtherMethod(...)");
     reconciledMember.Name.Should().Be("OtherMethod");
-    reconciledMember.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(2m);
+    reconciledMember.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(2m);
   }
 
   // Ensures parameterless iterator signatures still yield correct member names when transferring coverage.
@@ -341,7 +341,7 @@ internal sealed class PlainNestedTypeCoverageReconcilerTests
     var plusType = CreateTypeEntry(
         plusTypeKey,
         metrics: new Dictionary<MetricIdentifier, MetricValue>(),
-        CreateMember("ParameterlessMethod", plusMemberFqn, CreateMetrics((MetricIdentifier.AltCoverBranchCoverage, 4m))));
+        CreateMember("ParameterlessMethod", plusMemberFqn, CreateMetrics((MetricIdentifier.OpenCoverBranchCoverage, 4m))));
     var dotType = CreateTypeEntry(dotTypeKey);
 
     var types = new Dictionary<string, TypeEntry>(StringComparer.Ordinal)

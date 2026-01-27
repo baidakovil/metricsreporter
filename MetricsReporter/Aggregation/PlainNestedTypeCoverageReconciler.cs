@@ -36,7 +36,7 @@ internal sealed class PlainNestedTypeCoverageReconciler
 
       if (context.ShouldTransferTypeCoverage)
       {
-        TransferTypeAltCoverCoverage(context.PlusTypeEntry.Node, context.DotTypeEntry.Node);
+        TransferTypeOpenCoverCoverage(context.PlusTypeEntry.Node, context.DotTypeEntry.Node);
       }
 
       TransferMethodCoverageFromPlusType(
@@ -72,8 +72,8 @@ internal sealed class PlainNestedTypeCoverageReconciler
       return false;
     }
 
-    var plusTypeHasCoverage = HasNonZeroAltCoverCoverage(plusTypeEntry.Node.Metrics);
-    var dotTypeHasCoverage = HasNonZeroAltCoverCoverage(dotTypeEntry.Node.Metrics);
+    var plusTypeHasCoverage = HasNonZeroOpenCoverCoverage(plusTypeEntry.Node.Metrics);
+    var dotTypeHasCoverage = HasNonZeroOpenCoverCoverage(dotTypeEntry.Node.Metrics);
 
     if ((plusTypeHasCoverage && dotTypeHasCoverage) ||
         HasMethodCoverageConflict(plusTypeEntry.Node, dotTypeEntry.Node))
@@ -184,8 +184,8 @@ internal sealed class PlainNestedTypeCoverageReconciler
         continue;
       }
 
-      var plusHasCoverage = HasNonZeroAltCoverCoverage(plusMember.Metrics);
-      var dotHasCoverage = HasNonZeroAltCoverCoverage(dotMember.Metrics);
+      var plusHasCoverage = HasNonZeroOpenCoverCoverage(plusMember.Metrics);
+      var dotHasCoverage = HasNonZeroOpenCoverCoverage(dotMember.Metrics);
 
       if (plusHasCoverage && dotHasCoverage)
       {
@@ -226,15 +226,15 @@ internal sealed class PlainNestedTypeCoverageReconciler
     return SymbolNormalizer.ExtractMethodName(member.Name);
   }
 
-  private static bool HasNonZeroAltCoverCoverage(IDictionary<MetricIdentifier, MetricValue> metrics)
+  private static bool HasNonZeroOpenCoverCoverage(IDictionary<MetricIdentifier, MetricValue> metrics)
   {
-    if (metrics.TryGetValue(MetricIdentifier.AltCoverSequenceCoverage, out var seq) &&
+    if (metrics.TryGetValue(MetricIdentifier.OpenCoverSequenceCoverage, out var seq) &&
         seq.Value.HasValue && seq.Value.Value != 0)
     {
       return true;
     }
 
-    if (metrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var br) &&
+    if (metrics.TryGetValue(MetricIdentifier.OpenCoverBranchCoverage, out var br) &&
         br.Value.HasValue && br.Value.Value != 0)
     {
       return true;
@@ -243,12 +243,12 @@ internal sealed class PlainNestedTypeCoverageReconciler
     return false;
   }
 
-  private static void TransferTypeAltCoverCoverage(TypeMetricsNode sourceType, TypeMetricsNode targetType)
+  private static void TransferTypeOpenCoverCoverage(TypeMetricsNode sourceType, TypeMetricsNode targetType)
   {
-    CopyAltCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.AltCoverSequenceCoverage);
-    CopyAltCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.AltCoverBranchCoverage);
-    CopyAltCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.AltCoverCyclomaticComplexity);
-    CopyAltCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.AltCoverNPathComplexity);
+    CopyOpenCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.OpenCoverSequenceCoverage);
+    CopyOpenCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.OpenCoverBranchCoverage);
+    CopyOpenCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.OpenCoverCyclomaticComplexity);
+    CopyOpenCoverMetricIfPresent(sourceType.Metrics, targetType.Metrics, MetricIdentifier.OpenCoverNPathComplexity);
   }
 
   private static void TransferMethodCoverageFromPlusType(
@@ -267,14 +267,14 @@ internal sealed class PlainNestedTypeCoverageReconciler
         continue;
       }
 
-      var plusHasCoverage = HasNonZeroAltCoverCoverage(plusMember.Metrics);
+      var plusHasCoverage = HasNonZeroOpenCoverCoverage(plusMember.Metrics);
       if (!plusHasCoverage)
       {
         continue;
       }
 
       dotMethodsByName.TryGetValue(methodName, out var dotMember);
-      var dotHasCoverage = dotMember is not null && HasNonZeroAltCoverCoverage(dotMember.Metrics);
+      var dotHasCoverage = dotMember is not null && HasNonZeroOpenCoverCoverage(dotMember.Metrics);
 
       if (dotHasCoverage)
       {
@@ -297,10 +297,10 @@ internal sealed class PlainNestedTypeCoverageReconciler
         }
       }
 
-      CopyAltCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.AltCoverSequenceCoverage);
-      CopyAltCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.AltCoverBranchCoverage);
-      CopyAltCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.AltCoverCyclomaticComplexity);
-      CopyAltCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.AltCoverNPathComplexity);
+      CopyOpenCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.OpenCoverSequenceCoverage);
+      CopyOpenCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.OpenCoverBranchCoverage);
+      CopyOpenCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.OpenCoverCyclomaticComplexity);
+      CopyOpenCoverMetricIfPresent(plusMember.Metrics, dotMember.Metrics, MetricIdentifier.OpenCoverNPathComplexity);
 
       dotMember.IncludesIteratorStateMachineCoverage = true;
     }
@@ -350,7 +350,7 @@ internal sealed class PlainNestedTypeCoverageReconciler
     return string.IsNullOrWhiteSpace(methodName) ? fallback : methodName;
   }
 
-  private static void CopyAltCoverMetricIfPresent(
+  private static void CopyOpenCoverMetricIfPresent(
       IDictionary<MetricIdentifier, MetricValue> sourceMetrics,
       IDictionary<MetricIdentifier, MetricValue> targetMetrics,
       MetricIdentifier identifier)

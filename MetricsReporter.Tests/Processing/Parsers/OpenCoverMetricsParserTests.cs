@@ -13,30 +13,30 @@ using MetricsReporter.Processing;
 using MetricsReporter.Processing.Parsers;
 
 /// <summary>
-/// Unit tests for <see cref="AltCoverMetricsParser"/> class.
+/// Unit tests for <see cref="OpenCoverMetricsParser"/> class.
 /// </summary>
 /// <remarks>
-/// These tests verify that AltCoverMetricsParser correctly normalizes method signatures
-/// from AltCover XML format to unified format, ensuring symbols can be properly merged
+/// These tests verify that OpenCoverMetricsParser correctly normalizes method signatures
+/// from OpenCover XML format to unified format, ensuring symbols can be properly merged
 /// with symbols from other sources (e.g., Roslyn).
 /// </remarks>
 [TestFixture]
 [Category("Unit")]
-public sealed class AltCoverMetricsParserTests
+public sealed class OpenCoverMetricsParserTests
 {
-  private AltCoverMetricsParser parser = null!;
+  private OpenCoverMetricsParser parser = null!;
 
   [SetUp]
   public void SetUp()
   {
-    parser = new AltCoverMetricsParser();
+    parser = new OpenCoverMetricsParser();
   }
 
   [Test]
   public async Task ParseAsync_MethodWithFullQualifiedTypes_NormalizesParameters()
   {
     // Arrange
-    var xml = CreateAltCoverXml(
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp",
         methodName: "void Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)",
@@ -66,7 +66,7 @@ public sealed class AltCoverMetricsParserTests
   public async Task ParseAsync_MethodWithoutFullTypePath_AppendsTypePath()
   {
     // Arrange
-    var xml = CreateAltCoverXml(
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp",
         methodName: "void OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)",
@@ -95,8 +95,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_MethodWithCppStyleOperators_NormalizesCorrectly()
   {
-    // Arrange - AltCover sometimes uses :: for namespace separator
-    var xml = CreateAltCoverXml(
+    // Arrange - OpenCover sometimes uses :: for namespace separator
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp",
         methodName: "void Rca::Loader::LoaderApp::OnApplicationIdling(System.Object)",
@@ -125,8 +125,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_NestedType_NormalizesCorrectly()
   {
-    // Arrange - nested types use / separator in AltCover
-    var xml = CreateAltCoverXml(
+    // Arrange - nested types use / separator in OpenCover
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp/NestedClass",
         methodName: "void Method(System.String)",
@@ -156,7 +156,7 @@ public sealed class AltCoverMetricsParserTests
   public async Task ParseAsync_MethodWithoutParameters_NormalizesCorrectly()
   {
     // Arrange
-    var xml = CreateAltCoverXml(
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp",
         methodName: "void Method()",
@@ -185,7 +185,7 @@ public sealed class AltCoverMetricsParserTests
   public async Task ParseAsync_PropertyGetter_NormalizesCorrectly()
   {
     // Arrange - property getter from real data
-    var xml = CreateAltCoverXml(
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Network",
         className: "Rca.Network.NetworkPlaceholder",
         methodName: "System.Boolean get_IsReady()",
@@ -260,7 +260,7 @@ public sealed class AltCoverMetricsParserTests
   public async Task ParseAsync_ComplexGenericParameters_NormalizesCorrectly()
   {
     // Arrange
-    var xml = CreateAltCoverXml(
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader",
         className: "Rca.Loader.LoaderApp",
         methodName: "void ProcessData(System.Collections.Generic.List<System.String>, System.Collections.Generic.Dictionary<System.String, System.Int32>)",
@@ -313,8 +313,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_ToStringMethod_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Logging.Contracts",
         className: "Rca.Logging.Contracts.LogEntryDto",
         methodName: "System.String Rca.Logging.Contracts.LogEntryDto::ToString()",
@@ -342,8 +342,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_OperatorEquality_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Logging.Contracts",
         className: "Rca.Logging.Contracts.LogEntryDto",
         methodName: "System.Boolean Rca.Logging.Contracts.LogEntryDto::op_Equality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)",
@@ -371,8 +371,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_EqualsMethod_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Logging.Contracts",
         className: "Rca.Logging.Contracts.LogEntryDto",
         methodName: "System.Boolean Rca.Logging.Contracts.LogEntryDto::Equals(Rca.Logging.Contracts.LogEntryDto)",
@@ -400,8 +400,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_CloneMethod_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Logging.Contracts",
         className: "Rca.Logging.Contracts.LogEntryDto",
         methodName: "Rca.Logging.Contracts.LogEntryDto Rca.Logging.Contracts.LogEntryDto::<Clone>$()",
@@ -429,8 +429,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_Constructor_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.UI",
         className: "Rca.UI.Services.ServiceResolver",
         methodName: "System.Void Rca.UI.Services.ServiceResolver::.ctor(Rca.Contracts.Infrastructure.ServiceContainer)",
@@ -458,8 +458,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_GenericMethodRegister_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader.Contracts",
         className: "Rca.Loader.Contracts.SharedServiceRegistry",
         methodName: "System.Void Rca.Loader.Contracts.SharedServiceRegistry::Register(TInterface)",
@@ -487,8 +487,8 @@ public sealed class AltCoverMetricsParserTests
   [Test]
   public async Task ParseAsync_RealWorld_GenericMethodResolve_NormalizesCorrectly()
   {
-    // Arrange - from real AltCover data
-    var xml = CreateAltCoverXml(
+    // Arrange - from real OpenCover data
+    var xml = CreateOpenCoverXml(
         assemblyName: "Rca.Loader.Contracts",
         className: "Rca.Loader.Contracts.SharedServiceRegistry",
         methodName: "TInterface Rca.Loader.Contracts.SharedServiceRegistry::Resolve()",
@@ -513,7 +513,7 @@ public sealed class AltCoverMetricsParserTests
     }
   }
 
-  private static string CreateAltCoverXml(
+  private static string CreateOpenCoverXml(
       string assemblyName,
       string className,
       string methodName,
@@ -585,8 +585,8 @@ public sealed class AltCoverMetricsParserTests
       // Assert
       var member = result.Elements.FirstOrDefault(e => e.Kind == CodeElementKind.Member);
       member.Should().NotBeNull();
-      member!.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-      member.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage,
+      member!.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+      member.Metrics.Should().NotContainKey(MetricIdentifier.OpenCoverBranchCoverage,
         "Branch coverage should not be included when BranchPoints element is empty");
     }
     finally
@@ -634,10 +634,10 @@ public sealed class AltCoverMetricsParserTests
       // Assert
       var member = result.Elements.FirstOrDefault(e => e.Kind == CodeElementKind.Member);
       member.Should().NotBeNull();
-      member!.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-      member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverBranchCoverage,
+      member!.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+      member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverBranchCoverage,
         "Branch coverage should be included when BranchPoints element contains actual BranchPoint elements");
-      member.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(33.33m);
+      member.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(33.33m);
     }
     finally
     {
@@ -681,8 +681,8 @@ public sealed class AltCoverMetricsParserTests
       // Assert
       var type = result.Elements.FirstOrDefault(e => e.Kind == CodeElementKind.Type);
       type.Should().NotBeNull();
-      type!.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-      type.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage,
+      type!.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+      type.Metrics.Should().NotContainKey(MetricIdentifier.OpenCoverBranchCoverage,
         "Branch coverage should not be included in class Summary when numBranchPoints is 0");
     }
     finally
@@ -729,10 +729,10 @@ public sealed class AltCoverMetricsParserTests
       // Assert
       var type = result.Elements.FirstOrDefault(e => e.Kind == CodeElementKind.Type);
       type.Should().NotBeNull();
-      type!.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-      type.Metrics.Should().ContainKey(MetricIdentifier.AltCoverBranchCoverage,
+      type!.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+      type.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverBranchCoverage,
         "Branch coverage should be included in class Summary when numBranchPoints > 0");
-      type.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(33.33m);
+      type.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(33.33m);
     }
     finally
     {
@@ -776,8 +776,8 @@ public sealed class AltCoverMetricsParserTests
       // Assert
       var assembly = result.Elements.FirstOrDefault(e => e.Kind == CodeElementKind.Assembly);
       assembly.Should().NotBeNull();
-      assembly!.Metrics.Should().ContainKey(MetricIdentifier.AltCoverSequenceCoverage);
-      assembly.Metrics.Should().NotContainKey(MetricIdentifier.AltCoverBranchCoverage,
+      assembly!.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverSequenceCoverage);
+      assembly.Metrics.Should().NotContainKey(MetricIdentifier.OpenCoverBranchCoverage,
         "Branch coverage should not be included in assembly Summary when numBranchPoints is 0");
     }
     finally
@@ -793,4 +793,3 @@ public sealed class AltCoverMetricsParserTests
     return tempFile;
   }
 }
-

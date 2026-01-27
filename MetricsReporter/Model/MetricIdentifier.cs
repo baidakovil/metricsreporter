@@ -9,24 +9,24 @@ using System.Text.Json.Serialization;
 public enum MetricIdentifier
 {
   /// <summary>
-  /// AltCover sequence coverage percentage.
+  /// OpenCover sequence coverage percentage.
   /// </summary>
-  AltCoverSequenceCoverage,
+  OpenCoverSequenceCoverage,
 
   /// <summary>
-  /// AltCover branch coverage percentage.
+  /// OpenCover branch coverage percentage.
   /// </summary>
-  AltCoverBranchCoverage,
+  OpenCoverBranchCoverage,
 
   /// <summary>
-  /// AltCover/OpenCover cyclomatic complexity.
+  /// OpenCover cyclomatic complexity.
   /// </summary>
-  AltCoverCyclomaticComplexity,
+  OpenCoverCyclomaticComplexity,
 
   /// <summary>
-  /// AltCover/OpenCover NPath complexity.
+  /// OpenCover NPath complexity.
   /// </summary>
-  AltCoverNPathComplexity,
+  OpenCoverNPathComplexity,
 
   /// <summary>
   /// Maintainability index reported by Microsoft.CodeAnalysis.Metrics.

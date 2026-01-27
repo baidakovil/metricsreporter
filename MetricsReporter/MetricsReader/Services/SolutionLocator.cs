@@ -28,12 +28,12 @@ internal static class SolutionLocator
   }
 
   [SuppressMessage(
-    "AltCoverBranchCoverage",
-    "AltCoverBranchCoverage",
+    "OpenCoverBranchCoverage",
+    "OpenCoverBranchCoverage",
     Justification = "IO-walking helper; branch coverage retained but flagged as suppressed to avoid noise.")]
   [SuppressMessage(
-    "AltCoverSequenceCoverage",
-    "AltCoverSequenceCoverage",
+    "OpenCoverSequenceCoverage",
+    "OpenCoverSequenceCoverage",
     Justification = "IO-walking helper; sequence coverage is retained but flagged as suppressed to avoid noise.")]
   private static DirectoryInfo? GetStartingDirectory(string path)
   {

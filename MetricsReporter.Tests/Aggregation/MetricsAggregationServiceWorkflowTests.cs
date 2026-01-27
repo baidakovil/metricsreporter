@@ -58,7 +58,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
 
     // Assert
     var member = GetWorkspaceSolution(workspace).Assemblies.Single().Namespaces.Single().Types.Single().Members.Single();
-    member.Metrics.Should().ContainKey(MetricIdentifier.AltCoverBranchCoverage);
+    member.Metrics.Should().ContainKey(MetricIdentifier.OpenCoverBranchCoverage);
     member.Metrics.Should().ContainKey(MetricIdentifier.SarifCaRuleViolations);
     member.Metrics[MetricIdentifier.SarifCaRuleViolations].Value.Should().Be(1);
   }
@@ -72,7 +72,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
     var input = new MetricsAggregationInput
     {
       SolutionName = "WorkflowTestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument>(),
+      OpenCoverDocuments = new List<ParsedMetricsDocument>(),
       RoslynDocuments = new List<ParsedMetricsDocument>(),
       SarifDocuments = new List<ParsedMetricsDocument>(),
       Thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>(),
@@ -114,7 +114,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
         new MetricsReport(),
         new Dictionary<MetricIdentifier, MetricThresholdDefinition>
         {
-          [MetricIdentifier.AltCoverBranchCoverage] = ThresholdTestFactory.CreateDefinition(75, 50, true)
+          [MetricIdentifier.OpenCoverBranchCoverage] = ThresholdTestFactory.CreateDefinition(75, 50, true)
         });
 
     // Act
@@ -122,7 +122,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
 
     // Assert
     var member = GetWorkspaceSolution(workspace).Assemblies.Single().Namespaces.Single().Types.Single().Members.Single();
-    member.Metrics[MetricIdentifier.AltCoverBranchCoverage].Status.Should().NotBe(ThresholdStatus.NotApplicable);
+    member.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Status.Should().NotBe(ThresholdStatus.NotApplicable);
   }
 
   // Covers direct workflow entry points to ensure non-PrepareReport operations remain functional and counted for coverage.
@@ -136,7 +136,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
 
     var thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
-      [MetricIdentifier.AltCoverBranchCoverage] = ThresholdTestFactory.CreateDefinition(60, 40, true)
+      [MetricIdentifier.OpenCoverBranchCoverage] = ThresholdTestFactory.CreateDefinition(60, 40, true)
     };
 
     var additionalSarif = new ParsedMetricsDocument
@@ -229,7 +229,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
       }
     };
 
-    var altCoverDocument = new ParsedMetricsDocument
+    var openCoverDocument = new ParsedMetricsDocument
     {
       Elements = new List<ParsedCodeElement>
       {
@@ -245,7 +245,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
           Source = new SourceLocation { Path = FilePath, StartLine = 10, EndLine = 20 },
           Metrics = new Dictionary<MetricIdentifier, MetricValue>
           {
-            [MetricIdentifier.AltCoverBranchCoverage] = CreateMetric(75, "percent")
+            [MetricIdentifier.OpenCoverBranchCoverage] = CreateMetric(75, "percent")
           }
         }
       }
@@ -269,7 +269,7 @@ public sealed class MetricsAggregationServiceWorkflowTests
     return new MetricsAggregationInput
     {
       SolutionName = "WorkflowTestSolution",
-      AltCoverDocuments = new List<ParsedMetricsDocument> { altCoverDocument },
+      OpenCoverDocuments = new List<ParsedMetricsDocument> { openCoverDocument },
       RoslynDocuments = new List<ParsedMetricsDocument> { roslynDocument },
       SarifDocuments = new List<ParsedMetricsDocument> { sarifDocument },
       Thresholds = thresholds ?? new Dictionary<MetricIdentifier, MetricThresholdDefinition>(),

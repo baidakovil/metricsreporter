@@ -14,12 +14,12 @@ internal sealed class GenerateSettings : CliSettingsBase
   public string? SolutionName { get; init; }
 
   [CommandOption("--metrics-dir <PATH>")]
-  [Description("Root directory for metrics artifacts (AltCover/Roslyn/SARIF/baseline).")]
+  [Description("Root directory for metrics artifacts (OpenCover/Roslyn/SARIF/baseline).")]
   public string? MetricsDir { get; init; }
 
-  [CommandOption("--altcover <PATH>")]
-  [Description("Path to AltCover/OpenCover coverage XML. Repeat for multiple files.")]
-  public List<string> AltCover { get; init; } = [];
+  [CommandOption("--opencover <PATH>")]
+  [Description("Path to OpenCover coverage XML. Repeat for multiple files.")]
+  public List<string> OpenCover { get; init; } = [];
 
   [CommandOption("--roslyn <PATH>")]
   [Description("Path to Roslyn metrics XML. Repeat for multiple files.")]

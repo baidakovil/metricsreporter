@@ -7,7 +7,7 @@ using System;
 /// </summary>
 /// <remarks>
 /// This service handles the discrepancy between different metric sources:
-/// - AltCover uses fully qualified type names: <c>Method(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)</c>
+/// - OpenCover uses fully qualified type names: <c>Method(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)</c>
 /// - Roslyn uses short type names with nullable annotations: <c>Method(object? sender, IdlingEventArgs)</c>
 /// 
 /// Both are normalized to: <c>Method(...)</c> to ensure symbols from different sources are properly merged.
@@ -50,7 +50,7 @@ public static class SymbolNormalizer
   /// </returns>
   /// <remarks>
   /// This method handles various signature formats:
-  /// - AltCover format: <c>Namespace.Type.Method(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)</c>
+  /// - OpenCover format: <c>Namespace.Type.Method(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)</c>
   /// - Roslyn format: <c>Namespace.Type.Method(object? sender, IdlingEventArgs e)</c>
   /// - Both are normalized to: <c>Namespace.Type.Method(...)</c>
   /// 
@@ -236,7 +236,7 @@ public static class SymbolNormalizer
   /// </returns>
   /// <remarks>
   /// This method preserves the namespace and type parts while normalizing only the method signature.
-  /// It handles both AltCover and Roslyn formats by applying signature normalization to the method part.
+  /// It handles both OpenCover and Roslyn formats by applying signature normalization to the method part.
   /// 
   /// The method works by:
   /// 1. Normalizing generic type parameters in the type part (e.g., "Type&lt;T&gt;.Method(...)" -> "Type.Method(...)")

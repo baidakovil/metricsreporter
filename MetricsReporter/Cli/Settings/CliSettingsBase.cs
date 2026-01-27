@@ -59,7 +59,7 @@ internal abstract class CliSettingsBase : CommandSettings
   public int? LogTruncationLimit { get; init; }
 
   /// <summary>
-  /// Gets optional metric alias mappings provided as JSON (e.g. { \"AltCoverBranchCoverage\": [\"branch\"] }).
+  /// Gets optional metric alias mappings provided as JSON (e.g. { \"OpenCoverBranchCoverage\": [\"branch\"] }).
   /// </summary>
   [CommandOption("--metric-aliases <JSON>")]
   [Description("JSON object mapping metric identifiers to alias arrays. CLI overrides env/config.")]

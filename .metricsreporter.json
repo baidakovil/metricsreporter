@@ -20,11 +20,11 @@
       "MetricsReporter.Tests",
       "MetricsReporter.Tool"
     ],
-    "altcover": [
-      "Metrics/AltCover/MetricsReporter.coverage.xml",
-      "Metrics/AltCover/MetricsReporter.Tool.coverage.xml"
+    "opencover": [
+      "Metrics/OpenCover/MetricsReporter.coverage.xml",
+      "Metrics/OpenCover/MetricsReporter.Tool.coverage.xml"
     ],
-    "coverageHtmlDir": "Metrics/AltCover/Html",
+    "coverageHtmlDir": "Metrics/OpenCover/Html",
     "outputHtml": "Metrics/MetricsReport.html",
     "roslyn": [
       "Metrics/Roslyn/SolutionMetrics.g.xml"
@@ -53,12 +53,12 @@
       "byMetric": [
         {
           "metrics": [
-            "AltCoverBranchCoverage",
-            "AltCoverSequenceCoverage",
-            "AltCoverCyclomaticComplexity",
-            "AltCoverNPathComplexity"
+            "OpenCoverBranchCoverage",
+            "OpenCoverSequenceCoverage",
+            "OpenCoverCyclomaticComplexity",
+            "OpenCoverNPathComplexity"
           ],
-          "path": "Metrics/scripts/collect-altcover.ps1"
+          "path": "Metrics/scripts/collect-opencover.ps1"
         },
         {
           "metrics": [
@@ -83,10 +83,10 @@
     }
   },
   "metricAliases": {
-    "AltCoverSequenceCoverage": [ "SequenceCoverage" ],
-    "AltCoverBranchCoverage": [ "BranchCoverage" ],
-    "AltCoverCyclomaticComplexity": [ "AltCoverComplexity" ],
-    "AltCoverNPathComplexity": [ "NPath" ],
+    "OpenCoverSequenceCoverage": [ "SequenceCoverage" ],
+    "OpenCoverBranchCoverage": [ "BranchCoverage" ],
+    "OpenCoverCyclomaticComplexity": [ "OpenCoverComplexity" ],
+    "OpenCoverNPathComplexity": [ "NPath" ],
     "RoslynMaintainabilityIndex": [ "Maintainability"],
     "RoslynCyclomaticComplexity": [ "Complexity" ],
     "RoslynClassCoupling": [ "Coupling" ],

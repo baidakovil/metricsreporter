@@ -39,7 +39,7 @@ public static class EnvironmentConfigurationProvider
         ReadReport = ReadString("METRICSREPORTER_PATHS_READ_REPORT"),
         Thresholds = ReadString("METRICSREPORTER_PATHS_THRESHOLDS"),
         ThresholdsInline = ReadString("METRICSREPORTER_PATHS_THRESHOLDS_INLINE"),
-        AltCover = ReadList("METRICSREPORTER_PATHS_ALTCOVER"),
+        OpenCover = ReadList("METRICSREPORTER_PATHS_OPENCOVER"),
         Roslyn = ReadList("METRICSREPORTER_PATHS_ROSLYN"),
         Sarif = ReadList("METRICSREPORTER_PATHS_SARIF"),
         Baseline = ReadString("METRICSREPORTER_PATHS_BASELINE"),

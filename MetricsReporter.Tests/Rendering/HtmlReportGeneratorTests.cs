@@ -95,7 +95,7 @@ public sealed class HtmlReportGeneratorTests
       FullyQualifiedName = "Sample.Namespace.SampleType.Coverage()",
       Metrics = new Dictionary<MetricIdentifier, MetricValue>
       {
-        [MetricIdentifier.AltCoverSequenceCoverage] = new MetricValue { Value = 75, Status = ThresholdStatus.Warning }
+        [MetricIdentifier.OpenCoverSequenceCoverage] = new MetricValue { Value = 75, Status = ThresholdStatus.Warning }
       }
     };
 
@@ -134,7 +134,7 @@ public sealed class HtmlReportGeneratorTests
         ThresholdDescriptions = new Dictionary<MetricIdentifier, string?>(),
         MetricDescriptors = new Dictionary<MetricIdentifier, MetricDescriptor>
         {
-          [MetricIdentifier.AltCoverSequenceCoverage] = new() { Unit = "percent" }
+          [MetricIdentifier.OpenCoverSequenceCoverage] = new() { Unit = "percent" }
         }
       },
       Solution = new SolutionMetricsNode

@@ -103,8 +103,8 @@
       }
     },
     {
-      "name": "AltCoverSequenceCoverage",
-      "description": "AltCover sequence coverage ratio across all symbols.",
+      "name": "OpenCoverSequenceCoverage",
+      "description": "OpenCover sequence coverage ratio across all symbols.",
       "higherIsBetter": true,
       "symbolThresholds": {
         "Assembly": {
@@ -128,8 +128,8 @@
       }
     },
     {
-      "name": "AltCoverBranchCoverage",
-      "description": "AltCover branch coverage ratio across all symbols.",
+      "name": "OpenCoverBranchCoverage",
+      "description": "OpenCover branch coverage ratio across all symbols.",
       "higherIsBetter": true,
       "symbolThresholds": {
         "Assembly": {
@@ -152,8 +152,8 @@
       }
     },
     {
-      "name": "AltCoverCyclomaticComplexity",
-      "description": "AltCover-reported cyclomatic complexity.",
+      "name": "OpenCoverCyclomaticComplexity",
+      "description": "OpenCover-reported cyclomatic complexity.",
       "higherIsBetter": false,
       "symbolThresholds": {
         "Assembly": {
@@ -179,8 +179,8 @@
       }
     },
     {
-      "name": "AltCoverNPathComplexity",
-      "description": "AltCover-reported NPath complexity. Only applies to members in AltCover now.",
+      "name": "OpenCoverNPathComplexity",
+      "description": "OpenCover-reported NPath complexity. Only applies to members in OpenCover now.",
       "higherIsBetter": false,
       "symbolThresholds": {
         "Assembly": {

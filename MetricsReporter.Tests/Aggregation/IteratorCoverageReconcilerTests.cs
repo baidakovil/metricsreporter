@@ -22,12 +22,12 @@ public sealed class IteratorCoverageReconcilerTests
 
     var methodMetrics = new Dictionary<MetricIdentifier, MetricValue>
     {
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricValue { Value = null }
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricValue { Value = null }
     };
     var iteratorMetrics = new Dictionary<MetricIdentifier, MetricValue>
     {
-      [MetricIdentifier.AltCoverSequenceCoverage] = new MetricValue { Value = 5m },
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricValue { Value = 2m }
+      [MetricIdentifier.OpenCoverSequenceCoverage] = new MetricValue { Value = 5m },
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricValue { Value = 2m }
     };
 
     var method = CreateMember($"{outerTypeKey}.Enumerate()", methodMetrics);
@@ -52,8 +52,8 @@ public sealed class IteratorCoverageReconcilerTests
     removedKeys.Should().Contain(iteratorKey);
     types.Should().ContainKey(outerTypeKey);
     types.Should().NotContainKey(iteratorKey);
-    method.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(5m);
-    method.Metrics[MetricIdentifier.AltCoverBranchCoverage].Value.Should().Be(2m);
+    method.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(5m);
+    method.Metrics[MetricIdentifier.OpenCoverBranchCoverage].Value.Should().Be(2m);
     method.IncludesIteratorStateMachineCoverage.Should().BeTrue();
   }
 
@@ -65,8 +65,8 @@ public sealed class IteratorCoverageReconcilerTests
     var outerTypeKey = "Sample.Namespace.AsyncType";
     var iteratorKey = $"{outerTypeKey}+<Run>d__2";
 
-    var methodMetrics = CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 3m));
-    var iteratorMetrics = CreateMetrics((MetricIdentifier.AltCoverSequenceCoverage, 4m));
+    var methodMetrics = CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 3m));
+    var iteratorMetrics = CreateMetrics((MetricIdentifier.OpenCoverSequenceCoverage, 4m));
 
     var method = CreateMember($"{outerTypeKey}.Run()", methodMetrics);
     var outerType = CreateTypeEntry(outerTypeKey, members: method);
@@ -89,8 +89,8 @@ public sealed class IteratorCoverageReconcilerTests
     // Assert
     removedKeys.Should().BeEmpty();
     types.Should().ContainKeys(outerTypeKey, iteratorKey);
-    method.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(3m);
-    iteratorType.Node.Metrics[MetricIdentifier.AltCoverSequenceCoverage].Value.Should().Be(4m);
+    method.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(3m);
+    iteratorType.Node.Metrics[MetricIdentifier.OpenCoverSequenceCoverage].Value.Should().Be(4m);
   }
 
   // Confirms iterator types with no coverage are removed without altering the target method metrics.

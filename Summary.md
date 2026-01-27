@@ -33,8 +33,8 @@
   - Tooltips include `memberKind` data for symbols.
 
 ### Parsing & Line Index
-- `MetricsReporter/Processing/Parsers/AltCoverMethodParser.cs`
-  - Sets `MemberKind` for AltCover methods.
+- `MetricsReporter/Processing/Parsers/OpenCoverMethodParser.cs`
+  - Sets `MemberKind` for OpenCover methods.
 - `MetricsReporter/Processing/Parsers/RoslynMetricsDocumentWalker.cs`
   - Assigns precise `MemberKind` from Roslyn XML.
 - `MetricsReporter/Processing/Parsers/SarifRuleViolationFactory.cs`
@@ -56,9 +56,9 @@
 - `MetricsReporter.Tests/Processing/Parsers/RoslynMetricsDocumentWalkerTests.cs`
   - Added coverage for accessor skipping and member-kind detection.
 - `MetricsReporter.Tests/Aggregation/StructuralElementMergerMemberKindTests.cs`
-  - Covers member-kind filtering, SARIF override, Roslyn vs AltCover priority.
+  - Covers member-kind filtering, SARIF override, Roslyn vs OpenCover priority.
 - `MetricsReporter.Tests/Aggregation/MetricsAggregationServiceTests.cs`
-  - Added merged-source test (Roslyn + AltCover same member) and nested/global namespace cases; updated to pass explicit member filters.
+  - Added merged-source test (Roslyn + OpenCover same member) and nested/global namespace cases; updated to pass explicit member filters.
 - `MetricsReporter.Tests/Processing/MemberFilterTests.cs`
   - Adjusted expectations after removing default exclusions.
 

@@ -7,47 +7,45 @@ using System.Xml.Linq;
 using MetricsReporter.Model;
 
 /// <summary>
-/// Parses method entries within AltCover class elements.
+/// Parses method entries within OpenCover class elements.
 /// </summary>
-internal static class AltCoverMethodParser
+internal static class OpenCoverMethodParser
 {
   internal static IEnumerable<ParsedCodeElement> ParseMethods(
       XElement classElement,
       ParsedCodeElement classNode,
-      Dictionary<string, string> files,
-      XNamespace xmlNamespace)
+      Dictionary<string, string> files)
   {
-    var methods = classElement.Element(xmlNamespace + "Methods")?.Elements(xmlNamespace + "Method")
+    var methods = classElement.ElementByLocalName("Methods")?.ElementsByLocalName("Method")
                   ?? Enumerable.Empty<XElement>();
 
     foreach (var method in methods)
     {
-      yield return ParseMethod(method, classNode, files, xmlNamespace);
+      yield return ParseMethod(method, classNode, files);
     }
   }
 
   private static ParsedCodeElement ParseMethod(
       XElement methodElement,
       ParsedCodeElement classNode,
-      Dictionary<string, string> files,
-      XNamespace xmlNamespace)
+      Dictionary<string, string> files)
   {
-    var memberNode = AltCoverMethodNodeFactory.Create(methodElement, classNode, files, xmlNamespace);
-    AltCoverMetricMapper.PopulateMethodMetrics(memberNode.Metrics, methodElement, xmlNamespace);
+    var memberNode = OpenCoverMethodNodeFactory.Create(methodElement, classNode, files);
+    OpenCoverMetricMapper.PopulateMethodMetrics(memberNode.Metrics, methodElement);
 
     return memberNode;
   }
 
-  private static SourceLocation? ResolveSourceLocation(XElement methodElement, Dictionary<string, string> files, XNamespace xmlNamespace)
+  private static SourceLocation? ResolveSourceLocation(XElement methodElement, Dictionary<string, string> files)
   {
-    var fileRef = methodElement.Element(xmlNamespace + "FileRef");
-    var fileId = fileRef?.Attribute("uid")?.Value;
+    var fileRef = methodElement.ElementByLocalName("FileRef");
+    var fileId = fileRef?.AttributeByLocalName("uid")?.Value;
     if (fileId is null || !files.TryGetValue(fileId, out var path))
     {
       return null;
     }
 
-    var sequencePoints = methodElement.Element(xmlNamespace + "SequencePoints")?.Elements(xmlNamespace + "SequencePoint");
+    var sequencePoints = methodElement.ElementByLocalName("SequencePoints")?.ElementsByLocalName("SequencePoint");
     if (sequencePoints is null || !sequencePoints.Any())
     {
       return new SourceLocation { Path = path };
@@ -75,19 +73,18 @@ internal static class AltCoverMethodParser
         MemberKind = memberKind
       };
 
-  private static class AltCoverMethodNodeFactory
+  private static class OpenCoverMethodNodeFactory
   {
     internal static ParsedCodeElement Create(
         XElement methodElement,
         ParsedCodeElement classNode,
-        Dictionary<string, string> files,
-        XNamespace xmlNamespace)
+        Dictionary<string, string> files)
     {
-      var methodName = methodElement.Element(xmlNamespace + "Name")?.Value ?? "<unknown-method>";
+    var methodName = methodElement.ElementByLocalName("Name")?.Value ?? "<unknown-method>";
       var methodNameForExtraction = methodName.Replace("::", ".", StringComparison.Ordinal);
       var normalizedMethodFqn = NormalizeMethodName(methodName, classNode.FullyQualifiedName);
       var methodDisplayName = SymbolNormalizer.ExtractMethodName(methodNameForExtraction) ?? "<unknown-method>";
-      var sourceLocation = ResolveSourceLocation(methodElement, files, xmlNamespace);
+      var sourceLocation = ResolveSourceLocation(methodElement, files);
 
       return CreateNode(
           CodeElementKind.Member,
@@ -100,15 +97,15 @@ internal static class AltCoverMethodParser
   }
 
   /// <summary>
-  /// Normalizes a method name from AltCover format to a unified format.
+  /// Normalizes a method name from OpenCover format to a unified format.
   /// </summary>
-  /// <param name="methodName">The method name from AltCover (e.g., "void Namespace.Type.Method(System.Object, System.String)" or "void Method(System.Object)").</param>
+  /// <param name="methodName">The method name from OpenCover (e.g., "void Namespace.Type.Method(System.Object, System.String)" or "void Method(System.Object)").</param>
   /// <param name="typeFqn">The fully qualified name of the declaring type (e.g., "Namespace.Type").</param>
   /// <returns>
   /// Normalized fully qualified method name with parameters replaced by "..." (e.g., "Namespace.Type.Method(...)").
   /// </returns>
   /// <remarks>
-  /// AltCover provides method names in the format: "ReturnType FullMethodSignature(ParameterTypes)".
+  /// OpenCover provides method names in the format: "ReturnType FullMethodSignature(ParameterTypes)".
   /// The method signature may or may not include the full type path:
   /// - With full path: "void Sample.Loader.LoaderApp.OnApplicationIdling(System.Object, ...)"
   /// - Without full path: "void OnApplicationIdling(System.Object, ...)"
@@ -199,4 +196,3 @@ internal static class AltCoverMethodParser
     return lastDot >= 0 ? signaturePrefix[(lastDot + 1)..] : signaturePrefix;
   }
 }
-

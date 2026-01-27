@@ -9,7 +9,7 @@ using MetricsReporter.Processing;
 /// </summary>
 /// <remarks>
 /// These tests verify that symbol normalization works correctly for various edge cases,
-/// including different formats from AltCover and Roslyn, generic types, nested types,
+/// including different formats from OpenCover and Roslyn, generic types, nested types,
 /// and malformed signatures.
 /// </remarks>
 [TestFixture]
@@ -19,7 +19,7 @@ public sealed class SymbolNormalizerTests
   #region NormalizeMethodSignature Tests
 
   [Test]
-  public void NormalizeMethodSignature_AltCoverFormat_ReplacesParametersWithPlaceholder()
+  public void NormalizeMethodSignature_OpenCoverFormat_ReplacesParametersWithPlaceholder()
   {
     // Arrange
     var input = "Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)";
@@ -209,7 +209,7 @@ public sealed class SymbolNormalizerTests
   [Test]
   public void NormalizeMethodSignature_MethodWithReturnType_HandlesCorrectly()
   {
-    // Arrange - method with return type prefix (AltCover format)
+    // Arrange - method with return type prefix (OpenCover format)
     var input = "void Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)";
     var expected = "void Rca.Loader.LoaderApp.OnApplicationIdling(...)";
 
@@ -406,7 +406,7 @@ public sealed class SymbolNormalizerTests
   #region NormalizeFullyQualifiedMethodName Tests
 
   [Test]
-  public void NormalizeFullyQualifiedMethodName_AltCoverFormat_NormalizesCorrectly()
+  public void NormalizeFullyQualifiedMethodName_OpenCoverFormat_NormalizesCorrectly()
   {
     // Arrange
     var input = "Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)";
@@ -707,21 +707,21 @@ public sealed class SymbolNormalizerTests
   #region Integration Tests - Real World Scenarios
 
   [Test]
-  public void NormalizeMethodSignature_AltCoverAndRoslyn_ProduceSameResult()
+  public void NormalizeMethodSignature_OpenCoverAndRoslyn_ProduceSameResult()
   {
     // Arrange
-    var altCoverFormat = "Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)";
+    var openCoverFormat = "Rca.Loader.LoaderApp.OnApplicationIdling(System.Object, Autodesk.Revit.UI.Events.IdlingEventArgs)";
     var roslynFormat = "Rca.Loader.LoaderApp.OnApplicationIdling(object? sender, IdlingEventArgs e)";
     var expected = "Rca.Loader.LoaderApp.OnApplicationIdling(...)";
 
     // Act
-    var altCoverResult = SymbolNormalizer.NormalizeMethodSignature(altCoverFormat);
+    var openCoverResult = SymbolNormalizer.NormalizeMethodSignature(openCoverFormat);
     var roslynResult = SymbolNormalizer.NormalizeMethodSignature(roslynFormat);
 
     // Assert
-    altCoverResult.Should().Be(expected);
+    openCoverResult.Should().Be(expected);
     roslynResult.Should().Be(expected);
-    altCoverResult.Should().Be(roslynResult, because: "different formats should normalize to the same result");
+    openCoverResult.Should().Be(roslynResult, because: "different formats should normalize to the same result");
   }
 
   [Test]
@@ -754,12 +754,12 @@ public sealed class SymbolNormalizerTests
 
   #endregion
 
-  #region Real-World Examples from AltCover Metrics
+  #region Real-World Examples from OpenCover Metrics
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_ToString_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_ToString_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.String Rca.Logging.Contracts.LogEntryDto::ToString()
+    // Arrange - from real OpenCover data: System.String Rca.Logging.Contracts.LogEntryDto::ToString()
     var input = "Rca.Logging.Contracts.LogEntryDto::ToString()";
     var expected = "Rca.Logging.Contracts.LogEntryDto::ToString(...)";
 
@@ -771,10 +771,10 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_ToString_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_ToString_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data: System.String Rca.Logging.Contracts.LogEntryDto::ToString()
-    // Note: AltCover parser replaces :: with . before calling ExtractMethodName
+    // Arrange - from real OpenCover data: System.String Rca.Logging.Contracts.LogEntryDto::ToString()
+    // Note: OpenCover parser replaces :: with . before calling ExtractMethodName
     var input = "System.String Rca.Logging.Contracts.LogEntryDto.ToString()";
     var expected = "ToString";
 
@@ -786,9 +786,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_PrintMembers_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_PrintMembers_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::PrintMembers(System.Text.StringBuilder)
+    // Arrange - from real OpenCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::PrintMembers(System.Text.StringBuilder)
     var input = "Rca.Logging.Contracts.LogEntryDto::PrintMembers(System.Text.StringBuilder)";
     var expected = "Rca.Logging.Contracts.LogEntryDto::PrintMembers(...)";
 
@@ -800,9 +800,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_PrintMembers_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_PrintMembers_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     var input = "System.Boolean Rca.Logging.Contracts.LogEntryDto.PrintMembers(System.Text.StringBuilder)";
     var expected = "PrintMembers";
 
@@ -814,9 +814,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_OperatorEquality_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_OperatorEquality_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::op_Equality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)
+    // Arrange - from real OpenCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::op_Equality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)
     var input = "Rca.Logging.Contracts.LogEntryDto::op_Equality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)";
     var expected = "Rca.Logging.Contracts.LogEntryDto::op_Equality(...)";
 
@@ -828,9 +828,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_OperatorEquality_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_OperatorEquality_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     var input = "System.Boolean Rca.Logging.Contracts.LogEntryDto.op_Equality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)";
     var expected = "op_Equality";
 
@@ -842,9 +842,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_OperatorInequality_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_OperatorInequality_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::op_Inequality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)
+    // Arrange - from real OpenCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::op_Inequality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)
     var input = "Rca.Logging.Contracts.LogEntryDto::op_Inequality(Rca.Logging.Contracts.LogEntryDto,Rca.Logging.Contracts.LogEntryDto)";
     var expected = "Rca.Logging.Contracts.LogEntryDto::op_Inequality(...)";
 
@@ -856,9 +856,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_GetHashCode_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_GetHashCode_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     var input = "System.Int32 Rca.Logging.Contracts.LogEntryDto.GetHashCode()";
     var expected = "GetHashCode";
 
@@ -870,9 +870,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_EqualsObject_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_EqualsObject_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::Equals(System.Object)
+    // Arrange - from real OpenCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::Equals(System.Object)
     var input = "Rca.Logging.Contracts.LogEntryDto::Equals(System.Object)";
     var expected = "Rca.Logging.Contracts.LogEntryDto::Equals(...)";
 
@@ -884,9 +884,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_EqualsTyped_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_EqualsTyped_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::Equals(Rca.Logging.Contracts.LogEntryDto)
+    // Arrange - from real OpenCover data: System.Boolean Rca.Logging.Contracts.LogEntryDto::Equals(Rca.Logging.Contracts.LogEntryDto)
     var input = "Rca.Logging.Contracts.LogEntryDto::Equals(Rca.Logging.Contracts.LogEntryDto)";
     var expected = "Rca.Logging.Contracts.LogEntryDto::Equals(...)";
 
@@ -898,9 +898,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_Clone_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_Clone_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     var input = "Rca.Logging.Contracts.LogEntryDto Rca.Logging.Contracts.LogEntryDto.<Clone>$()";
     var expected = "<Clone>$";
 
@@ -912,9 +912,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_Clone_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_Clone_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data
+    // Arrange - from real OpenCover data
     var input = "Rca.Logging.Contracts.LogEntryDto::<Clone>$()";
     var expected = "Rca.Logging.Contracts.LogEntryDto::<Clone>$(...)";
 
@@ -926,9 +926,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_Constructor_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_Constructor_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Void Rca.UI.Services.ServiceResolver::.ctor(Rca.Contracts.Infrastructure.ServiceContainer)
+    // Arrange - from real OpenCover data: System.Void Rca.UI.Services.ServiceResolver::.ctor(Rca.Contracts.Infrastructure.ServiceContainer)
     var input = "Rca.UI.Services.ServiceResolver::.ctor(Rca.Contracts.Infrastructure.ServiceContainer)";
     var expected = "Rca.UI.Services.ServiceResolver::.ctor(...)";
 
@@ -940,9 +940,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_Constructor_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_Constructor_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     // Note: ExtractMethodName should preserve the leading dot for constructors
     var input = "System.Void Rca.UI.Services.ServiceResolver..ctor(Rca.Contracts.Infrastructure.ServiceContainer)";
     var expected = ".ctor";
@@ -955,9 +955,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_StaticConstructor_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_StaticConstructor_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Void Rca.UI.Services.ServiceResolver::.cctor()
+    // Arrange - from real OpenCover data: System.Void Rca.UI.Services.ServiceResolver::.cctor()
     var input = "Rca.UI.Services.ServiceResolver::.cctor()";
     var expected = "Rca.UI.Services.ServiceResolver::.cctor(...)";
 
@@ -969,9 +969,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_StaticConstructor_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_StaticConstructor_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     // Note: ExtractMethodName should preserve the leading dot for static constructors
     var input = "System.Void Rca.UI.Services.ServiceResolver..cctor()";
     var expected = ".cctor";
@@ -998,9 +998,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_GenericMethodRegister_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_GenericMethodRegister_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Void Rca.Loader.Contracts.SharedServiceRegistry::Register(TInterface)
+    // Arrange - from real OpenCover data: System.Void Rca.Loader.Contracts.SharedServiceRegistry::Register(TInterface)
     var input = "Rca.Loader.Contracts.SharedServiceRegistry::Register(TInterface)";
     var expected = "Rca.Loader.Contracts.SharedServiceRegistry::Register(...)";
 
@@ -1012,9 +1012,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void ExtractMethodName_AltCover_GenericMethodResolve_ExtractsCorrectly()
+  public void ExtractMethodName_OpenCover_GenericMethodResolve_ExtractsCorrectly()
   {
-    // Arrange - from real AltCover data (:: replaced with . by parser)
+    // Arrange - from real OpenCover data (:: replaced with . by parser)
     var input = "TInterface Rca.Loader.Contracts.SharedServiceRegistry.Resolve()";
     var expected = "Resolve";
 
@@ -1026,9 +1026,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeMethodSignature_AltCover_MethodWithException_HandlesCorrectly()
+  public void NormalizeMethodSignature_OpenCover_MethodWithException_HandlesCorrectly()
   {
-    // Arrange - from real AltCover data: System.Void Rca.UI.Services.ServiceResolver::LogServiceResolutionError(System.Exception)
+    // Arrange - from real OpenCover data: System.Void Rca.UI.Services.ServiceResolver::LogServiceResolutionError(System.Exception)
     var input = "Rca.UI.Services.ServiceResolver::LogServiceResolutionError(System.Exception)";
     var expected = "Rca.UI.Services.ServiceResolver::LogServiceResolutionError(...)";
 
@@ -1040,9 +1040,9 @@ public sealed class SymbolNormalizerTests
   }
 
   [Test]
-  public void NormalizeFullyQualifiedMethodName_AltCover_GenericMethodRegister_RemovesGenericParameters()
+  public void NormalizeFullyQualifiedMethodName_OpenCover_GenericMethodRegister_RemovesGenericParameters()
   {
-    // Arrange - method with generic type parameter in AltCover format
+    // Arrange - method with generic type parameter in OpenCover format
     var input = "Rca.Loader.Contracts.SharedServiceRegistry::Register(TInterface)";
     var expected = "Rca.Loader.Contracts.SharedServiceRegistry::Register(...)";
 

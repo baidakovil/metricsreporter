@@ -16,7 +16,7 @@ public class ConfigurationWarningEvaluatorTests
       ReplaceMetricsBaseline = true,
       MetricsReportStoragePath = null,
       BaselinePath = null,
-      AltCoverPaths = new[] { "a.xml" },
+      OpenCoverPaths = new[] { "a.xml" },
       OutputJsonPath = "out.json",
       MetricsDirectory = "metrics"
     };
@@ -35,7 +35,7 @@ public class ConfigurationWarningEvaluatorTests
       ReplaceMetricsBaseline = true,
       BaselinePath = "baseline.json",
       MetricsReportStoragePath = "storage",
-      AltCoverPaths = new[] { "a.xml" },
+      OpenCoverPaths = new[] { "a.xml" },
       OutputJsonPath = "out.json",
       MetricsDirectory = "metrics"
     };
@@ -121,7 +121,7 @@ public class ConfigurationWarningEvaluatorTests
     {
       CommandName = "generate",
       InputJsonPath = null,
-      AltCoverPaths = new[] { "a.xml" },
+      OpenCoverPaths = new[] { "a.xml" },
       OutputJsonPath = "out.json",
       MetricsDirectory = "metrics"
     };

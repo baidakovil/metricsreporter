@@ -66,8 +66,8 @@ internal sealed class IteratorCoverageReconciler
       MemberMetricsNode targetMember,
       Action<string, TypeEntry> removeIteratorType)
   {
-    var methodHasCoverage = HasNonZeroAltCoverCoverage(targetMember.Metrics);
-    var iteratorHasCoverage = HasNonZeroAltCoverCoverage(iteratorTypeEntry.Node.Metrics);
+    var methodHasCoverage = HasNonZeroOpenCoverCoverage(targetMember.Metrics);
+    var iteratorHasCoverage = HasNonZeroOpenCoverCoverage(iteratorTypeEntry.Node.Metrics);
 
     if (methodHasCoverage && iteratorHasCoverage)
     {
@@ -165,15 +165,15 @@ internal sealed class IteratorCoverageReconciler
     return null;
   }
 
-  private static bool HasNonZeroAltCoverCoverage(IDictionary<MetricIdentifier, MetricValue> metrics)
+  private static bool HasNonZeroOpenCoverCoverage(IDictionary<MetricIdentifier, MetricValue> metrics)
   {
-    if (metrics.TryGetValue(MetricIdentifier.AltCoverSequenceCoverage, out var seq) &&
+    if (metrics.TryGetValue(MetricIdentifier.OpenCoverSequenceCoverage, out var seq) &&
         seq.Value.HasValue && seq.Value.Value != 0)
     {
       return true;
     }
 
-    if (metrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var br) &&
+    if (metrics.TryGetValue(MetricIdentifier.OpenCoverBranchCoverage, out var br) &&
         br.Value.HasValue && br.Value.Value != 0)
     {
       return true;
@@ -185,33 +185,33 @@ internal sealed class IteratorCoverageReconciler
   private static void TransferIteratorCoverage(TypeMetricsNode iteratorType, MemberMetricsNode targetMember)
   {
     // WHY: We always want to transfer sequence coverage from the iterator state machine
-    // back to the user method, because AltCover attributes most IL for async/iterator
+    // back to the user method, because OpenCover attributes most IL for async/iterator
     // methods to the compiler-generated <Method>d__N type. Without this step, user
     // methods would appear as never executed even when their logical body did run.
-    CopyAltCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.AltCoverSequenceCoverage);
+    CopyOpenCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.OpenCoverSequenceCoverage);
 
     // WHY: Branch coverage coming solely from the compiler-generated iterator type
     // is often not meaningful for the user-authored method. For async/iterator patterns
-    // AltCover reports branches that belong to the state machine scaffolding rather
+    // OpenCover reports branches that belong to the state machine scaffolding rather
     // than to explicit control-flow in the source method. We therefore only propagate
-    // branch coverage when the target method already has an AltCoverBranchCoverage
-    // metric of its own (i.e. AltCover reported real branch points for the method).
+    // branch coverage when the target method already has an OpenCoverBranchCoverage
+    // metric of its own (i.e. OpenCover reported real branch points for the method).
     // This keeps branch coverage for plain methods intact while avoiding misleading
     // "0% branch coverage" on async methods like ParseAsync that have no user-visible
     // branches but do have internal state-machine branches.
-    var methodHasOwnBranchMetric = targetMember.Metrics.ContainsKey(MetricIdentifier.AltCoverBranchCoverage);
+    var methodHasOwnBranchMetric = targetMember.Metrics.ContainsKey(MetricIdentifier.OpenCoverBranchCoverage);
     if (methodHasOwnBranchMetric)
     {
-      CopyAltCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.AltCoverBranchCoverage);
+      CopyOpenCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.OpenCoverBranchCoverage);
     }
 
-    CopyAltCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.AltCoverCyclomaticComplexity);
-    CopyAltCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.AltCoverNPathComplexity);
+    CopyOpenCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.OpenCoverCyclomaticComplexity);
+    CopyOpenCoverMetricIfPresent(iteratorType.Metrics, targetMember.Metrics, MetricIdentifier.OpenCoverNPathComplexity);
 
     targetMember.IncludesIteratorStateMachineCoverage = true;
   }
 
-  private static void CopyAltCoverMetricIfPresent(
+  private static void CopyOpenCoverMetricIfPresent(
       IDictionary<MetricIdentifier, MetricValue> sourceMetrics,
       IDictionary<MetricIdentifier, MetricValue> targetMetrics,
       MetricIdentifier identifier)

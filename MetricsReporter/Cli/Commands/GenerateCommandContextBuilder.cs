@@ -86,7 +86,7 @@ internal sealed class GenerateCommandContextBuilder
       CommandName = "generate",
       SolutionName = inputs.SolutionName ?? "Solution",
       MetricsDirectory = inputs.MetricsDir ?? string.Empty,
-      AltCoverPaths = inputs.AltCover,
+      OpenCoverPaths = inputs.OpenCover,
       RoslynPaths = inputs.Roslyn,
       SarifPaths = inputs.Sarif,
       BaselinePath = inputs.Baseline,

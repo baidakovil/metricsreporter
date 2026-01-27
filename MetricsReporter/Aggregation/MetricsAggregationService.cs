@@ -544,12 +544,12 @@ public sealed class MetricsAggregationService
   }
 
   [SuppressMessage(
-      "AltCoverBranchCoverage",
-      "AltCoverBranchCoverage",
+      "OpenCoverBranchCoverage",
+      "OpenCoverBranchCoverage",
       Justification = "Workflow is exercised indirectly through MetricsAggregationService and AggregationWorkspace entry points; the remaining uncovered branches belong to defensive guards and rarely used helper entry points that are already validated by integration-style service tests.")]
   [SuppressMessage(
-      "AltCoverSequenceCoverage",
-      "AltCoverSequenceCoverage",
+      "OpenCoverSequenceCoverage",
+      "OpenCoverSequenceCoverage",
       Justification = "Sequence coverage for this private workflow mirrors the branch coverage rationale: exercising every path would require reflection-only calls that do not increase confidence beyond the existing service-level tests.")]
   private sealed class AggregationWorkspaceWorkflow
   {
@@ -586,7 +586,7 @@ public sealed class MetricsAggregationService
     {
       ArgumentNullException.ThrowIfNull(input);
 
-      foreach (var document in input.AltCoverDocuments)
+      foreach (var document in input.OpenCoverDocuments)
       {
         _documentProcessor.MergeStructuralElements(document);
       }
@@ -687,7 +687,7 @@ public sealed class MetricsAggregationService
   }
 
   /// <summary>
-  /// Normalizes AltCover branch coverage at the type level so compiler-generated helper types
+  /// Normalizes OpenCover branch coverage at the type level so compiler-generated helper types
   /// do not introduce misleading 0% coverage when their members lack branch metrics.
   /// </summary>
   private sealed class TypeBranchCoverageApplicabilityProcessor : ITypeBranchCoverageApplicabilityProcessor
@@ -715,7 +715,7 @@ public sealed class MetricsAggregationService
     private static void EnsureTypeCoverageIsApplicable(TypeEntry typeEntry)
     {
       var typeMetrics = typeEntry.Node.Metrics;
-      if (!typeMetrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var typeBranchMetric))
+      if (!typeMetrics.TryGetValue(MetricIdentifier.OpenCoverBranchCoverage, out var typeBranchMetric))
       {
         return;
       }
@@ -725,11 +725,11 @@ public sealed class MetricsAggregationService
         return;
       }
 
-      // WHY: AltCover reports 0% coverage for helper types that never expose branch metrics.
+      // WHY: OpenCover reports 0% coverage for helper types that never expose branch metrics.
       // Removing the metric entirely keeps the report actionable and avoids false alarms.
       if (IsSyntheticZeroCoverage(typeBranchMetric))
       {
-        typeMetrics.Remove(MetricIdentifier.AltCoverBranchCoverage);
+        typeMetrics.Remove(MetricIdentifier.OpenCoverBranchCoverage);
       }
     }
 
@@ -737,7 +737,7 @@ public sealed class MetricsAggregationService
     {
       foreach (var member in members)
       {
-        if (member.Metrics.TryGetValue(MetricIdentifier.AltCoverBranchCoverage, out var branchMetric) &&
+        if (member.Metrics.TryGetValue(MetricIdentifier.OpenCoverBranchCoverage, out var branchMetric) &&
             branchMetric.Value.HasValue)
         {
           return true;

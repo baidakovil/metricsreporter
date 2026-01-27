@@ -19,7 +19,7 @@ public sealed class ThresholdEvaluatorTests
 
     // Act
     var result = ThresholdEvaluator.Evaluate(
-        MetricIdentifier.AltCoverBranchCoverage,
+        MetricIdentifier.OpenCoverBranchCoverage,
         null,
         thresholds,
         MetricSymbolLevel.Member);
@@ -37,7 +37,7 @@ public sealed class ThresholdEvaluatorTests
 
     // Act
     var result = ThresholdEvaluator.Evaluate(
-        MetricIdentifier.AltCoverBranchCoverage,
+        MetricIdentifier.OpenCoverBranchCoverage,
         85,
         thresholds,
         MetricSymbolLevel.Member);
@@ -53,7 +53,7 @@ public sealed class ThresholdEvaluatorTests
     // Arrange
     var thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricThresholdDefinition
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricThresholdDefinition
       {
         Levels = new Dictionary<MetricSymbolLevel, MetricThreshold>
         {
@@ -64,7 +64,7 @@ public sealed class ThresholdEvaluatorTests
 
     // Act
     var result = ThresholdEvaluator.Evaluate(
-        MetricIdentifier.AltCoverBranchCoverage,
+        MetricIdentifier.OpenCoverBranchCoverage,
         85,
         thresholds,
         MetricSymbolLevel.Member);
@@ -80,7 +80,7 @@ public sealed class ThresholdEvaluatorTests
     // Arrange
     var thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricThresholdDefinition
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricThresholdDefinition
       {
         Levels = new Dictionary<MetricSymbolLevel, MetricThreshold>
         {
@@ -91,7 +91,7 @@ public sealed class ThresholdEvaluatorTests
 
     // Act
     var result = ThresholdEvaluator.Evaluate(
-        MetricIdentifier.AltCoverBranchCoverage,
+        MetricIdentifier.OpenCoverBranchCoverage,
         25,
         thresholds,
         MetricSymbolLevel.Member);
@@ -107,7 +107,7 @@ public sealed class ThresholdEvaluatorTests
     // Arrange
     var thresholds = new Dictionary<MetricIdentifier, MetricThresholdDefinition>
     {
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricThresholdDefinition
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricThresholdDefinition
       {
         Levels = new Dictionary<MetricSymbolLevel, MetricThreshold>
         {
@@ -118,7 +118,7 @@ public sealed class ThresholdEvaluatorTests
 
     // Act
     var result = ThresholdEvaluator.Evaluate(
-        MetricIdentifier.AltCoverBranchCoverage,
+        MetricIdentifier.OpenCoverBranchCoverage,
         50,
         thresholds,
         MetricSymbolLevel.Member);

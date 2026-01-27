@@ -1,10 +1,10 @@
-Refactor code in the given namespace to achieve the required AltCover NPath Complexity metric: the metric value must be no more than 200 for methods.
+Refactor code in the given namespace to achieve the required OpenCover NPath Complexity metric: the metric value must be no more than 200 for methods.
 
 ## Requirements
 
 - Use the `metricsreporter` CLI to update and retrieve metric values for symbols requiring refactoring, one request at a time. Description and usage examples are provided in `@3.2 - metricsreporter-cli.md`.
 - Strictly follow the workflow described below to achieve the goal: reduce the metric for all symbols in the namespace mentioned above to acceptable limits.
-- When reducing AltCover NPath Complexity, use simplification techniques that shrink the number of independent decision paths:
+- When reducing OpenCover NPath Complexity, use simplification techniques that shrink the number of independent decision paths:
 	•	Use guard clauses and early returns to short-circuit invalid states before deeper branching multiplies paths.  
 	•	Flatten nested `if/else` trees by merging related conditions into single predicates or helper methods that encapsulate one decision.  
 	•	Convert large decision matrices into data-driven tables or dictionaries mapping keys to handlers/results instead of long branching sequences.  
@@ -24,7 +24,7 @@ Using the `metricsreporter read` command, get the first "problematic" symbol tha
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter read --namespace <given_namespace> --metric AltCoverNPathComplexity --symbol-kind Member
+dotnet tool run metricsreporter read --namespace <given_namespace> --metric OpenCoverNPathComplexity --symbol-kind Member
 ```
 
 If you receive a message that no suitable symbols are found (instead of an object with fields `symbolFqn`, `symbolType`, `metric`, `value`, `threshold`, `delta`, `filePath`, `status`, `isSuppressed`), this means there are no problematic symbols: complete the task.
@@ -37,7 +37,7 @@ There is only one reason to cancel refactoring: refactoring should not be perfor
 
 ```csharp
 [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "AltCover",
+    "OpenCover",
     "NPathComplexity",
     Justification = "Complex decision tree cannot be reduced without obscuring domain rules; data-driven refactoring attempts still keep path count above the required threshold.")]
 ```
@@ -61,7 +61,7 @@ Using the `metricsreporter test` command, verify that the symbol you worked on i
 Example request to `metricsreporter` with the required options:
 
 ```powershell
-dotnet tool run metricsreporter test --symbol <symbol_been_refactored> --metric AltCoverNPathComplexity
+dotnet tool run metricsreporter test --symbol <symbol_been_refactored> --metric OpenCoverNPathComplexity
 ```
 
 If you see `"isOk": false` in the response, return to step 2 with this symbol. The number of additional refactoring attempts to achieve the required metric: 5 attempts per symbol. If after the fifth additional attempt the required metric is not achieved, then add a suppression attribute with a Justification message in English that fully explains the essence of the problem, if any (for example, that five attempts were insufficient for a proper refactoring), or simply a description of the reason why this symbol cannot be refactored (for example, that it contains complex business logic with many conditional branches that cannot be simplified without losing domain clarity).

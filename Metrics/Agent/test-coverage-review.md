@@ -28,8 +28,8 @@
     var extractFirstMetric = GetExtractorMethod("ExtractFirstMetric");
     var metrics = new Dictionary<MetricIdentifier, MetricValue>
     {
-      [MetricIdentifier.AltCoverSequenceCoverage] = new MetricValue { Value = null },
-      [MetricIdentifier.AltCoverBranchCoverage] = new MetricValue { Value = 25m }
+      [MetricIdentifier.OpenCoverSequenceCoverage] = new MetricValue { Value = null },
+      [MetricIdentifier.OpenCoverBranchCoverage] = new MetricValue { Value = 25m }
     };
     var element = CreateElement(metrics: metrics, source: new SourceLocation { Path = "file.cs" });
 
@@ -45,7 +45,7 @@
 
     // Assert
     populatedResult.Should().NotBeNull();
-    populatedResult!.Value.Key.Should().Be(MetricIdentifier.AltCoverSequenceCoverage);
+    populatedResult!.Value.Key.Should().Be(MetricIdentifier.OpenCoverSequenceCoverage);
     populatedResult.Value.Value.Value.Should().Be(10m);
   }
 ```

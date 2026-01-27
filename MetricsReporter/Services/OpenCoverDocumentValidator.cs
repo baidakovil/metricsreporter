@@ -7,14 +7,14 @@ using MetricsReporter.Processing;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Validates AltCover documents to ensure unique symbol coverage across multiple files.
+/// Validates OpenCover documents to ensure unique symbol coverage across multiple files.
 /// </summary>
-internal static class AltCoverDocumentValidator
+internal static class OpenCoverDocumentValidator
 {
   /// <summary>
-  /// Ensures that a symbol (type or member) is not reported by more than one AltCover file.
+  /// Ensures that a symbol (type or member) is not reported by more than one OpenCover file.
   /// </summary>
-  /// <param name="documents">AltCover documents collected from CLI/MSBuild inputs.</param>
+  /// <param name="documents">OpenCover documents collected from CLI/MSBuild inputs.</param>
   /// <param name="logger">Logger for error reporting.</param>
   /// <returns><see langword="true"/> when no duplicate symbols exist; otherwise <see langword="false"/>.</returns>
   public static bool TryValidateUniqueSymbols(IList<ParsedMetricsDocument> documents, ILogger logger)
@@ -59,7 +59,7 @@ internal static class AltCoverDocumentValidator
     return true;
   }
 
-  private static bool IsAltCoverSymbol(ParsedCodeElement element)
+  private static bool IsOpenCoverSymbol(ParsedCodeElement element)
       => element.Kind is CodeElementKind.Type or CodeElementKind.Member;
 
   private static string ResolveDocumentId(ParsedMetricsDocument document, int index)
@@ -70,7 +70,7 @@ internal static class AltCoverDocumentValidator
     }
 
     var humanIndex = index + 1;
-    return $"AltCoverDocument#{humanIndex}";
+    return $"OpenCoverDocument#{humanIndex}";
   }
 
   private static string DescribeKind(CodeElementKind kind)
@@ -87,7 +87,7 @@ internal static class AltCoverDocumentValidator
 
     public bool TryAdd(ParsedCodeElement element, string documentId, ILogger logger)
     {
-      if (!IsAltCoverSymbol(element))
+      if (!IsOpenCoverSymbol(element))
       {
         return true;
       }
@@ -102,7 +102,7 @@ internal static class AltCoverDocumentValidator
           && !string.Equals(origin, documentId, StringComparison.OrdinalIgnoreCase))
       {
         logger.LogError(
-          "Duplicate AltCover {SymbolKind} '{SymbolKey}' detected in '{Origin}' and '{DocumentId}'. Ensure coverage XML inputs do not overlap.",
+          "Duplicate OpenCover {SymbolKind} '{SymbolKey}' detected in '{Origin}' and '{DocumentId}'. Ensure coverage XML inputs do not overlap.",
           DescribeKind(element.Kind),
           symbolKey,
           origin,
@@ -115,6 +115,3 @@ internal static class AltCoverDocumentValidator
     }
   }
 }
-
-
-

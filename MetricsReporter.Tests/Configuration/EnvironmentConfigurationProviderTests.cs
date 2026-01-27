@@ -136,11 +136,11 @@ public sealed class EnvironmentConfigurationProviderTests
   [Test]
   public void ReadList_WithMixedSeparators_TrimsAndFiltersEntries()
   {
-    SetEnvironmentVariable("METRICSREPORTER_PATHS_ALTCOVER", " first.xml;; , second.xml, third.xml ; ; fourth.xml ");
+    SetEnvironmentVariable("METRICSREPORTER_PATHS_OPENCOVER", " first.xml;; , second.xml, third.xml ; ; fourth.xml ");
 
     var configuration = EnvironmentConfigurationProvider.Read();
 
-    configuration.Paths.AltCover.Should().BeEquivalentTo("first.xml", "second.xml", "third.xml", "fourth.xml");
+    configuration.Paths.OpenCover.Should().BeEquivalentTo("first.xml", "second.xml", "third.xml", "fourth.xml");
   }
 
   [Test]
