@@ -11,7 +11,7 @@
     "report": "Metrics/MetricsReport.g.json",
     "readReport": "Metrics/MetricsReport.g.json",
     "baseline": "Metrics/MetricsTemp/MetricsBaseline.g.json",
-    "baselineStoragePath": "C:\\Users\\baidakov\\AppData\\Local\\Metricsreporter\\Metrics",
+    "baselineStoragePath": "%LOCALAPPDATA%/MetricsReporter/Metrics",
     "suppressedSymbols": "Metrics/MetricsTemp/SuppressedSymbols.g.json",
     "thresholds": "Metrics/MetricsRules/MetricsReporterThresholds.json",
     "solutionDirectory": ".",

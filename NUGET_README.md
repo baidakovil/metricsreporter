@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/baidakovil/metricsreporter/actions/workflows/ci.yml/badge.svg)](https://github.com/baidakovil/metricsreporter/actions)
 [![NuGet](https://img.shields.io/nuget/v/MetricsReporter.Tool.svg?logo=nuget)](https://www.nuget.org/packages/MetricsReporter.Tool)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/baidakovil/metricsreporter/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/baidakovil/metricsreporter/blob/master/LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![AI-Ready](https://img.shields.io/badge/AI--driven-refactoring-ff6f00)](https://github.com/baidakovil/metricsreporter#ai-driven-refactoring)
 

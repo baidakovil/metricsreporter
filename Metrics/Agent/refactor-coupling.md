@@ -35,7 +35,7 @@ There is only one reason to cancel refactoring: refactoring should not be perfor
 [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Microsoft.Maintainability",
     "CA1506:AvoidExcessiveClassCoupling",
-    Justification = "Revit test run coordinator is an orchestration point over VSTest abstractions and RCA execution services; low-level details are already delegated to dedicated components.")]
+    Justification = "This is an orchestration entry point that coordinates multiple independent subsystems; further decomposition would scatter the assembly logic without improving readability.")]
 ```
 
 If refactoring is canceled, add the suppression to the code and start from step 1.

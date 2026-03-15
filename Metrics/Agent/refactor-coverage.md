@@ -52,7 +52,7 @@ For each method in the class that has insufficient branch coverage, identify:
 Before writing tests, decide whether the metric should be suppressed instead of excluded. See full guidance in `docs/3-reference/3.4 - suppression-guidelines.md`.
 
 - Prefer suppression when at least one of these holds:
-  - The method requires complex fixtures or real Revit objects that cannot be reasonably mocked.
+  - The method requires complex fixtures or real external objects (e.g., file system, native handles) that cannot be reasonably mocked.
   - Achieving coverage would force testing private methods (breaking encapsulation) rather than public behavior.
   - The class is a thin wrapper/orchestrator with trivial logic where added tests would only assert delegation.
   - Branches are configuration-driven guard rails already validated through higher-level integration paths and adding synthetic inputs would not increase confidence.
