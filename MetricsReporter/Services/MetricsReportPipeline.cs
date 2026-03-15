@@ -10,7 +10,6 @@ using MetricsReporter.Aggregation;
 using MetricsReporter.Model;
 using MetricsReporter.Processing;
 using MetricsReporter.Processing.Parsers;
-using MetricsReporter.Rendering;
 using MetricsReporter.Serialization;
 using MetricsReporter.Services.DTO;
 using Microsoft.Extensions.Logging;
@@ -247,8 +246,7 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
       await ReportWriter.WriteJsonAsync(report, options.OutputJsonPath, cancellationToken).ConfigureAwait(false);
       if (!string.IsNullOrWhiteSpace(options.OutputHtmlPath))
       {
-        var html = HtmlReportGenerator.Generate(report, options.CoverageHtmlDir);
-        await ReportWriter.WriteHtmlAsync(html, options.OutputHtmlPath, cancellationToken).ConfigureAwait(false);
+        await ReportWriter.WriteHtmlReportAsync(report, options.OutputHtmlPath, options.CoverageHtmlDir, cancellationToken).ConfigureAwait(false);
       }
 
       return MetricsReporterExitCode.Success;

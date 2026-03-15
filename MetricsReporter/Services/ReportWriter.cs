@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using MetricsReporter.Model;
+using MetricsReporter.Rendering;
 using MetricsReporter.Serialization;
 
 /// <summary>
@@ -30,6 +31,26 @@ public sealed class ReportWriter
 
     await using var stream = File.Create(path);
     await JsonSerializer.SerializeAsync(stream, report, JsonSerializerOptionsFactory.Create(), cancellationToken).ConfigureAwait(false);
+  }
+
+  /// <summary>
+  /// Generates an HTML report from the specified metrics report and writes it to disk.
+  /// </summary>
+  /// <param name="report">The metrics report to render as HTML.</param>
+  /// <param name="path">The file path where the HTML report will be written.</param>
+  /// <param name="coverageHtmlDir">Optional path to HTML coverage reports directory for generating hyperlinks.</param>
+  /// <param name="cancellationToken">Cancellation token.</param>
+  public static async Task WriteHtmlReportAsync(
+      MetricsReport report,
+      string path,
+      string? coverageHtmlDir,
+      CancellationToken cancellationToken)
+  {
+    ArgumentNullException.ThrowIfNull(report);
+    ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+    var html = HtmlReportGenerator.Generate(report, coverageHtmlDir);
+    await WriteHtmlAsync(html, path, cancellationToken).ConfigureAwait(false);
   }
 
   /// <summary>
