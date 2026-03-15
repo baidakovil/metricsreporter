@@ -20,7 +20,11 @@
     <!-- Roslyn metrics inputs/outputs -->
     <RoslynSolutionMetricsOutputFile>$(RoslynOutputDir)\SolutionMetrics.g.xml</RoslynSolutionMetricsOutputFile>
     <RoslynMetricsSolutionPath>$(_MetricsRoot)\MetricsReporter.sln</RoslynMetricsSolutionPath>
-    <!-- Metrics.exe location -->
+    <!-- Metrics.exe location.
+         The bundled binary under build/Resources/metrics/win-arm64/ is a
+         self-contained publish for Windows ARM64. On Windows x64 replace its
+         contents with the win-x64 build — see build/Resources/metrics/README.md.
+         Override RoslynMetricsToolDir from the command line to use a custom path. -->
     <RoslynMetricsToolDir>$(MSBuildThisFileDirectory)..\Resources\metrics\win-arm64</RoslynMetricsToolDir>
     <RoslynMetricsToolExe>$(RoslynMetricsToolDir)\Metrics.exe</RoslynMetricsToolExe>
     <!-- Feature toggles -->

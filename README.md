@@ -123,7 +123,13 @@ See exactly which CA/IDE rules fire at each level. Hover for rule descriptions, 
 
 ### Suppression System
 
-Not every violation should be fixed. Mark intentional exceptions with `[SuppressMessage]` — they show up in the dashboard with justifications, not as false alarms. Both symbol-level and assembly-level (`GlobalSuppressions.cs`) suppression are supported ([reference](docs/3-reference/3.4%20-%20suppression-guidelines.md)).
+Not every violation should be fixed. Mark intentional exceptions with `[SuppressMessage]` — they show up in the dashboard with justifications, not as false alarms.
+
+Two placement options, same effect:
+- **Symbol-level** — attribute sits directly on the class or method.
+- **Assembly-level** — attribute lives in `GlobalSuppressions.cs` with a `Target` pointing to any type or member (`~T:`, `~M:`, `~P:`, `~E:`, `~F:`). Useful when the justification applies to the whole type and you don't want to scatter attributes across the codebase.
+
+Note: suppressions are not inherited — `~T:MyType` suppresses the type row only, not its members. Namespace-level suppression is not supported ([full reference](docs/3-reference/3.4%20-%20suppression-guidelines.md)).
 
 <p align="center">
   <img src="docs/images/suppression_sample_code.png" alt="Suppression in code" width="100%">
@@ -148,12 +154,17 @@ Define warning/error thresholds per metric per level. CLI exits with code `0` (p
 ```json
 {
   "RoslynClassCoupling": {
-    "Type":   { "warning": 20, "error": 40 },
-    "Member": { "warning": 5,  "error": 11 }
+    "Assembly":  { "warning": 60, "error": 120 },
+    "Namespace": { "warning": 40, "error": 80  },
+    "Type":      { "warning": 20, "error": 40  },
+    "Member":    { "warning": 5,  "error": 11  }
   },
   "RoslynCyclomaticComplexity": {
     "Type":   { "warning": 15, "error": 100 },
     "Member": { "warning": 15, "error": 100 }
+  },
+  "OpenCoverBranchCoverage": {
+    "Member": { "warning": 80, "error": 60, "higherIsBetter": true }
   }
 }
 ```
