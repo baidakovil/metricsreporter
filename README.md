@@ -27,10 +27,12 @@
   (OpenCover)      (Roslyn)        (Analyzers)              + unified JSON
 ```
 
+<p align="center"><sup>↓ dashboard output</sup></p>
+
 <p align="center">
   <img src="docs/images/dashboard_observing.png" alt="MetricsReporter Dashboard" width="100%">
   <br>
-  <sub><a href="https://baidakovil.github.io/metricsreporter/docs/samples/MetricsReport.html">▶ Open live interactive demo</a></sub>
+  <a href="https://baidakovil.github.io/metricsreporter/docs/samples/MetricsReport.html">▶ Open live interactive demo</a>
 </p>
 
 ## The Problem
