@@ -47,6 +47,13 @@ Under the hood, MetricsReporter **parses three formats** and cross-links them by
 
 All three are merged into a **single JSON file** keyed by fully-qualified symbol. From that JSON, the tool renders a **self-contained HTML file** — one file, no server, no frameworks, pure JavaScript — that works offline and handles 50k+ symbols without pagination.
 
+### vs SonarQube / NDepend
+
+Tools like SonarQube and NDepend are powerful, but they require a server, a license, or a cloud account — and plugging them into an AI refactoring loop means dealing with APIs, tokens, and webhooks.
+
+MetricsReporter installs in one command (`dotnet tool install --global MetricsReporter.Tool`), runs entirely on your machine, and outputs plain JSON to stdout. Any AI agent that can run a subprocess and read its output can drive the full refactor → verify loop — no API key, no SDK, no network required.
+
+
 ## Key Features
 
 ### AI-Driven Refactoring
@@ -77,6 +84,9 @@ Ready-to-use agent prompts ship in [`Metrics/Agent/`](Metrics/Agent/): [`refacto
 ### Interactive HTML Dashboard
 
 Drill down from Solution to Assembly to Namespace to Type to Method. Filter instantly, toggle warning/error awareness, hover for metric details. No frameworks — pure JS, handles 50k+ symbols.
+
+Keyboard shortcuts: `F` focus filter · `Enter` apply · `X` clear · `N` new only · `C` changes only · `D`/`S` detail level · `A`/`Z` awareness level · `E`/`R` expand/collapse · `Q` reset all.
+
 
 <p align="center">
   <img src="docs/images/statistics.png" alt="Statistics view">
