@@ -27,7 +27,7 @@
   (OpenCover)      (Roslyn)        (Analyzers)              + unified JSON
 ```
 
-<p align="center">↓ Dashboard Output</p>
+Dashboard Output:
 
 <p align="center">
   <img src="docs/images/dashboard_observing.png" alt="MetricsReporter Dashboard" width="100%">
