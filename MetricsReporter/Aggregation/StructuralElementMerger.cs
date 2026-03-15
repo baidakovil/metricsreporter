@@ -76,19 +76,12 @@ internal sealed class StructuralElementMerger
 
     if (!_assemblies.TryGetValue(assemblyName, out var assemblyNode))
     {
-      assemblyNode = new AssemblyMetricsNode
-      {
-        Name = element.Name,
-        FullyQualifiedName = assemblyName,
-        Metrics = new Dictionary<MetricIdentifier, MetricValue>()
-      };
-
+      assemblyNode = CreateDummyAssembly(assemblyName, element.Name);
       _assemblies[assemblyName] = assemblyNode;
       _solution.Assemblies.Add(assemblyNode);
     }
 
-    MergeMetrics(assemblyNode.Metrics, element.Metrics);
-    MergeSource(assemblyNode, element.Source);
+    MetricValueMerger.MergeElement(assemblyNode, element);
   }
 
   /// <summary>
@@ -115,8 +108,7 @@ internal sealed class StructuralElementMerger
       return;
     }
 
-    MergeMetrics(namespaceNode.Node.Metrics, element.Metrics);
-    MergeSource(namespaceNode.Node, element.Source);
+    MetricValueMerger.MergeElement(namespaceNode.Node, element);
   }
 
   /// <summary>
@@ -157,8 +149,7 @@ internal sealed class StructuralElementMerger
       return;
     }
 
-    MergeMetrics(typeEntry.Node.Metrics, element.Metrics);
-    MergeSource(typeEntry.Node, element.Source);
+    MetricValueMerger.MergeElement(typeEntry.Node, element);
   }
 
   /// <summary>
@@ -186,10 +177,14 @@ internal sealed class StructuralElementMerger
       return;
     }
 
-    var memberNode = GetOrCreateMember(typeEntry, context.MemberFqn, element.Name);
+    FinalizeMemberMerge(typeEntry, context.MemberFqn, element);
+  }
+
+  private void FinalizeMemberMerge(TypeEntry typeEntry, string memberFqn, ParsedCodeElement element)
+  {
+    var memberNode = GetOrCreateMember(typeEntry, memberFqn, element.Name);
     UpdateMemberMetadata(memberNode, element);
-    MergeMetrics(memberNode.Metrics, element.Metrics);
-    MergeSource(memberNode, element.Source);
+    MetricValueMerger.MergeElement(memberNode, element);
   }
 
   private bool TryResolveMemberContext(
@@ -387,19 +382,12 @@ internal sealed class StructuralElementMerger
 
     if (!_assemblies.TryGetValue(assemblyName, out var assemblyNode))
     {
-      assemblyNode = new AssemblyMetricsNode
-      {
-        Name = element.Name,
-        FullyQualifiedName = assemblyName,
-        Metrics = new Dictionary<MetricIdentifier, MetricValue>()
-      };
-
+      assemblyNode = CreateDummyAssembly(assemblyName, element.Name);
       _assemblies[assemblyName] = assemblyNode;
       _solution.Assemblies.Add(assemblyNode);
     }
 
-    MergeMetrics(assemblyNode.Metrics, element.Metrics);
-    MergeSource(assemblyNode, element.Source);
+    MetricValueMerger.MergeElement(assemblyNode, element);
     return assemblyNode;
   }
 
@@ -565,123 +553,7 @@ internal sealed class StructuralElementMerger
     }
   }
 
-  private static void MergeMetrics(IDictionary<MetricIdentifier, MetricValue> target, IDictionary<MetricIdentifier, MetricValue> source)
-  {
-    foreach (var pair in source)
-    {
-      if (target.TryGetValue(pair.Key, out var existing))
-      {
-        MergeExistingMetric(target, pair.Key, existing, pair.Value);
-      }
-      else
-      {
-        AddNewMetric(target, pair.Key, pair.Value);
-      }
-    }
-  }
 
-  private static void MergeExistingMetric(
-    IDictionary<MetricIdentifier, MetricValue> target,
-    MetricIdentifier key,
-    MetricValue existing,
-    MetricValue incoming)
-  {
-    if (IsAggregatableMetric(key) && incoming.Value.HasValue)
-    {
-      AggregateMetricValue(target, key, existing, incoming);
-    }
-    else if (!existing.Value.HasValue && incoming.Value.HasValue)
-    {
-      ReplaceNullMetricValue(target, key, incoming);
-    }
-  }
-
-  private static void AggregateMetricValue(
-    IDictionary<MetricIdentifier, MetricValue> target,
-    MetricIdentifier key,
-    MetricValue existing,
-    MetricValue incoming)
-  {
-    var sum = (existing.Value ?? 0m) + incoming.Value!.Value;
-
-    // WHY: We merge breakdown dictionaries when aggregating metrics to preserve
-    // the detailed breakdown of rule violations. This is especially important for
-    // SARIF metrics where we want to track individual rule IDs across the hierarchy.
-    var mergedBreakdown = SarifBreakdownHelper.Merge(existing.Breakdown, incoming.Breakdown);
-
-    target[key] = new MetricValue
-    {
-      Value = sum,
-      Status = ThresholdStatus.NotApplicable,
-      Breakdown = mergedBreakdown
-    };
-  }
-
-  private static void ReplaceNullMetricValue(
-    IDictionary<MetricIdentifier, MetricValue> target,
-    MetricIdentifier key,
-    MetricValue incoming)
-  {
-    // WHY: When replacing a null value with a real value, we preserve the breakdown
-    // from the incoming value to ensure SARIF breakdown information is not lost.
-    // We create a new MetricValue to ensure the breakdown dictionary is properly copied.
-    target[key] = new MetricValue
-    {
-      Value = incoming.Value,
-      Delta = incoming.Delta,
-      Status = incoming.Status,
-      Breakdown = SarifBreakdownHelper.Clone(incoming.Breakdown)
-    };
-  }
-
-  private static void AddNewMetric(
-    IDictionary<MetricIdentifier, MetricValue> target,
-    MetricIdentifier key,
-    MetricValue value)
-  {
-    // WHY: When adding a metric for the first time, we preserve the breakdown if present.
-    // This ensures that SARIF metrics with breakdown information are correctly stored
-    // even on the first assignment. We create a new MetricValue to ensure the breakdown
-    // dictionary is properly copied.
-    target[key] = new MetricValue
-    {
-      Value = value.Value,
-      Delta = value.Delta,
-      Status = value.Status,
-      Breakdown = SarifBreakdownHelper.Clone(value.Breakdown)
-    };
-  }
-
-  private static void MergeSource(MetricsNode node, SourceLocation? source)
-  {
-    if (source is null)
-    {
-      return;
-    }
-
-    if (ShouldReplaceSource(node.Source, source))
-    {
-      node.Source = source;
-    }
-  }
-
-  private static bool ShouldReplaceSource(SourceLocation? existing, SourceLocation incoming)
-  {
-    if (existing is null)
-    {
-      return true;
-    }
-
-    if (!existing.StartLine.HasValue && incoming.StartLine.HasValue)
-    {
-      return true;
-    }
-
-    return existing.StartLine.HasValue
-        && incoming.StartLine.HasValue
-        && incoming.EndLine.HasValue
-        && !existing.EndLine.HasValue;
-  }
 
   private string ResolveAssemblyForType(ParsedCodeElement element)
   {
@@ -876,8 +748,6 @@ internal sealed class StructuralElementMerger
     return lastDot < 0 ? memberFqn : memberFqn[..lastDot];
   }
 
-  private static bool IsAggregatableMetric(MetricIdentifier identifier)
-      => identifier is MetricIdentifier.SarifCaRuleViolations or MetricIdentifier.SarifIdeRuleViolations;
 }
 
 

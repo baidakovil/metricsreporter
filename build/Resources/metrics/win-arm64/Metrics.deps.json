@@ -14,7 +14,8 @@
           "Microsoft.CodeAnalysis.Features": "4.12.0",
           "Microsoft.CodeAnalysis.Metrics": "4.14.0",
           "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "4.12.0",
-          "Microsoft.CodeAnalysis.Workspaces.MSBuild": "4.12.0"
+          "Microsoft.CodeAnalysis.Workspaces.MSBuild": "4.12.0",
+          "System.ComponentModel.Composition": "8.0.0"
         },
         "runtime": {
           "Metrics.dll": {}
@@ -783,6 +784,14 @@
           }
         }
       },
+      "System.ComponentModel.Composition/8.0.0": {
+        "runtime": {
+          "lib/net8.0/System.ComponentModel.Composition.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
       "System.Collections.Immutable/8.0.0": {},
       "System.Composition/8.0.0": {
         "dependencies": {
@@ -1177,6 +1186,13 @@
       "sha512": "sha512-GLltyqEsE5/3IE+zYRP5sNa1l44qKl9v+bfdMcwg+M9qnQf47wK3H0SUR/T+3N4JEQXF3vV4CSuuo0rsg+nq2A==",
       "path": "system.codedom/7.0.0",
       "hashPath": "system.codedom.7.0.0.nupkg.sha512"
+    },
+    "System.ComponentModel.Composition/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "",
+      "path": "system.componentmodel.composition/8.0.0",
+      "hashPath": ""
     },
     "System.Collections.Immutable/8.0.0": {
       "type": "package",
