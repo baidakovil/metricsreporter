@@ -79,7 +79,7 @@ Drill down from Solution to Assembly to Namespace to Type to Method. Filter inst
 See exactly which CA/IDE rules fire at each level. Hover for rule descriptions, file paths, and line numbers.
 
 <p align="center">
-  <img src="docs/images/tooltip_on_hovering_sarif_violations.png" alt="SARIF violation tooltip" width="700">
+  <img src="docs/images/tooltip_on_hovering_sarif_violations.png" alt="SARIF violation tooltip" width="400">
   <br>
   <sub>Hover any SARIF metric to see rule-by-rule breakdown with source locations</sub>
 </p>
