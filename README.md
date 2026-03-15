@@ -12,6 +12,11 @@
   <a href="https://dotnet.microsoft.com/"><img alt=".NET 8" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet"></a>
   <a href="#ai-agent-workflow"><img alt="AI-Ready" src="https://img.shields.io/badge/AI--driven-refactoring-ff6f00"></a>
 </p>
+<p align="center">
+  <a href="https://codecov.io/gh/baidakovil/metricsreporter"><img alt="Coverage" src="https://codecov.io/gh/baidakovil/metricsreporter/branch/master/graph/badge.svg"></a>
+  <img alt="Tests" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/YOUR_GIST_ID/raw/metricsreporter-tests.json">
+  <img alt="Lines of code" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/YOUR_GIST_ID/raw/metricsreporter-loc.json">
+</p>
 
 ---
 
@@ -30,6 +35,15 @@
   <sub><a href="docs/images/dashboard_observing.gif">▶ Watch interactive dashboard demo (GIF)</a></sub>
 </p>
 
+## The Problem
+
+Your C# project has growing tech debt, but:
+
+- **Coverage, metrics, and violations live in three separate files** — OpenCover XML, Roslyn XML, and SARIF JSON
+- **No single view** shows coupling, complexity, coverage, and analyzer violations together
+- **You can't measure** whether a refactoring actually helped
+- **AI agents don't know** which method to fix first or whether the fix worked
+
 ## Quick Start
 
 ```powershell
@@ -39,25 +53,18 @@ dotnet tool install --global MetricsReporter.Tool
 # Generate dashboard from your three data sources
 metricsreporter generate --opencover coverage.xml --roslyn metrics.xml --sarif analyzers.sarif --output-html report.html
 
-# Query violations from CLI
+# Query violations from CLI — returns JSON
 metricsreporter read --namespace MyApp.Services --metric Coupling
+# → [{"kind":"Type","fullyQualifiedName":"MyApp.Services.OrderService","metrics":{"RoslynClassCoupling":{"value":14,"status":"Warning"}}}]
 
 # Verify a fix passes thresholds
 metricsreporter test --symbol MyApp.Services.OrderService.Process --metric Complexity
+# → {"isOk":true}
 ```
 
 Open `report.html` — you'll see the dashboard from the screenshot above.
 
 > **Next step →** [Full tutorial: produce your first dashboard](docs/1-tutorials/1.1%20-%20first-metrics-run.md) · [CLI reference](docs/3-reference/3.2%20-%20metricsreporter-cli.md) · [Configuration reference](docs/3-reference/3.1%20-%20configuration-options.md)
-
-## The Problem
-
-Your C# project has growing tech debt, but:
-
-- **Coverage, metrics, and violations live in three separate files** — OpenCover XML, Roslyn XML, and SARIF JSON
-- **No single view** shows coupling, complexity, coverage, and analyzer violations together
-- **You can't measure** whether a refactoring actually helped
-- **AI agents don't know** which method to fix first or whether the fix worked
 
 ## Key Features
 
@@ -105,11 +112,7 @@ metricsreporter test --symbol MyApp.Services.OrderProcessor --metric Coupling
 | [`refactor-coverage.md`](Metrics/Agent/refactor-coverage.md) | Write tests until branch coverage passes |
 | [`refactor-sarif.md`](Metrics/Agent/refactor-sarif.md) | Fix CA/IDE analyzer violations |
 
-<p align="center">
-  <img src="docs/images/prompt_to_refactor.png" alt="AI refactoring prompt">
-  <br>
-  <sub>Built-in refactoring prompts — ready for Copilot, Cursor, or any AI agent</sub>
-</p>
+
 
 ## Technical Highlights
 
@@ -118,6 +121,38 @@ metricsreporter test --symbol MyApp.Services.OrderProcessor --metric Coupling
 - **Zero-dependency HTML** — renders 50k+ symbols with vanilla JS, no frameworks, no CDN — one self-contained file
 - **Three-layer configuration** — CLI flags → env vars → JSON config → defaults, with JSON schema validation ([reference](docs/3-reference/3.1%20-%20configuration-options.md))
 - **Structured CLI** — four commands (`generate`, `read`, `readsarif`, `test`) with JSON output to stdout — designed for both human and machine consumption
+
+## Architecture
+
+```mermaid
+flowchart LR
+    cov["OpenCover XML"]
+    ros["Roslyn XML"]
+    sar["SARIF files"]
+
+    subgraph gen["metricsreporter generate"]
+        par["Parsers"] --> agg["Aggregator"] --> ren["Renderer"]
+    end
+
+    cov --> par
+    ros --> par
+    sar --> par
+
+    ren --> json["report.json"]
+    ren --> html["report.html"]
+
+    json --> read["read / test / readsarif"]
+    read --> ai["AI agent loop"]
+```
+
+| Layer | Key classes | Responsibility |
+|-------|-------------|----------------|
+| **Parsers** | `OpenCoverMetricsParser`, `RoslynMetricsParser`, `SarifMetricsParser` | Parse each format into a unified symbol model |
+| **Aggregator** | `MetricsAggregationService` | Merge into `Solution→Assembly→Namespace→Type→Member` tree, apply thresholds, compute deltas |
+| **Renderer** | `NodeHierarchyRenderer`, `MetricValueRenderer` | Serialize queryable JSON + self-contained HTML |
+| **CLI** | `CommandHandler<TOptions>` | Four commands backed by DI-composed pipeline |
+
+→ [Architecture deep dive](docs/4-explanation/4.1%20-%20architecture-and-pipeline.md)
 
 ## Who Is This For
 
@@ -138,14 +173,4 @@ metricsreporter test --symbol MyApp.Services.OrderProcessor --metric Coupling
 ## Contributing
 
 ```powershell
-git clone https://github.com/baidakovil/metricsreporter.git
-cd metricsreporter
-dotnet restore && dotnet build && dotnet test
-```
-
-The project follows SOLID principles, uses DI throughout, and maintains a comprehensive NUnit test suite. See [CONTRIBUTING.md](CONTRIBUTING.md) for code style, branch workflow, and PR guidelines.
-
-## License
-
-[MIT](LICENSE)
-
+git clone https://github.com/
