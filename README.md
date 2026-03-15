@@ -56,7 +56,7 @@ metricsreporter test --symbol MyApp.Services.OrderProcessor --metric Coupling
 ```
 
 <p align="center">
-  <img src="docs/images/prompt_to_refactor.png" alt="AI refactoring prompt" width="700">
+  <img src="docs/images/prompt_to_refactor.png" alt="AI refactoring prompt">
   <br>
   <sub>Built-in refactoring prompts for complexity, coupling, and coverage — ready for Copilot, Cursor, or any AI agent</sub>
 </p>
