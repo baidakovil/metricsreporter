@@ -1,6 +1,7 @@
 #IDE folders
 *.vs/
 *.vscode/
+**/.cursor/
 
 #Project-specific folders
 *obj/

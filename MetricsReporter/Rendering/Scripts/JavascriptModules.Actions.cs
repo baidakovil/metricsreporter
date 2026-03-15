@@ -293,11 +293,11 @@ function initActions(ctx){
         return;
       }
       const normalizedPath = path.replace(/\\/g, '/');
-      const cursorUrl = 'cursor://file/' + normalizedPath + ':' + line + '#L' + line;
+      const vscodeUrl = 'vscode://file/' + normalizedPath + ':' + line;
       try{
-        window.location.href = encodeURI(cursorUrl);
+        window.location.href = encodeURI(vscodeUrl);
       }catch(error){
-        console.warn('Failed to open file via Cursor protocol:', error);
+        console.warn('Failed to open file via VS Code protocol:', error);
       }
       return;
     }

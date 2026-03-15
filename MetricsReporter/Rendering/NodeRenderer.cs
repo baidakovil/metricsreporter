@@ -102,7 +102,7 @@ internal static class NodeRenderer
     builder.AppendLine("      <span class=\"row-action-icons\" aria-hidden=\"true\">");
     if (HasOpenSource(node))
     {
-      builder.AppendLine("        <button type=\"button\" class=\"row-action-icon\" data-action=\"open\" aria-label=\"Open file in Cursor\" data-simple-tooltip=\"Open file in Cursor\">");
+      builder.AppendLine("        <button type=\"button\" class=\"row-action-icon\" data-action=\"open\" aria-label=\"Open in editor\" data-simple-tooltip=\"Open file in editor\">");
       builder.AppendLine("          O");
       builder.AppendLine("        </button>");
     }

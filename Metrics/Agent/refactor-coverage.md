@@ -9,7 +9,7 @@
 - Strictly follow the workflow described below to achieve the goal: increase branch coverage for all methods in all classes within the namespace mentioned above to acceptable levels.
 - When writing tests, follow the testing best practices:
 	•	Use Arrange-Act-Assert (AAA) pattern for test structure
-	•	Follow requirements from `MetricsReporter.Tests/.cursor/rules/csharp-nunit.prompt.mdc`
+	•	Follow requirements from `.github/instructions/csharp-nunit.instructions.md`
 	•	Use mock objects (NSubstitute) for dependency isolation
 	•	Use meaningful test names that reflect the scenario being tested (pattern: `MethodName_Scenario_ExpectedBehavior`)
 	•	Add a 1–4 line description before each test explaining what it verifies and why it matters
@@ -79,7 +79,7 @@ If tests reveal a logic gap, brittleness, or untestable design, fix the producti
    - **Assert**: Verify the expected outcome using FluentAssertions
    - Precede the test with a 1–4 line description of the scenario and its purpose
 3. Use meaningful test names following the pattern `MethodName_Scenario_ExpectedBehavior`
-4. Ensure tests follow all requirements from `@tests/.cursor/rules/csharp-nunit.prompt.mdc`
+4. Ensure tests follow all requirements from `.github/instructions/csharp-nunit.instructions.md`
 5. Verify that the solution build is successful: `dotnet build --no-incremental`. If the build fails, fix the code until the build is green.
 6. Check that there are no compiler warnings or errors in the modified files. If there are, fix them.
 7. Run tests to verify they pass. **IMPORTANT: Run tests only for the specific test project that corresponds to the project being worked on, not all tests.**

@@ -14,11 +14,11 @@ dotnet test
 
 ## Workflow
 
-1. Fork the repository and create a feature branch from `main`.
+1. Fork the repository and create a feature branch from `master`.
 2. Make your changes — keep commits focused and well-described.
 3. Ensure `dotnet build --no-incremental` passes with no warnings.
 4. Ensure `dotnet test` passes.
-5. Open a pull request against `main`.
+5. Open a pull request against `master`.
 
 ## Code style
 

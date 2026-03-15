@@ -24,7 +24,7 @@ Refactored the `` namespace to reduce Cyclomatic Complexity:
 
 ### 2. Best Practices and Project Rules Compliance
 
-**Question:** Does this symbol correspond to best practices and comply with `@.cursor/rules/dotnet-design-pattern-review.mdc`, `@.cursor/rules/instructions.mdc`, and Microsoft recommendations?
+**Question:** Does this symbol correspond to best practices and comply with `.github/instructions/dotnet-design-pattern-review.instructions.md`, `.github/copilot-instructions.md`, and Microsoft recommendations?
 
 **Answer format:** Be brief:
 - If the symbol is written professionally: one line describing its advantages
