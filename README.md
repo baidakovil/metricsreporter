@@ -32,7 +32,7 @@
 <p align="center">
   <img src="docs/images/dashboard_observing.png" alt="MetricsReporter Dashboard" width="100%">
   <br>
-  <sub><a href="docs/images/dashboard_observing.gif">▶ Watch interactive dashboard demo (GIF)</a></sub>
+  <sub><a href="https://baidakovil.github.io/metricsreporter/docs/samples/MetricsReport.html">▶ Open live interactive demo</a></sub>
 </p>
 
 ## The Problem

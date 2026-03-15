@@ -1,0 +1,64 @@
+# CodeMetricsConfig.txt - Strict thresholds for AI-driven development
+
+
+# ==============================================
+# CA1501: Avoid excessive inheritance
+# ==============================================
+# Only applies to Types
+# Threshold level 5 or 6 is MS Advice
+CA1501: 5
+
+
+# ==============================================
+# CA1502: Avoid excessive complexity
+# ==============================================
+# Methods: Very strict - force decomposition
+# MS says 10 is good for projects with advantages, 15 good for others
+CA1502(Method): 15
+
+# Types: Moderate - allow reasonable number of simple methods
+# For Types there should be other metrics like CC/LOC or IQR of CC
+CA1502(Type): 100
+
+# Namespaces: Relaxed - not actionable, number has no reason here
+CA1502(Namespace): 500
+
+# Assembly: Very relaxed - natural accumulation, number has no reason here
+CA1502(Assembly): 5000
+
+
+# ==============================================
+# CA1505: Maintainability Index
+# ==============================================
+# Lower threshold = worse maintainability
+# 0-9: Red (low), 10-19: Yellow (moderate), 20-100: Green (good)
+
+# Methods: Require good maintainability
+CA1505(Method): 30
+
+# Types: Require good maintainability too
+CA1505(Type): 30
+
+# Namespaces
+CA1505(Namespace): 40
+
+# Assembly
+CA1505(Namespace): 50
+
+
+# ==============================================
+# CA1506: Avoid excessive class coupling
+# ==============================================
+# Methods: Strict - minimize dependencies per method
+# Threshold level 9 is MS Advice
+CA1506(Method): 11
+
+# Types: AI Advice was to rely on what you are coding: from 15 for core business service to 50 for adapter/facades/configurations
+CA1506(Type): 40
+
+# Namespaces: Relaxed - not actionable
+CA1506(Namespace): 500
+
+# Assembly: Very relaxed - not actionable
+CA1506(Assembly): 5000
+
