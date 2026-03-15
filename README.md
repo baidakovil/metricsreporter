@@ -10,12 +10,12 @@
   <a href="https://www.nuget.org/packages/MetricsReporter.Tool"><img alt="NuGet" src="https://img.shields.io/nuget/v/MetricsReporter.Tool.svg?logo=nuget"></a>
   <a href="https://github.com/baidakovil/metricsreporter/blob/master/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <a href="https://dotnet.microsoft.com/"><img alt=".NET 8" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet"></a>
-  <a href="#ai-agent-workflow"><img alt="AI-Ready" src="https://img.shields.io/badge/AI--driven-refactoring-ff6f00"></a>
+
 </p>
 <p align="center">
   <a href="https://codecov.io/gh/baidakovil/metricsreporter"><img alt="Coverage" src="https://codecov.io/gh/baidakovil/metricsreporter/branch/master/graph/badge.svg"></a>
-  <img alt="Tests" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/YOUR_GIST_ID/raw/metricsreporter-tests.json">
-  <img alt="Lines of code" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/YOUR_GIST_ID/raw/metricsreporter-loc.json">
+  <img alt="Tests" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-tests.json">
+  <img alt="Lines of code" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-loc.json">
 </p>
 
 ---
@@ -173,4 +173,14 @@ flowchart LR
 ## Contributing
 
 ```powershell
-git clone https://github.com/
+git clone https://github.com/baidakovil/metricsreporter.git
+cd metricsreporter
+dotnet restore && dotnet build && dotnet test
+```
+
+The project follows SOLID principles, uses DI throughout, and maintains a comprehensive NUnit test suite. See [CONTRIBUTING.md](CONTRIBUTING.md) for code style, branch workflow, and PR guidelines.
+
+## License
+
+[MIT](LICENSE)
+

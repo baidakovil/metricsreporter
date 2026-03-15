@@ -28,7 +28,7 @@ jobs:
         run: dotnet build --no-restore --no-incremental
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory coverage
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory coverage --logger "trx;LogFileName=results.trx"
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'windows-latest'
@@ -36,3 +36,47 @@ jobs:
         with:
           directory: coverage
           fail_ci_if_error: false
+
+      # Badge update steps run only on push to master, from the Windows runner.
+
+      - name: Count tests
+        id: test-count
+        if: matrix.os == 'windows-latest' && github.event_name == 'push'
+        shell: pwsh
+        run: |
+          $trx = Get-ChildItem coverage -Recurse -Filter "*.trx" | Select-Object -First 1
+          $xml = [xml](Get-Content $trx.FullName)
+          $total = $xml.TestRun.ResultSummary.Counters.total
+          "count=$total" >> $env:GITHUB_OUTPUT
+
+      - name: Count lines of code
+        id: loc
+        if: matrix.os == 'windows-latest' && github.event_name == 'push'
+        shell: pwsh
+        run: |
+          $lines = (Get-ChildItem -Recurse -Filter "*.cs" |
+            Where-Object { $_.FullName -notmatch '\\obj\\|\\bin\\' } |
+            Get-Content | Measure-Object -Line).Lines
+          "count=$lines" >> $env:GITHUB_OUTPUT
+
+      - name: Update tests badge
+        if: matrix.os == 'windows-latest' && github.event_name == 'push'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 8fa349f2c1c8422a8c3e831343542811
+          filename: metricsreporter-tests.json
+          label: tests
+          message: ${{ steps.test-count.outputs.count }}
+          color: brightgreen
+
+      - name: Update lines-of-code badge
+        if: matrix.os == 'windows-latest' && github.event_name == 'push'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 8fa349f2c1c8422a8c3e831343542811
+          filename: metricsreporter-loc.json
+          label: lines of code
+          message: ${{ steps.loc.outputs.count }}
+          color: blue
