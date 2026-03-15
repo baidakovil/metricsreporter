@@ -35,9 +35,17 @@ Your C# project has growing tech debt. You *feel* the code is getting worse, but
 ## The solution
 
 ```
-One command. Three sources. One dashboard. Measurable improvement.
+One prompt. Three sources. One dashboard. Measurable improvement.
 ```
+Under the hood, MetricsReporter **parses three formats** and cross-links them by symbol name:
 
+| Input | Format | What it extracts |
+|-------|--------|-----------------|
+| `dotnet-coverage` / AltCover | **OpenCover XML** | sequence & branch coverage, cyclomatic/NPath complexity per method |
+| `dotnet-metrics` (Roslyn) | **Metrics XML** | maintainability index, cyclomatic complexity, class coupling, depth of inheritance, lines of code |
+| Roslyn analyzers | **SARIF JSON** | CA / IDE rule violations with file paths and line numbers |
+
+All three are merged into a **single JSON file** keyed by fully-qualified symbol. From that JSON, the tool renders a **self-contained HTML file** — one file, no server, no frameworks, pure JavaScript — that works offline and handles 50k+ symbols without pagination.
 MetricsReporter merges **OpenCover** (coverage), **Roslyn** (complexity & coupling), and **SARIF** (analyzer violations) into a unified report. Then it gives your AI coding agent a CLI to query, refactor, verify — in a loop — until every metric is green.
 
 ## Key Features
@@ -50,10 +58,16 @@ Hand your AI agent a namespace and a metric. It reads the violation, studies the
 # AI agent asks: "what's broken?"
 metricsreporter read --namespace MyApp.Services --metric Coupling --symbol-kind Any
 
-# AI agent fixes the code, rebuilds, then verifies:
+# ↓ YOUR AI AGENT takes over: reads the source, edits files, runs `dotnet build`
+# metricsreporter does NOT refactor anything — it only measures
+# (this step is fully owned by Copilot, Cursor, or whichever agent you use)
+
+# AI agent verifies the fix:
 metricsreporter test --symbol MyApp.Services.OrderProcessor --metric Coupling
 # → { "isOk": true }  ✅
 ```
+
+Ready-to-use agent prompts ship in [`Metrics/Agent/`](Metrics/Agent/): [`refactor-complexity.md`](Metrics/Agent/refactor-complexity.md), [`refactor-coupling.md`](Metrics/Agent/refactor-coupling.md), [`refactor-coverage.md`](Metrics/Agent/refactor-coverage.md), [`refactor-sarif.md`](Metrics/Agent/refactor-sarif.md).
 
 <p align="center">
   <img src="docs/images/prompt_to_refactor.png" alt="AI refactoring prompt">
@@ -61,18 +75,33 @@ metricsreporter test --symbol MyApp.Services.OrderProcessor --metric Coupling
   <sub>Built-in refactoring prompts for complexity, coupling, and coverage — ready for Copilot, Cursor, or any AI agent</sub>
 </p>
 
-> **Cover 1,000 lines of code with tests. Automatically.**
->
-> The coverage workflow reads violations, writes NUnit tests with mocks, runs them, collects coverage, and verifies — until every branch is green.
+The coverage workflow reads coverage violations, writes NUnit tests with mocks, runs them, collects coverage, and verifies — until every branch is green.
 
 ### Interactive HTML Dashboard
 
 Drill down from Solution to Assembly to Namespace to Type to Method. Filter instantly, toggle warning/error awareness, hover for metric details. No frameworks — pure JS, handles 50k+ symbols.
 
 <p align="center">
-  <img src="docs/images/statistics.png" alt="Statistics view" width="700">
+  <img src="docs/images/statistics.png" alt="Statistics view">
   <br>
   <sub>Aggregate statistics at a glance — coverage %, complexity distribution, violation counts</sub>
+</p>
+
+### ReportGenerator Integration
+
+Seamless integration with [ReportGenerator](https://github.com/danielpalme/ReportGenerator) for interactive, line-by-line coverage visualization alongside your metrics dashboard.
+
+MetricsReporter lets you configure shell scripts that run automatically on `generate`, `read` and `test` commands. This means your AI agent can trigger a full rebuild and coverage recollection as part of its verify step — no manual reruns needed. The typical AI-driven coverage loop looks like:
+
+1. `metricsreporter read` — finds uncovered methods
+2. AI agent writes NUnit tests
+3. `metricsreporter test` — triggers the configured script: runs `dotnet test`, recollects OpenCover output, re-generates the report
+4. CLI returns the updated coverage result — agent iterates until green
+
+<p align="center">
+  <img src="docs/images/reportgenerator.gif" alt="ReportGenerator coverage view" width="100%">
+  <br>
+  <sub>Line-by-line coverage maps powered by ReportGenerator, launched alongside MetricsReporter</sub>
 </p>
 
 ### SARIF Violations with Breakdown
@@ -83,16 +112,6 @@ See exactly which CA/IDE rules fire at each level. Hover for rule descriptions, 
   <img src="docs/images/tooltip_on_hovering_sarif_violations.png" alt="SARIF violation tooltip" width="400">
   <br>
   <sub>Hover any SARIF metric to see rule-by-rule breakdown with source locations</sub>
-</p>
-
-### ReportGenerator Integration
-
-Seamless integration with [ReportGenerator](https://github.com/danielpalme/ReportGenerator) for interactive, line-by-line coverage visualization alongside your metrics dashboard.
-
-<p align="center">
-  <img src="docs/images/reportgenerator.gif" alt="ReportGenerator coverage view" width="100%">
-  <br>
-  <sub>Line-by-line coverage maps powered by ReportGenerator, launched alongside MetricsReporter</sub>
 </p>
 
 ### Suppression System
@@ -255,7 +274,7 @@ cd metricsreporter
 dotnet restore && dotnet build && dotnet test
 ```
 
-See [running from source](docs/2-how-to-guides/2.1%20-%20run-from-source.md) for development workflow.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for code style, branch workflow, and PR guidelines.
 
 ## License
 
