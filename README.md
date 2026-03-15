@@ -6,9 +6,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/baidakovil/metricsreporter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/baidakovil/metricsreporter/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://www.nuget.org/packages/MetricsReporter.Tool"><img alt="NuGet" src="https://img.shields.io/nuget/v/MetricsReporter.Tool.svg?logo=nuget"></a>
   <a href="https://github.com/baidakovil/metricsreporter/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <a href="https://dotnet.microsoft.com/"><img alt=".NET 8" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet"></a>
-  <a href="#install"><img alt="dotnet tool" src="https://img.shields.io/badge/dotnet%20tool-CLI-4caf50"></a>
   <a href="#ai-driven-refactoring"><img alt="AI-Ready" src="https://img.shields.io/badge/AI--driven-refactoring-ff6f00"></a>
 </p>
 
