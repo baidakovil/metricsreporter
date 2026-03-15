@@ -161,6 +161,38 @@ OpenCover assigns coverage to compiler-generated state machines (`<Method>d__0`)
   <sub>Iterator state machine coverage automatically attributed to the real method</sub>
 </p>
 
+### Other Features
+
+**Dashboard interactivity**
+- **Filter box** — type any substring to instantly narrow the tree to matching symbols, rule IDs, or file paths
+- **Copy symbol** — one click copies the fully-qualified name to the clipboard (ready to paste into `--symbol`)
+- **Open in editor** — deep-link opens the source file at the exact line in your IDE
+- **Awareness & detail sliders** — dial between All / Warning / Error rows and Solution / Namespace / Type / Member depth without rebuilding the DOM
+- **State persists** — filter text, sliders, and expand/collapse state survive page refresh via `localStorage`
+
+**Configuration & input**
+- **Three-layer config with priority** — CLI flags override env vars (`METRICSREPORTER_*`), which override `.metricsreporter.json`, which override built-in defaults; mix freely
+- **Config validation with exit code 3** — the config file is schema-validated before any command runs; unknown keys, ambiguous script routes, and duplicate aliases all produce clear errors
+- **Metric aliases** — map long canonical names (`RoslynClassCoupling`) to short shorthands (`Coupling`, `cc`) in config, env vars, or `--metric-aliases`; aliases are embedded in the report and shown as column-header tooltips
+
+**Symbol filtering**
+- **Wildcard exclusion patterns** — exclude members, types, and assemblies by glob patterns (`*b__*`, `Tests`, `<>c`); configured in JSON or via CLI flags
+- **Member-kind toggles** — independently include/exclude methods, properties, fields, and events from the report; fields are excluded by default to reduce noise
+
+**Suppression**
+- **Symbol-level suppression** — place `[SuppressMessage]` directly on any type or member
+- **Assembly-level suppression** — add `[assembly: SuppressMessage(..., Target = "~M:Namespace.Type.Method(...)")]` in `GlobalSuppressions.cs` to suppress without touching the source symbol
+- Suppressed metrics appear in the dashboard with a badge and justification tooltip, not as false alarms; `--include-suppressed` exposes them in `read`/`test` output
+
+**Baseline & history**
+- **Automatic baseline rotation** — `replaceBaseline=true` archives the previous baseline with a timestamp and promotes the new report; `%LOCALAPPDATA%` expansion supported for baseline storage path
+- **HTML-only re-render** — `generate --input-json report.json` re-renders the dashboard from an existing JSON without rerunning any tooling
+
+**AltCover support**
+- Full first-class support for [AltCover](https://github.com/SteveGilham/altcover) — both `dotnet-coverage` and AltCover produce OpenCover XML; AltCover-specific complexity metrics (`OpenCoverCyclomaticComplexity`, `OpenCoverNPathComplexity`) are included when present
+- Dedicated agent prompt files for AltCover complexity refactoring ship in [`Metrics/Agent/`](Metrics/Agent/)
+- Battle-tested in a production plugin project with a complex AltCover instrumentation pipeline
+
 ---
 
 <h2 id="install">Quick Start</h2>
