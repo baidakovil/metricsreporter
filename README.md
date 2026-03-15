@@ -98,16 +98,17 @@ Seamless integration with [ReportGenerator](https://github.com/danielpalme/Repor
 
 Not every violation should be fixed. Mark intentional exceptions with `[SuppressMessage]` — they show up in the dashboard with justifications, not as false alarms.
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/suppression_sample_code.png" alt="Suppression in code" width="100%"></td>
-    <td width="50%"><img src="docs/images/suppression_sample_dashboard.png" alt="Suppression in dashboard" width="100%"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Suppression attribute in code</sub></td>
-    <td align="center"><sub>Suppression reflected in dashboard with justification tooltip</sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="docs/images/suppression_sample_code.png" alt="Suppression in code" width="100%">
+  <br>
+  <sub>Suppression attribute in code</sub>
+</p>
+
+<p align="center">
+  <img src="docs/images/suppression_sample_dashboard.png" alt="Suppression in dashboard" width="100%">
+  <br>
+  <sub>Suppression reflected in dashboard with justification tooltip</sub>
+</p>
 
 ### Baseline & Delta Tracking
 
