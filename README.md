@@ -46,13 +46,12 @@ Under the hood, MetricsReporter **parses three formats** and cross-links them by
 | Roslyn analyzers | **SARIF JSON** | CA / IDE rule violations with file paths and line numbers |
 
 All three are merged into a **single JSON file** keyed by fully-qualified symbol. From that JSON, the tool renders a **self-contained HTML file** — one file, no server, no frameworks, pure JavaScript — that works offline and handles 50k+ symbols without pagination.
-MetricsReporter merges **OpenCover** (coverage), **Roslyn** (complexity & coupling), and **SARIF** (analyzer violations) into a unified report. Then it gives your AI coding agent a CLI to query, refactor, verify — in a loop — until every metric is green.
 
 ## Key Features
 
 ### AI-Driven Refactoring
 
-Hand your AI agent a namespace and a metric. It reads the violation, studies the code, refactors, rebuilds, verifies — all through the CLI. No human in the loop.
+Give any AI agent a namespace and a metric — Copilot, Cursor, Claude. It reads the violation, edits the code, rebuilds, and calls `test` to verify. metricsreporter only measures; the agent does the work.
 
 ```powershell
 # AI agent asks: "what's broken?"
@@ -75,8 +74,6 @@ Ready-to-use agent prompts ship in [`Metrics/Agent/`](Metrics/Agent/): [`refacto
   <sub>Built-in refactoring prompts for complexity, coupling, and coverage — ready for Copilot, Cursor, or any AI agent</sub>
 </p>
 
-The coverage workflow reads coverage violations, writes NUnit tests with mocks, runs them, collects coverage, and verifies — until every branch is green.
-
 ### Interactive HTML Dashboard
 
 Drill down from Solution to Assembly to Namespace to Type to Method. Filter instantly, toggle warning/error awareness, hover for metric details. No frameworks — pure JS, handles 50k+ symbols.
@@ -89,7 +86,7 @@ Drill down from Solution to Assembly to Namespace to Type to Method. Filter inst
 
 ### ReportGenerator Integration
 
-Seamless integration with [ReportGenerator](https://github.com/danielpalme/ReportGenerator) for interactive, line-by-line coverage visualization alongside your metrics dashboard.
+[ReportGenerator](https://github.com/danielpalme/ReportGenerator) produces line-by-line HTML coverage reports. Point `--coverage-html-dir` at its output and the dashboard links directly to it.
 
 MetricsReporter lets you configure shell scripts that run automatically on `generate`, `read` and `test` commands. This means your AI agent can trigger a full rebuild and coverage recollection as part of its verify step — no manual reruns needed. The typical AI-driven coverage loop looks like:
 
@@ -116,7 +113,7 @@ See exactly which CA/IDE rules fire at each level. Hover for rule descriptions, 
 
 ### Suppression System
 
-Not every violation should be fixed. Mark intentional exceptions with `[SuppressMessage]` — they show up in the dashboard with justifications, not as false alarms.
+Not every violation should be fixed. Mark intentional exceptions with `[SuppressMessage]` — they show up in the dashboard with justifications, not as false alarms. Both symbol-level and assembly-level (`GlobalSuppressions.cs`) suppression are supported ([reference](docs/3-reference/3.4%20-%20suppression-guidelines.md)).
 
 <p align="center">
   <img src="docs/images/suppression_sample_code.png" alt="Suppression in code" width="100%">
@@ -153,7 +150,7 @@ Define warning/error thresholds per metric per level. CLI exits with code `0` (p
 
 ### Smart Reconciliation
 
-OpenCover assigns coverage to compiler-generated state machines (`<Method>d__0`). Roslyn lacks namespace data. MetricsReporter handles all of this — iterator coverage gets transferred back to real methods, namespaces are inferred, duplicates are detected.
+OpenCover assigns coverage to compiler-generated state machines (`<Method>d__0`); Roslyn provides no namespace data. MetricsReporter transfers iterator coverage back to real methods, infers namespaces, and removes duplicate noise ([details](docs/4-explanation/4.4%20-%20iterator-coverage-reconciliation.md)).
 
 <p align="center">
   <img src="docs/images/hovering_on_include_state_machine.png" alt="State machine reconciliation tooltip" width="500">
@@ -174,6 +171,8 @@ OpenCover assigns coverage to compiler-generated state machines (`<Method>d__0`)
 - **Three-layer config with priority** — CLI flags override env vars (`METRICSREPORTER_*`), which override `.metricsreporter.json`, which override built-in defaults; mix freely
 - **Config validation with exit code 3** — the config file is schema-validated before any command runs; unknown keys, ambiguous script routes, and duplicate aliases all produce clear errors
 - **Metric aliases** — map long canonical names (`RoslynClassCoupling`) to short shorthands (`Coupling`, `cc`) in config, env vars, or `--metric-aliases`; aliases are embedded in the report and shown as column-header tooltips
+
+→ [Configuration reference](docs/3-reference/3.1%20-%20configuration-options.md)
 
 **Symbol filtering**
 - **Wildcard exclusion patterns** — exclude members, types, and assemblies by glob patterns (`*b__*`, `Tests`, `<>c`); configured in JSON or via CLI flags
@@ -250,6 +249,8 @@ metricsreporter test --symbol MyApp.Services.OrderService.Process --metric Compl
 metricsreporter read --namespace MyApp --metric OpenCoverBranchCoverage --group-by type
 ```
 
+→ [Full CLI reference](docs/3-reference/3.2%20-%20metricsreporter-cli.md)
+
 ---
 
 <h2 id="ai-driven-refactoring">AI Agent Workflow</h2>
@@ -263,17 +264,14 @@ MetricsReporter ships with ready-to-use prompt files for AI agents:
 | [`refactor-coverage.md`](Metrics/Agent/refactor-coverage.md) | Write tests until branch coverage passes |
 | [`refactor-sarif.md`](Metrics/Agent/refactor-sarif.md) | Fix CA/IDE analyzer violations |
 
-**The loop is simple:**
+**The agent loop is simple:**
 
-```
-1. metricsreporter read  → find violation
-2. Study code            → plan refactoring
-3. Refactor + build      → apply changes
-4. metricsreporter test  → verify fix
-5. Repeat until clean
-```
+1. `metricsreporter read` — find violation
+2. Refactor — apply changes
+3. `metricsreporter test` — verify fix
+4. Repeat until clean
 
-The agent works autonomously — no human input needed between steps.
+The agent runs this loop autonomously — no human input needed between steps.
 
 ---
 
@@ -289,7 +287,7 @@ The agent works autonomously — no human input needed between steps.
 
 ## Documentation
 
-Full [Diataxis-structured documentation](docs/README.md):
+[Documentation](docs/README.md):
 
 - **[Tutorials](docs/1-tutorials/1.0%20-%20README.md)** — Get your first dashboard running
 - **[How-To Guides](docs/2-how-to-guides/2.0%20-%20README.md)** — Config files, scripts, shipping updates
