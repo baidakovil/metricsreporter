@@ -23,10 +23,8 @@
 **MetricsReporter** is a .NET 8 CLI tool that aggregates code coverage, complexity, coupling, and analyzer violations from three independent sources into one interactive dashboard — then lets you (or your AI agent) fix everything via a structured refactoring loop.
 
 ```
-  coverage.xml  +  metrics.xml  +  violations.sarif   →   one interactive HTML dashboard
-  (OpenCover,       (Roslyn)        (Analyzers)              + unified JSON
-   AltCover,
-   etc)
+  coverage.xml  +  metrics.xml  +  violations.sarif   →   one interactive HTML
+  (OpenCover)      (Roslyn)        (Analyzers)              + unified JSON
 ```
 
 <p align="center">
@@ -68,19 +66,17 @@ Open `report.html` — you'll see the dashboard from the screenshot above.
 
 ## Key Features
 
-**[Interactive HTML Dashboard](docs/README.md#the-dashboard)** — Drill down from Solution → Assembly → Namespace → Type → Method. Filter instantly, toggle warning/error awareness, hover for metric details. Self-contained HTML, no server, handles 50k+ symbols.
+**Interactive HTML Dashboard** — Drill down from Solution → Assembly → Namespace → Type → Method. Filter instantly, toggle warning/error awareness, hover for metric details. Self-contained HTML, no server, handles 50k+ symbols. [→ details](docs/README.md#the-dashboard)
 
-**[AI-Driven Refactoring](#ai-agent-workflow)** — Give any AI agent (Copilot, Cursor, Claude) a namespace and a metric. It reads the violation, edits the code, rebuilds, and verifies — autonomously. Ready-to-use prompt files included.
+**AI-Driven Refactoring** — Give any AI agent (Copilot, Cursor, Claude) a namespace and a metric. It reads the violation, edits the code, rebuilds, and verifies — autonomously. Ready-to-use prompt files included. [→ workflow](#ai-agent-workflow)
 
-**[Threshold Gates for CI](docs/README.md#threshold-configuration)** — Define warning/error thresholds per metric per symbol level. CLI exits with `0` (pass) or non-zero (fail) — plug it straight into your pipeline.
+**Threshold Gates for CI** — Define warning/error thresholds per metric per symbol level. CLI exits with `0` (pass) or non-zero (fail) — plug it straight into your pipeline. [→ details](docs/README.md#threshold-configuration)
 
-**[Baseline & Delta Tracking](docs/README.md#baseline--delta-tracking)** — Every run saves a baseline. Next run computes deltas automatically, per method — complexity, coverage, violations.
+**Baseline & Delta Tracking** — Every run saves a baseline. Next run computes deltas automatically, per method — complexity, coverage, violations. [→ details](docs/README.md#baseline--delta-tracking)
 
-**[Suppression System](docs/README.md#suppression-system)** — Mark intentional exceptions with `[SuppressMessage]`. They show up in the dashboard with justifications, not as false alarms. ([full reference](docs/3-reference/3.4%20-%20suppression-guidelines.md))
+**Suppression System** — Mark intentional exceptions with `[SuppressMessage]`. They show up in the dashboard with justifications, not as false alarms. [→ details](docs/README.md#suppression-system)
 
-**[ReportGenerator Integration](docs/README.md#reportgenerator-integration)** — Link to line-by-line HTML coverage maps. Script hooks trigger full rebuild + coverage recollection as part of the AI verify step.
-
-> **All features →** [Feature deep dive](docs/README.md)
+**ReportGenerator Integration** — Link to line-by-line HTML coverage maps. Script hooks trigger full rebuild + coverage recollection as part of the AI verify step. [→ details](docs/README.md#reportgenerator-integration)
 
 <p align="center">
   <img src="docs/images/dashboard_annotated.png" alt="Dashboard UI features" width="100%">
