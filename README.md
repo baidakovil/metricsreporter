@@ -223,6 +223,12 @@ OpenCover assigns coverage to compiler-generated state machines (`<Method>d__0`)
 dotnet tool install --global MetricsReporter.Tool
 ```
 
+### Prerequisites for Roslyn metrics
+
+MetricsReporter **reads** Roslyn metrics XML — it does not produce it on its own. You need `Metrics.exe` from the [`Microsoft.CodeAnalysis.Metrics`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.Metrics) NuGet package to generate `SolutionMetrics.g.xml`.
+
+**Platform note:** `Metrics.exe` is a native-framework binary and must match your OS/architecture. This repo ships a prebuilt `win-arm64` binary in [`build/Resources/metrics/win-arm64/`](build/Resources/metrics/win-arm64/) — it was compiled from source because no official prebuilt existed for that platform. If you are on **Windows x64**, you need to swap it out; see [`build/Resources/metrics/README.md`](build/Resources/metrics/README.md) for instructions (download from NuGet or build from source). Coverage and the HTML dashboard work on all platforms regardless.
+
 ### Generate your first report
 
 ```powershell

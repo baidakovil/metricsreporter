@@ -1,8 +1,8 @@
 # Roslyn Code Metrics Tool — Bundled Binary
 
 This directory contains a platform-specific self-contained publish of the
-[Roslyn Code Metrics tool](https://github.com/dotnet/roslyn-analyzers/tree/main/src/Tools/Metrics)
-(`Metrics.exe`), used by the `GenerateSolutionMetrics` MSBuild target in
+[`Microsoft.CodeAnalysis.Metrics`](https://www.nuget.org/packages/Microsoft.CodeAnalysis.Metrics)
+NuGet package (`Metrics.exe`), used by the `GenerateSolutionMetrics` MSBuild target in
 `build/metrics.targets` to produce `Metrics/Roslyn/SolutionMetrics.g.xml`.
 
 ## Bundled version
