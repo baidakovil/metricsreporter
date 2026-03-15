@@ -14,10 +14,12 @@
 
 ---
 
-**MetricsReporter** is a .NET 8 CLI tool that aggregates code coverage, complexity, coupling, and analyzer violations from **four independent sources** into one interactive dashboard — then lets you (or your AI agent) fix everything via a structured refactoring loop.
+**MetricsReporter** is a .NET 8 CLI tool that aggregates code coverage, complexity, coupling, and analyzer violations from **three independent sources** into one interactive dashboard — then lets you (or your AI agent) fix everything via a structured refactoring loop.
 
 <p align="center">
-  <img src="docs/images/dashboard_observing.gif" alt="MetricsReporter Dashboard" width="100%">
+  <img src="docs/images/dashboard_observing.png" alt="MetricsReporter Dashboard" width="100%">
+  <br>
+  <sub><a href="docs/images/dashboard_observing.gif">▶ Watch interactive dashboard demo (GIF)</a></sub>
 </p>
 
 ## The problem
@@ -32,7 +34,7 @@ Your C# project has growing tech debt. You *feel* the code is getting worse, but
 ## The solution
 
 ```
-One command. Four sources. One dashboard. Measurable improvement.
+One command. Three sources. One dashboard. Measurable improvement.
 ```
 
 MetricsReporter merges **OpenCover** (coverage), **Roslyn** (complexity & coupling), and **SARIF** (analyzer violations) into a unified report. Then it gives your AI coding agent a CLI to query, refactor, verify — in a loop — until every metric is green.
@@ -96,12 +98,16 @@ Seamless integration with [ReportGenerator](https://github.com/danielpalme/Repor
 
 Not every violation should be fixed. Mark intentional exceptions with `[SuppressMessage]` — they show up in the dashboard with justifications, not as false alarms.
 
-<p align="center">
-  <img src="docs/images/suppression_sample_code.png" alt="Suppression in code" width="420">&nbsp;&nbsp;
-  <img src="docs/images/suppression_sample_dashboard.png" alt="Suppression in dashboard" width="420">
-  <br>
-  <sub>Left: suppression attribute in code &nbsp;|&nbsp; Right: suppression reflected in dashboard with justification tooltip</sub>
-</p>
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/suppression_sample_code.png" alt="Suppression in code" width="100%"></td>
+    <td width="50%"><img src="docs/images/suppression_sample_dashboard.png" alt="Suppression in dashboard" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Suppression attribute in code</sub></td>
+    <td align="center"><sub>Suppression reflected in dashboard with justification tooltip</sub></td>
+  </tr>
+</table>
 
 ### Baseline & Delta Tracking
 
