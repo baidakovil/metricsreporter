@@ -10,7 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - **Customizable editor links** — you can now set any URL prefix for opening files from the report (e.g., `cursor://`, `vscode://file/`) using the `general.editorPrefix` setting in the config. The default is `vscode://file/`.
 
-- Readme in **NUGET_README.md** (NuGet readme) aligned with the main README.
+- **NUGET_README.md** (NuGet readme) aligned with the main README.
+
+- **HTTP/HTTPS ReportGenerator support** — the `CoverageLinkBuilder` now allows specifying an `http://` or `https://` URL in the `coverageHtmlDir` config setting. This enables direct linking to remote or locally served HTML coverage reports without requiring local file existence checks.
+
+- **Tool version** is now shown dynamically in the HTML report under the spoiler in the `Tool info` section.
 
 ## [0.4.0] - 2026-03-15
 
