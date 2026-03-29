@@ -217,6 +217,13 @@ internal static class ConfigurationWarningEvaluator
       return false;
     }
 
+    // Treat HTTP(S) URLs as "existing" for the purposes of configuration warnings
+    // since coverage HTML may be hosted remotely rather than on the local filesystem.
+    if (value.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+    {
+      return true;
+    }
+
     return Directory.Exists(value);
   }
 

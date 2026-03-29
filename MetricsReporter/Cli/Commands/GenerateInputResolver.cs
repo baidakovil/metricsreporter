@@ -132,7 +132,9 @@ internal static class GenerateInputResolver
       ExcludeEvents: excludeEvents,
       ReplaceBaseline: replaceBaseline,
       BaselineStoragePath: CommandPathResolver.MakeAbsolute(baselineStoragePath, workingDirectory),
-      CoverageHtmlDir: CommandPathResolver.MakeAbsolute(coverageHtmlDir, workingDirectory),
+      CoverageHtmlDir: (coverageHtmlDir != null && (coverageHtmlDir.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || coverageHtmlDir.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+        ? coverageHtmlDir
+        : CommandPathResolver.MakeAbsolute(coverageHtmlDir, workingDirectory),
       AnalyzeSuppressedSymbols: analyzeSuppressed,
       SuppressedSymbols: CommandPathResolver.MakeAbsolute(suppressedSymbols, workingDirectory),
       SolutionDirectory: CommandPathResolver.MakeAbsolute(solutionDirectory, workingDirectory),

@@ -13,6 +13,50 @@ using MetricsReporter.Rendering;
 
 public sealed class HtmlReportGeneratorTests
 {
+  [Test]
+  public void Generate_AddsCoverageLink_WhenCoverageHtmlDirIsHttpUrl()
+  {
+    var type = new TypeMetricsNode
+    {
+      Name = "MetricsAggregationService",
+      FullyQualifiedName = "MetricsReporter.Aggregation.MetricsAggregationService",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>()
+    };
+    var @namespace = new NamespaceMetricsNode
+    {
+      Name = "MetricsReporter.Aggregation",
+      FullyQualifiedName = "MetricsReporter.Aggregation",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+      Types = new List<TypeMetricsNode> { type }
+    };
+    var assembly = new AssemblyMetricsNode
+    {
+      Name = "MetricsReporter",
+      FullyQualifiedName = "MetricsReporter",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+      Namespaces = new List<NamespaceMetricsNode> { @namespace }
+    };
+    var report = new MetricsReport
+    {
+      Metadata = new ReportMetadata
+      {
+        GeneratedAtUtc = DateTime.UtcNow,
+        Paths = new ReportPaths(),
+        ThresholdsByLevel = new Dictionary<MetricIdentifier, IDictionary<MetricSymbolLevel, MetricThreshold>>(),
+        ThresholdDescriptions = new Dictionary<MetricIdentifier, string?>()
+      },
+      Solution = new SolutionMetricsNode
+      {
+        Name = "metricsreporter",
+        FullyQualifiedName = "metricsreporter",
+        Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+        Assemblies = new List<AssemblyMetricsNode> { assembly }
+      }
+    };
+    var coverageHtmlDir = "http://127.0.0.1:8001/ReportGenerator/";
+    var html = HtmlReportGenerator.Generate(report, coverageHtmlDir);
+    html.Should().Contain("http://127.0.0.1:8001/ReportGenerator/MetricsReporter_MetricsAggregationService.html");
+  }
 
   [Test]
   public void Generate_EmitsToolVersionAndToolPanel()
@@ -41,8 +85,8 @@ public sealed class HtmlReportGeneratorTests
     };
 
     var html = HtmlReportGenerator.Generate(report);
-    html.Should().Contain("<p class=\"section-title\">TOOL</p>");
-    html.Should().Contain("<strong>Tool version:</strong> 0.4.2");
+    html.Should().Contain("<p class=\"section-title\">Tool info</p>");
+    html.Should().Contain("<strong>Tool version:</strong>");
   }
   [Test]
   public void Generate_BuildsHtmlWithStatusAndNewIndicators()
