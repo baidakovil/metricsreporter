@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - **HTTP/HTTPS ReportGenerator support** — the `CoverageLinkBuilder` now allows specifying an `http://` or `https://` URL in the `coverageHtmlDir` config setting. This enables direct linking to remote or locally served HTML coverage reports without requiring local file existence checks.
 
+### Fixed
+
+- Fix: `coverageHtmlDir` passed to HTML-only generation path to ensure coverage links are rendered when using HTTP/HTTPS URLs.
+- Fix: Configuration warning for `coverageHtmlDir` no longer appears for HTTP/HTTPS URLs.
+
 - **Tool version** is now shown dynamically in the HTML report under the spoiler in the `Tool info` section.
 
 ## [0.4.0] - 2026-03-15
