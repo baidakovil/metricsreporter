@@ -40,6 +40,12 @@ public sealed class GeneralConfiguration
   public bool? RunScripts { get; init; }
 
   /// <summary>
+  /// Gets the editor URL prefix used for source links in the HTML report (e.g., <c>vscode://file/</c>, <c>cursor://</c>).
+  /// Defaults to <c>vscode://file/</c> if not set.
+  /// </summary>
+  public string? EditorPrefix { get; init; }
+
+  /// <summary>
   /// Gets a value indicating whether aggregation should run after scripts finish.
   /// </summary>
   public bool? AggregateAfterScripts { get; init; }

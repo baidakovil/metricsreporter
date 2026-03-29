@@ -30,6 +30,7 @@ The HTML report is a single self-contained file with no external dependencies, n
 - **Detail slider** — control nesting depth without re-rendering
 - **Tooltips** — hover any metric for definition, aliases, source location, SARIF rule breakdown
 - **Copy FQN** — one-click copy of any symbol's fully qualified name
+- **Open in editor** — one-click open of any symbol's source file in VS Code (via `vscode://file/...` or other protocol, configurated via `editorPrefix` setting)
 - **Persistent preferences** — filter/awareness/detail settings survive browser refresh (localStorage)
 
 ![Dashboard](images/dashboard_observing.gif)

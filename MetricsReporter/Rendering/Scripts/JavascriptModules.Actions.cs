@@ -293,11 +293,12 @@ function initActions(ctx){
         return;
       }
       const normalizedPath = path.replace(/\\/g, '/');
-      const vscodeUrl = 'vscode://file/' + normalizedPath + ':' + line;
+      const editorPrefix = row.getAttribute('data-editor-prefix') || 'vscode://file/';
+      const editorUrl = editorPrefix + normalizedPath + ':' + line;
       try{
-        window.location.href = encodeURI(vscodeUrl);
+        window.location.href = encodeURI(editorUrl);
       }catch(error){
-        console.warn('Failed to open file via VS Code protocol:', error);
+        console.warn('Failed to open file via editor protocol:', error);
       }
       return;
     }

@@ -39,6 +39,11 @@
           "minimum": 1,
           "default": 4000,
           "description": "Maximum number of stdout/stderr characters logged on script failures."
+        },
+        "editorPrefix": {
+          "type": "string",
+          "default": "vscode://file/",
+          "description": "URL prefix for editor links in the HTML report (e.g., 'vscode://file/', 'cursor://')."
         }
       }
     },

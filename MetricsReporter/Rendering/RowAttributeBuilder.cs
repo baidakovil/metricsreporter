@@ -11,20 +11,30 @@ using MetricsReporter.Model;
 /// </summary>
 internal sealed class RowAttributeBuilder
 {
+
   private readonly Dictionary<MetricsNode, int>? _descendantCountIndex;
   private readonly RowStateCalculator _stateCalculator;
+  private readonly string _editorPrefix;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="RowAttributeBuilder"/> class.
   /// </summary>
   /// <param name="stateCalculator">Calculator for row state flags.</param>
   /// <param name="descendantCountIndex">Optional index of descendant counts for nodes.</param>
+  /// <summary>
+  /// Initializes a new instance of the <see cref="RowAttributeBuilder"/> class.
+  /// </summary>
+  /// <param name="stateCalculator">Calculator for row state flags.</param>
+  /// <param name="descendantCountIndex">Optional index of descendant counts for nodes.</param>
+  /// <param name="editorPrefix">Editor URL prefix for source links (e.g., vscode://file/, cursor://).</param>
   public RowAttributeBuilder(
     RowStateCalculator stateCalculator,
-    Dictionary<MetricsNode, int>? descendantCountIndex)
+    Dictionary<MetricsNode, int>? descendantCountIndex,
+    string? editorPrefix = null)
   {
     _stateCalculator = stateCalculator ?? throw new ArgumentNullException(nameof(stateCalculator));
     _descendantCountIndex = descendantCountIndex;
+    _editorPrefix = string.IsNullOrWhiteSpace(editorPrefix) ? "vscode://file/" : editorPrefix;
   }
 
   /// <summary>
@@ -39,12 +49,15 @@ internal sealed class RowAttributeBuilder
     var filterAttributes = BuildFilterAttributes(node);
     var virtualizationAttributes = BuildDescendantAttribute(node);
     var defaultVisibilityAttributes = BuildVisibilityAttributes();
+    // Add editor prefix as a data attribute on every row (for JS to consume)
+    var editorPrefixAttribute = $" data-editor-prefix=\"{System.Net.WebUtility.HtmlEncode(_editorPrefix)}\"";
     return string.Concat(
       sourceDataAttributes,
       rowStateAttributes,
       filterAttributes,
       virtualizationAttributes,
-      defaultVisibilityAttributes);
+      defaultVisibilityAttributes,
+      editorPrefixAttribute);
   }
 
   private static string BuildSourceDataAttributes(MetricsNode node)

@@ -13,6 +13,62 @@ using MetricsReporter.Rendering;
 [TestFixture]
 [Category("Unit")]
 public sealed class RowAttributeBuilderTests
+
+  [Test]
+  public void BuildAllAttributes_WithCustomEditorPrefix_PropagatesEditorPrefixAttribute()
+  {
+    // Arrange
+    var metricOrder = new[] { MetricIdentifier.RoslynClassCoupling };
+    var stateCalculator = new RowStateCalculator(metricOrder, null);
+    var builder = new RowAttributeBuilder(stateCalculator, null, "cursor://");
+
+    var node = new TypeMetricsNode
+    {
+      Name = "SampleType",
+      FullyQualifiedName = "Sample.Namespace.SampleType",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+      Source = new SourceLocation
+      {
+        Path = "C:\\Source\\File.cs",
+        StartLine = 10,
+        EndLine = null
+      }
+    };
+
+    // Act
+    var result = builder.BuildAllAttributes(node);
+
+    // Assert
+    result.Should().Contain("data-editor-prefix=\"cursor://\"");
+  }
+
+  [Test]
+  public void BuildAllAttributes_WithoutEditorPrefix_UsesDefaultVscodePrefix()
+  {
+    // Arrange
+    var metricOrder = new[] { MetricIdentifier.RoslynClassCoupling };
+    var stateCalculator = new RowStateCalculator(metricOrder, null);
+    var builder = new RowAttributeBuilder(stateCalculator, null, null);
+
+    var node = new TypeMetricsNode
+    {
+      Name = "SampleType",
+      FullyQualifiedName = "Sample.Namespace.SampleType",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+      Source = new SourceLocation
+      {
+        Path = "C:\\Source\\File.cs",
+        StartLine = 10,
+        EndLine = null
+      }
+    };
+
+    // Act
+    var result = builder.BuildAllAttributes(node);
+
+    // Assert
+    result.Should().Contain("data-editor-prefix=\"vscode://file/\"");
+  }
 {
   [Test]
   public void Constructor_WithNullStateCalculator_ThrowsArgumentNullException()
