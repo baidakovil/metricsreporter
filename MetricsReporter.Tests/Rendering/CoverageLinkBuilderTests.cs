@@ -329,6 +329,29 @@ public sealed class CoverageLinkBuilderTests
     result.Should().NotBeNull();
     result.Should().Contain(expectedFileName);
   }
+
+  [Test]
+  public void BuildLink_HttpCoverageHtmlDir_ProducesHttpUrlWithoutFileCheck()
+  {
+    // Arrange
+    var typeNode = new TypeMetricsNode
+    {
+      Name = "SampleType",
+      FullyQualifiedName = "Sample.Namespace.SampleType"
+    };
+    var assemblyName = "Sample.Assembly";
+    var httpDir = "http://127.0.0.1:8001/ReportGenerator";
+    var expectedUrl = httpDir + "/Sample.Assembly_SampleType.html";
+    var builder = new CoverageLinkBuilder(httpDir);
+
+    // Act
+    var result = builder.BuildLink(typeNode, assemblyName);
+
+    // Assert
+    result.Should().NotBeNull();
+    result.Should().Contain("http://127.0.0.1:8001/ReportGenerator/Sample.Assembly_SampleType.html");
+    result.Should().NotContain("file://");
+  }
 }
 
 

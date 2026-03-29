@@ -48,8 +48,7 @@ internal sealed class CoverageLinkBuilder
       return null;
     }
 
-    // CoverageHtmlDir must be specified and exist
-    if (string.IsNullOrWhiteSpace(_coverageHtmlDir) || !Directory.Exists(_coverageHtmlDir))
+    if (string.IsNullOrWhiteSpace(_coverageHtmlDir))
     {
       return null;
     }
@@ -68,17 +67,28 @@ internal sealed class CoverageLinkBuilder
     }
 
     // Build HTML filename: {Assembly}_{Type}.html
-    // Example: "Sample.Loader_PipeResponseFactory.html"
     var htmlFileName = $"{assemblyName}_{typeName}.html";
-    var htmlFilePath = Path.Combine(_coverageHtmlDir, htmlFileName);
 
-    // Only create link if HTML file exists
+    // If coverageHtmlDir is an HTTP(S) URL, just concatenate
+    if (_coverageHtmlDir.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+        _coverageHtmlDir.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+    {
+      var url = _coverageHtmlDir.TrimEnd('/') + "/" + Uri.EscapeDataString(htmlFileName);
+      return WebUtility.HtmlEncode(url);
+    }
+
+    // Otherwise, treat as local directory (must exist)
+    if (!Directory.Exists(_coverageHtmlDir))
+    {
+      return null;
+    }
+
+    var htmlFilePath = Path.Combine(_coverageHtmlDir, htmlFileName);
     if (!File.Exists(htmlFilePath))
     {
       return null;
     }
 
-    // Convert to file:// URL format
     var fileUri = new Uri(htmlFilePath);
     return WebUtility.HtmlEncode(fileUri.AbsoluteUri);
   }
