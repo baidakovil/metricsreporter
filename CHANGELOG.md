@@ -1,14 +1,16 @@
-# [0.4.2] - 2026-03-29
-
-### Added
-
-**Customizable editor links** — you can now set any URL prefix for opening files from the report (e.g., `cursor://`, `vscode://file/`) using the `general.editorPrefix` setting in the config. The default is `vscode://file/`.
-
 # Changelog
 
 All notable changes to MetricsReporter are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [0.4.2] - 2026-03-29
+
+### Added
+
+- **Customizable editor links** — you can now set any URL prefix for opening files from the report (e.g., `cursor://`, `vscode://file/`) using the `general.editorPrefix` setting in the config. The default is `vscode://file/`.
+
+- Readme in **NUGET_README.md** (NuGet readme) aligned with the main README.
 
 ## [0.4.0] - 2026-03-15
 
@@ -38,4 +40,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - NUnit + FluentAssertions + NSubstitute test suite.
 - GitHub Actions CI workflow.
 
+[0.4.2]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.2
 [0.4.0]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.0
