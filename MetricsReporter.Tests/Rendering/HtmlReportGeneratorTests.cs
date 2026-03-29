@@ -10,8 +10,40 @@ using MetricsReporter.Rendering;
 
 [TestFixture]
 [Category("Unit")]
+
 public sealed class HtmlReportGeneratorTests
 {
+
+  [Test]
+  public void Generate_EmitsToolVersionAndToolPanel()
+  {
+    var report = new MetricsReport
+    {
+      Metadata = new ReportMetadata
+      {
+        GeneratedAtUtc = DateTime.UtcNow,
+        Paths = new ReportPaths
+        {
+          MetricsDirectory = @"C:\Repo\build\Metrics",
+          Report = @"C:\Repo\build\Metrics\Report\metrics-report.json",
+          Html = @"C:\Repo\build\Metrics\Report\metrics-report.html"
+        },
+        ThresholdsByLevel = new Dictionary<MetricIdentifier, IDictionary<MetricSymbolLevel, MetricThreshold>>(),
+        ThresholdDescriptions = new Dictionary<MetricIdentifier, string?>()
+      },
+      Solution = new SolutionMetricsNode
+      {
+        Name = "SampleSolution",
+        FullyQualifiedName = "SampleSolution",
+        Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+        Assemblies = new List<AssemblyMetricsNode>()
+      }
+    };
+
+    var html = HtmlReportGenerator.Generate(report);
+    html.Should().Contain("<p class=\"section-title\">TOOL</p>");
+    html.Should().Contain("<strong>Tool version:</strong> 0.4.2");
+  }
   [Test]
   public void Generate_BuildsHtmlWithStatusAndNewIndicators()
   {

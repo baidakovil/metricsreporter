@@ -58,7 +58,12 @@ internal static class HtmlHeaderGenerator
         : thresholdsPath;
 
     builder.AppendLine("    <div class=\"meta-section\">");
-    builder.AppendLine("      <p class=\"section-title\">Paths</p>");
+      builder.AppendLine("      <p class=\"section-title\">Tool info</p>");
+      var informationalVersion = typeof(HtmlHeaderGenerator).Assembly
+        .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+        .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+        .FirstOrDefault()?.InformationalVersion ?? "unknown";
+      builder.AppendLine($"      <p><strong>Tool version:</strong> {informationalVersion}</p>");
     builder.AppendLine($"      <p><strong>Metrics JSON:</strong> {WebUtility.HtmlEncode(report.Metadata.Paths.Report)}</p>");
     if (!string.IsNullOrWhiteSpace(report.Metadata.Paths.Baseline))
     {

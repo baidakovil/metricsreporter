@@ -12,7 +12,9 @@ using MetricsReporter.Rendering;
 /// </summary>
 [TestFixture]
 [Category("Unit")]
+
 public sealed class RowAttributeBuilderTests
+{
 
   [Test]
   public void BuildAllAttributes_WithCustomEditorPrefix_PropagatesEditorPrefixAttribute()
@@ -69,7 +71,6 @@ public sealed class RowAttributeBuilderTests
     // Assert
     result.Should().Contain("data-editor-prefix=\"vscode://file/\"");
   }
-{
   [Test]
   public void Constructor_WithNullStateCalculator_ThrowsArgumentNullException()
   {
