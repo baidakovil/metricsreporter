@@ -4,6 +4,12 @@ All notable changes to MetricsReporter are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## future - 2026-03-30
+
+### Fixed
+
+- Config validation now correctly allows the `editorPrefix` option in the `general` section.
+
 ## [0.4.2] - 2026-03-29
 
 ### Added

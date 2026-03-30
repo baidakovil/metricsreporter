@@ -26,7 +26,8 @@ public sealed class MetricsReporterConfigLoader
     "verbosity",
     "timeoutSeconds",
     "workingDirectory",
-    "logTruncationLimit"
+    "logTruncationLimit",
+    "editorPrefix"
   ];
 
   private static readonly string[] PathsSectionProperties =
