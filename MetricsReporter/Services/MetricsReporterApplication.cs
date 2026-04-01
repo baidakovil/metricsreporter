@@ -415,7 +415,7 @@ public sealed class MetricsReporterApplication
   {
     var startedAt = DateTimeOffset.UtcNow;
     logger.LogInformation("Generating HTML report...");
-    var html = HtmlReportGenerator.Generate(report, options.CoverageHtmlDir);
+    var html = HtmlReportGenerator.Generate(report, options.CoverageHtmlDir, options.EditorPrefix);
 
     await ReportWriter.WriteHtmlAsync(html, options.OutputHtmlPath, cancellationToken).ConfigureAwait(false);
     var duration = DateTimeOffset.UtcNow - startedAt;

@@ -39,17 +39,19 @@ public sealed class ReportWriter
   /// <param name="report">The metrics report to render as HTML.</param>
   /// <param name="path">The file path where the HTML report will be written.</param>
   /// <param name="coverageHtmlDir">Optional path to HTML coverage reports directory for generating hyperlinks.</param>
+    /// <param name="editorPrefix">Optional editor protocol prefix used for source links.</param>
   /// <param name="cancellationToken">Cancellation token.</param>
   public static async Task WriteHtmlReportAsync(
       MetricsReport report,
       string path,
       string? coverageHtmlDir,
+      string? editorPrefix,
       CancellationToken cancellationToken)
   {
     ArgumentNullException.ThrowIfNull(report);
     ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
-    var html = HtmlReportGenerator.Generate(report, coverageHtmlDir);
+    var html = HtmlReportGenerator.Generate(report, coverageHtmlDir, editorPrefix);
     await WriteHtmlAsync(html, path, cancellationToken).ConfigureAwait(false);
   }
 

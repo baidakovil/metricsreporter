@@ -4,7 +4,8 @@
     "aggregateAfterScripts": true,
     "verbosity": "normal",
     "timeoutSeconds": 900,
-    "logTruncationLimit": 4000
+    "logTruncationLimit": 4000,
+    "editorPrefix": "cursor://"
   },
   "paths": {
     "metricsDir": "Metrics",

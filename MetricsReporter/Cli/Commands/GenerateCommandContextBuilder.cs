@@ -65,7 +65,13 @@ internal sealed class GenerateCommandContextBuilder
       return BuildGenerateContextResult.CreateFailure(scripts.ExitCode ?? (int)MetricsReporterExitCode.ValidationError);
     }
 
-    var options = BuildOptions(resolvedInputs, logPath, configuration.MetricAliases, configuration.GeneralOptions.Verbosity);
+    var options = BuildOptions(
+      resolvedInputs,
+      logPath,
+      configuration.MetricAliases,
+      configuration.GeneralOptions.Verbosity,
+      configuration.FileConfiguration,
+      configuration.EnvironmentConfiguration);
     return BuildGenerateContextResult.CreateSuccess(
       new GenerateCommandContext(
         configuration.GeneralOptions,
@@ -79,7 +85,9 @@ internal sealed class GenerateCommandContextBuilder
     ResolvedGenerateInputs inputs,
     string logPath,
     IReadOnlyDictionary<MetricIdentifier, IReadOnlyList<string>> metricAliases,
-    string verbosity)
+    string verbosity,
+    MetricsReporterConfiguration fileConfiguration,
+    MetricsReporterConfiguration environmentConfiguration)
   {
     return new MetricsReporterOptions
     {
@@ -112,7 +120,8 @@ internal sealed class GenerateCommandContextBuilder
       SuppressedSymbolsPath = inputs.SuppressedSymbols,
       SolutionDirectory = inputs.SolutionDirectory,
       SourceCodeFolders = inputs.SourceCodeFolders,
-      MetricAliases = metricAliases
+      MetricAliases = metricAliases,
+      EditorPrefix = fileConfiguration.General.EditorPrefix ?? environmentConfiguration.General.EditorPrefix
     };
   }
 

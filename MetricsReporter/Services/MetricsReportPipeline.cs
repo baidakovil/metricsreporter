@@ -246,7 +246,7 @@ internal sealed class MetricsReportPipeline : IMetricsReportPipeline
       await ReportWriter.WriteJsonAsync(report, options.OutputJsonPath, cancellationToken).ConfigureAwait(false);
       if (!string.IsNullOrWhiteSpace(options.OutputHtmlPath))
       {
-        await ReportWriter.WriteHtmlReportAsync(report, options.OutputHtmlPath, options.CoverageHtmlDir, cancellationToken).ConfigureAwait(false);
+        await ReportWriter.WriteHtmlReportAsync(report, options.OutputHtmlPath, options.CoverageHtmlDir, options.EditorPrefix, cancellationToken).ConfigureAwait(false);
       }
 
       return MetricsReporterExitCode.Success;

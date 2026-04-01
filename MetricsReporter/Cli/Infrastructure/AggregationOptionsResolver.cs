@@ -124,7 +124,7 @@ internal static class AggregationOptionsResolver
   /// <summary>
   /// Maps resolved inputs to pipeline options.
   /// </summary>
-  public static MetricsReporterOptions BuildOptions(ResolvedAggregationInputs inputs, string logPath, string verbosity)
+  public static MetricsReporterOptions BuildOptions(ResolvedAggregationInputs inputs, string logPath, string verbosity, string? editorPrefix = null)
   {
     return new MetricsReporterOptions
     {
@@ -155,7 +155,8 @@ internal static class AggregationOptionsResolver
       AnalyzeSuppressedSymbols = inputs.AnalyzeSuppressedSymbols,
       SuppressedSymbolsPath = inputs.SuppressedSymbols,
       SolutionDirectory = inputs.SolutionDirectory,
-      SourceCodeFolders = inputs.SourceCodeFolders
+      SourceCodeFolders = inputs.SourceCodeFolders,
+      EditorPrefix = editorPrefix
     };
   }
 

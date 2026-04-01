@@ -107,7 +107,8 @@ internal sealed class ScriptAggregationRunner
       }
 
       var aggregationLogPath = AggregationOptionsResolver.BuildLogPath(aggregationInputs, context.General.WorkingDirectory);
-      var aggregationOptions = AggregationOptionsResolver.BuildOptions(aggregationInputs, aggregationLogPath, context.General.Verbosity);
+      var editorPrefix = context.FileConfig.General.EditorPrefix ?? context.EnvironmentConfig.General.EditorPrefix;
+      var aggregationOptions = AggregationOptionsResolver.BuildOptions(aggregationInputs, aggregationLogPath, context.General.Verbosity, editorPrefix);
       var application = new MetricsReporterApplication();
       var aggregationExit = await application.RunAsync(aggregationOptions, cancellationToken).ConfigureAwait(false);
       if (aggregationExit != MetricsReporterExitCode.Success)

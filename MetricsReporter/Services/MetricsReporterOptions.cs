@@ -162,6 +162,15 @@ public sealed class MetricsReporterOptions
   public string? CoverageHtmlDir { get; init; }
 
   /// <summary>
+  /// Optional editor protocol prefix used for source links in the HTML report.
+  /// </summary>
+  /// <remarks>
+  /// Examples include <c>vscode://file/</c> and <c>cursor://</c>. When not specified,
+  /// HTML rendering falls back to <c>vscode://file/</c>.
+  /// </remarks>
+  public string? EditorPrefix { get; init; }
+
+  /// <summary>
   /// When <see langword="true"/>, performs an additional Roslyn-based scan of the solution
   /// to discover <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/> usages
   /// before aggregating metrics.

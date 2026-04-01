@@ -20,7 +20,8 @@ public sealed class NodeChildrenRendererTests
   {
     var method = typeof(HtmlTableGenerator).GetMethod("InitializeRenderers", BindingFlags.NonPublic | BindingFlags.Instance);
     string? coverageHtmlDir = null;
-    var parameters = new object?[] { report, coverageHtmlDir };
+    string? editorPrefix = null;
+    var parameters = new object?[] { report, coverageHtmlDir, editorPrefix };
     method!.Invoke(generator, parameters);
   }
   [Test]

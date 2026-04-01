@@ -25,6 +25,7 @@ internal sealed class TableRendererInitializer
   /// <param name="metricUnits">Units associated with each metric.</param>
   /// <param name="report">The metrics report containing data for index building.</param>
   /// <param name="coverageHtmlDir">Optional path to HTML coverage reports directory.</param>
+  /// <param name="editorPrefix">Optional editor protocol prefix used for source links.</param>
   /// <returns>
   /// A <see cref="RendererComponents"/> instance containing all initialized renderer components.
   /// </returns>
@@ -39,13 +40,14 @@ internal sealed class TableRendererInitializer
     MetricIdentifier[] metricOrder,
     IReadOnlyDictionary<MetricIdentifier, string?> metricUnits,
     MetricsReport report,
-    string? coverageHtmlDir)
+    string? coverageHtmlDir,
+    string? editorPrefix = null)
   {
     var coverageLinkBuilder = CreateCoverageLinkBuilder(coverageHtmlDir);
     var suppressedIndex = SuppressionIndexBuilder.Build(report);
     var descendantCountIndex = DescendantCountIndexBuilder.Build(report);
     var stateCalculator = CreateRowStateCalculator(metricOrder, suppressedIndex);
-    var attributeBuilder = CreateRowAttributeBuilder(stateCalculator, descendantCountIndex);
+    var attributeBuilder = CreateRowAttributeBuilder(stateCalculator, descendantCountIndex, editorPrefix);
     var metricCellRenderer = CreateMetricCellRenderer(metricOrder, metricUnits, suppressedIndex);
 
     return new RendererComponents(
@@ -83,11 +85,13 @@ internal sealed class TableRendererInitializer
   /// </summary>
   /// <param name="stateCalculator">Calculator for row state flags.</param>
   /// <param name="descendantCountIndex">Index of descendant counts for nodes.</param>
+  /// <param name="editorPrefix">Optional editor protocol prefix used for source links.</param>
   /// <returns>A new <see cref="RowAttributeBuilder"/> instance.</returns>
   private static RowAttributeBuilder CreateRowAttributeBuilder(
     RowStateCalculator stateCalculator,
-    Dictionary<MetricsNode, int> descendantCountIndex)
-    => new RowAttributeBuilder(stateCalculator, descendantCountIndex);
+    Dictionary<MetricsNode, int> descendantCountIndex,
+    string? editorPrefix)
+    => new RowAttributeBuilder(stateCalculator, descendantCountIndex, editorPrefix);
 
   /// <summary>
   /// Creates a metric cell renderer for rendering metric values in table cells.

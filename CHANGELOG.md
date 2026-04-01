@@ -4,11 +4,13 @@ All notable changes to MetricsReporter are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## future - 2026-03-30
+## [0.4.4] - 2026-04-01
 
 ### Fixed
 
 - Config validation now correctly allows the `editorPrefix` option in the `general` section.
+- HTML generation now propagates `general.editorPrefix` through the full generate pipeline, including HTML-only generation and post-script aggregation.
+- Source-link rows in the HTML report now emit the configured editor protocol instead of falling back to `vscode://file/` when `editorPrefix` is set.
 
 ## [0.4.2] - 2026-03-29
 
@@ -56,4 +58,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - GitHub Actions CI workflow.
 
 [0.4.2]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.2
+[0.4.4]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.4
 [0.4.0]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.0

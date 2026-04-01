@@ -39,18 +39,19 @@ internal sealed class HtmlTableGenerator
   /// </summary>
   /// <param name="report">The metrics report.</param>
   /// <param name="coverageHtmlDir">Optional path to HTML coverage reports directory for generating hyperlinks.</param>
+  /// <param name="editorPrefix">Optional editor protocol prefix used for source links.</param>
   /// <returns>HTML markup for the table.</returns>
-  public string Generate(MetricsReport report, string? coverageHtmlDir = null)
+  public string Generate(MetricsReport report, string? coverageHtmlDir = null, string? editorPrefix = null)
   {
     ArgumentNullException.ThrowIfNull(report);
 
     _idCounter = 0;
-    return BuildTableHtml(report, coverageHtmlDir);
+    return BuildTableHtml(report, coverageHtmlDir, editorPrefix);
   }
 
-  private string BuildTableHtml(MetricsReport report, string? coverageHtmlDir)
+  private string BuildTableHtml(MetricsReport report, string? coverageHtmlDir, string? editorPrefix)
   {
-    InitializeRenderers(report, coverageHtmlDir);
+    InitializeRenderers(report, coverageHtmlDir, editorPrefix);
 
     var builder = new StringBuilder();
     TableContentBuilder.Build(_metricOrder, report, this, builder);
@@ -60,13 +61,14 @@ internal sealed class HtmlTableGenerator
     return builder.ToString();
   }
 
-  private void InitializeRenderers(MetricsReport report, string? coverageHtmlDir)
+  private void InitializeRenderers(MetricsReport report, string? coverageHtmlDir, string? editorPrefix)
   {
     var components = TableRendererInitializer.Initialize(
       _metricOrder,
       _metricUnits,
       report,
-      coverageHtmlDir);
+      coverageHtmlDir,
+      editorPrefix);
     AssignRenderers(components);
   }
 

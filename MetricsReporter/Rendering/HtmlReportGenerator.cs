@@ -43,8 +43,9 @@ public sealed class HtmlReportGenerator
   /// </summary>
   /// <param name="report">The metrics report to generate HTML for.</param>
   /// <param name="coverageHtmlDir">Optional path to HTML coverage reports directory for generating hyperlinks.</param>
+  /// <param name="editorPrefix">Optional editor protocol prefix used for source links.</param>
   /// <returns>Complete HTML document as a string.</returns>
-  public static string Generate(MetricsReport report, string? coverageHtmlDir = null)
+  public static string Generate(MetricsReport report, string? coverageHtmlDir = null, string? editorPrefix = null)
   {
     ArgumentNullException.ThrowIfNull(report);
 
@@ -62,14 +63,14 @@ public sealed class HtmlReportGenerator
     builder.AppendLine("</head>");
     builder.AppendLine("<body>");
 
-    AppendBodyContent(builder, report, coverageHtmlDir);
+    AppendBodyContent(builder, report, coverageHtmlDir, editorPrefix);
 
     builder.AppendLine("</body>");
     builder.AppendLine("</html>");
     return builder.ToString();
   }
 
-  private static void AppendBodyContent(StringBuilder builder, MetricsReport report, string? coverageHtmlDir)
+  private static void AppendBodyContent(StringBuilder builder, MetricsReport report, string? coverageHtmlDir, string? editorPrefix)
   {
     // Header section (title, metadata, legend, controls)
     builder.Append(HtmlHeaderGenerator.Generate(report));
@@ -77,7 +78,7 @@ public sealed class HtmlReportGenerator
     // Table section
     var metricUnits = BuildMetricUnits(report.Metadata);
     var tableGenerator = new HtmlTableGenerator(MetricOrder, metricUnits);
-    builder.Append(tableGenerator.Generate(report, coverageHtmlDir));
+    builder.Append(tableGenerator.Generate(report, coverageHtmlDir, editorPrefix));
 
     AppendScriptTagIfNotEmpty(builder, "threshold-data", CreateThresholdPayload(report.Metadata));
     AppendScriptTagIfNotEmpty(builder, "rule-descriptions-data", CreateRuleDescriptionsPayload(report.Metadata));
