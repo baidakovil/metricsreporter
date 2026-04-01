@@ -287,14 +287,10 @@ function initActions(ctx){
     }
     const action = button.dataset.action;
     if(action === 'open'){
-      const path = (row.getAttribute('data-source-path') || '').trim();
-      const line = parseInt(row.getAttribute('data-source-line') || '', 10);
-      if(!path || isNaN(line)){
+      const editorUrl = (row.getAttribute('data-editor-url') || '').trim();
+      if(!editorUrl){
         return;
       }
-      const normalizedPath = path.replace(/\\/g, '/');
-      const editorPrefix = row.getAttribute('data-editor-prefix') || 'vscode://file/';
-      const editorUrl = editorPrefix + normalizedPath + ':' + line;
       try{
         window.location.href = encodeURI(editorUrl);
       }catch(error){

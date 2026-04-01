@@ -8,8 +8,8 @@
     <PackageId>MetricsReporter.Tool</PackageId>
     <Description>CLI tool wrapper for the MetricsReporter library.</Description>
     <PackageTags>metrics;coverage;sarif;roslyn;dotnet;tool</PackageTags>
-    <Version>0.4.4</Version>
-    <AssemblyInformationalVersion>0.4.4</AssemblyInformationalVersion>
+    <Version>0.4.5</Version>
+    <AssemblyInformationalVersion>0.4.5</AssemblyInformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MetricsReporter\MetricsReporter.csproj" />

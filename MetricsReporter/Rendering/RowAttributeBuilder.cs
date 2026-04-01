@@ -11,6 +11,7 @@ using MetricsReporter.Model;
 /// </summary>
 internal sealed class RowAttributeBuilder
 {
+  private const string DefaultEditorPrefix = "vscode://file/";
 
   private readonly Dictionary<MetricsNode, int>? _descendantCountIndex;
   private readonly RowStateCalculator _stateCalculator;
@@ -29,7 +30,7 @@ internal sealed class RowAttributeBuilder
   {
     _stateCalculator = stateCalculator ?? throw new ArgumentNullException(nameof(stateCalculator));
     _descendantCountIndex = descendantCountIndex;
-    _editorPrefix = string.IsNullOrWhiteSpace(editorPrefix) ? "vscode://file/" : editorPrefix;
+    _editorPrefix = NormalizeEditorPrefix(editorPrefix);
   }
 
   /// <summary>
@@ -44,15 +45,64 @@ internal sealed class RowAttributeBuilder
     var filterAttributes = BuildFilterAttributes(node);
     var virtualizationAttributes = BuildDescendantAttribute(node);
     var defaultVisibilityAttributes = BuildVisibilityAttributes();
-    // Add editor prefix as a data attribute on every row (for JS to consume)
-    var editorPrefixAttribute = $" data-editor-prefix=\"{System.Net.WebUtility.HtmlEncode(_editorPrefix)}\"";
+    var editorAttributes = BuildEditorAttributes(node);
     return string.Concat(
       sourceDataAttributes,
       rowStateAttributes,
       filterAttributes,
       virtualizationAttributes,
       defaultVisibilityAttributes,
-      editorPrefixAttribute);
+      editorAttributes);
+  }
+
+  private string BuildEditorAttributes(MetricsNode node)
+  {
+    var prefixAttribute = $" data-editor-prefix=\"{WebUtility.HtmlEncode(_editorPrefix)}\"";
+    var editorUrl = BuildEditorUrl(node);
+    if (string.IsNullOrWhiteSpace(editorUrl))
+    {
+      return prefixAttribute;
+    }
+
+    return prefixAttribute + $" data-editor-url=\"{WebUtility.HtmlEncode(editorUrl)}\"";
+  }
+
+  private string? BuildEditorUrl(MetricsNode node)
+  {
+    if (string.IsNullOrWhiteSpace(node.Source?.Path))
+    {
+      return null;
+    }
+
+    var normalizedPath = node.Source.Path.Replace('\\', '/');
+    var line = node.Source.StartLine.GetValueOrDefault(1);
+    if (line <= 0)
+    {
+      line = 1;
+    }
+
+    return _editorPrefix + normalizedPath + ":" + line.ToString(CultureInfo.InvariantCulture);
+  }
+
+  private static string NormalizeEditorPrefix(string? editorPrefix)
+  {
+    if (string.IsNullOrWhiteSpace(editorPrefix))
+    {
+      return DefaultEditorPrefix;
+    }
+
+    var trimmed = editorPrefix.Trim();
+    if (trimmed.EndsWith("://", StringComparison.Ordinal))
+    {
+      return trimmed + "file/";
+    }
+
+    if (trimmed.EndsWith("://file", StringComparison.OrdinalIgnoreCase))
+    {
+      return trimmed + "/";
+    }
+
+    return trimmed;
   }
 
   private static string BuildSourceDataAttributes(MetricsNode node)

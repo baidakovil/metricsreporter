@@ -108,7 +108,8 @@ public sealed class MetricsReporterApplicationEditorPrefixTests
     File.Exists(outputHtmlPath).Should().BeTrue();
 
     var html = File.ReadAllText(outputHtmlPath);
-    html.Should().Contain("data-editor-prefix=\"cursor://\"");
+    html.Should().Contain("data-editor-prefix=\"cursor://file/\"");
     html.Should().NotContain("data-editor-prefix=\"vscode://file/\"");
+    html.Should().Contain("data-editor-url=\"cursor://file/C:/src/Sample.cs:42\"");
   }
 }

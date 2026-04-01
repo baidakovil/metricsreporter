@@ -41,7 +41,64 @@ public sealed class RowAttributeBuilderTests
     var result = builder.BuildAllAttributes(node);
 
     // Assert
-    result.Should().Contain("data-editor-prefix=\"cursor://\"");
+    result.Should().Contain("data-editor-prefix=\"cursor://file/\"");
+  }
+
+  [Test]
+  public void BuildAllAttributes_WithBareEditorScheme_BuildsEditorUrlWithLineSuffix()
+  {
+    // Arrange
+    var metricOrder = new[] { MetricIdentifier.RoslynClassCoupling };
+    var stateCalculator = new RowStateCalculator(metricOrder, null);
+    var builder = new RowAttributeBuilder(stateCalculator, null, "cursor://");
+
+    var node = new TypeMetricsNode
+    {
+      Name = "SampleType",
+      FullyQualifiedName = "Sample.Namespace.SampleType",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+      Source = new SourceLocation
+      {
+        Path = "C:\\Source\\File.cs",
+        StartLine = 10,
+        EndLine = null
+      }
+    };
+
+    // Act
+    var result = builder.BuildAllAttributes(node);
+
+    // Assert
+    result.Should().Contain("data-editor-prefix=\"cursor://file/\"");
+    result.Should().Contain("data-editor-url=\"cursor://file/C:/Source/File.cs:10\"");
+  }
+
+  [Test]
+  public void BuildAllAttributes_WithoutSourceLine_UsesLineOneInEditorUrl()
+  {
+    // Arrange
+    var metricOrder = new[] { MetricIdentifier.RoslynClassCoupling };
+    var stateCalculator = new RowStateCalculator(metricOrder, null);
+    var builder = new RowAttributeBuilder(stateCalculator, null, "vscode://");
+
+    var node = new TypeMetricsNode
+    {
+      Name = "SampleType",
+      FullyQualifiedName = "Sample.Namespace.SampleType",
+      Metrics = new Dictionary<MetricIdentifier, MetricValue>(),
+      Source = new SourceLocation
+      {
+        Path = "C:\\Source\\File.cs",
+        StartLine = null,
+        EndLine = null
+      }
+    };
+
+    // Act
+    var result = builder.BuildAllAttributes(node);
+
+    // Assert
+    result.Should().Contain("data-editor-url=\"vscode://file/C:/Source/File.cs:1\"");
   }
 
   [Test]
