@@ -10,12 +10,18 @@
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 
 [![Coverage](https://codecov.io/gh/baidakovil/metricsreporter/branch/master/graph/badge.svg)](https://codecov.io/gh/baidakovil/metricsreporter)
-<img alt="Tests" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-tests.json">
-<img alt="Lines of code" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-loc.json">
+![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-tests.json)
+![Lines of code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-loc.json)
 
 ---
 
 **MetricsReporter** is a .NET 8 CLI tool that aggregates code coverage, complexity, coupling, and analyzer violations from three independent sources into one interactive dashboard — then lets you (or your AI agent) fix everything via a structured refactoring loop.
+
+```
+  coverage.xml  +  metrics.xml  +  violations.sarif   →   one interactive HTML
+  (OpenCover)      (Roslyn)        (Analyzers)              + unified JSON
+```
+
 
 ![MetricsReporter Dashboard](https://raw.githubusercontent.com/baidakovil/metricsreporter/master/docs/images/dashboard_observing.png)
 
@@ -25,18 +31,11 @@
 
 ## Production-Ready Example
 
-MetricsReporter is also demonstrated on the production-ready [baidakovil/eShop](https://github.com/baidakovil/eShop) repository, which shows a full end-to-end setup on a non-trivial solution: Roslyn metrics, SARIF diagnostics, OpenCover coverage, ReportGenerator output, AI-assisted refactoring, and a published HTML dashboard. See the interactive demo for the eShop example here: https://baidakovil.github.io/eShop/MetricsReport.html
+MetricsReporter is also demonstrated on the production-ready [baidakovil/eShop](https://github.com/baidakovil/eShop) repository, a fork of Microsoft's `dotnet/eShop`, which shows a full end-to-end setup on a non-trivial solution: Roslyn metrics, SARIF diagnostics, OpenCover coverage, ReportGenerator output, AI-assisted refactoring, and a published HTML dashboard.
 
-
----
-
-```
-  coverage.xml  +  metrics.xml  +  violations.sarif   →   one interactive HTML
-  (OpenCover)      (Roslyn)        (Analyzers)              + unified JSON
-```
+**▶ [Open Production-Ready eShop Demo](https://baidakovil.github.io/eShop/MetricsReport.html)**
 
 ---
-
 
 ## The Problem
 
@@ -75,7 +74,7 @@ Open `report.html` — you'll see the dashboard from the screenshot above.
 
 ## AI-Driven Refactoring
 
-Hand your AI agent a namespace and a metric. It reads the violation, studies the code, refactors, rebuilds, verifies — all through the CLI. **No human in the loop.**
+Hand your AI agent a namespace and a metric. It reads the violation, studies the code, refactors, rebuilds, verifies — all through the CLI.
 
 ```powershell
 # AI agent asks: "what's broken?"
