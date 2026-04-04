@@ -27,10 +27,24 @@
   (OpenCover)      (Roslyn)        (Analyzers)              + unified JSON
 ```
 
-Dashboard Output:
+**Production-Ready Example**
+
+MetricsReporter is now also demonstrated on [baidakovil/eShop](https://github.com/baidakovil/eShop), a production-ready reference application forked from dotnet/eShop. That repository shows the full end-to-end setup on a non-trivial external solution: Roslyn metrics, SARIF diagnostics, OpenCover coverage, ReportGenerator output, AI-assisted refactoring, and a published HTML dashboard. Explore the [example repository](https://github.com/baidakovil/eShop) or open the [interactive demo for eShop](https://baidakovil.github.io/eShop/MetricsReport.html).
+
+**Dashboard Output**
 
 <p align="center">
-  <img src="docs/images/dashboard_observing.png" alt="MetricsReporter Dashboard" width="100%">
+  <img src="docs/images/mr_for_eshop.png" alt="MetricsReporter dashboard for eShop running in Ubuntu Codespaces viewed from macOS" width="100%">
+  <br>
+  <sub>Production-ready example on Ubuntu in GitHub Codespaces, viewed from macOS</sub>
+  <br>
+  <a href="https://baidakovil.github.io/eShop/MetricsReport.html">▶ Open Production-Ready eShop Demo</a>
+</p>
+
+<p align="center">
+  <img src="docs/images/dashboard_observing.png" alt="MetricsReporter Dashboard" width="86%">
+  <br>
+  <sub>MetricsReporter is OS-independent: Dashboard Output on Windows ARM64</sub>
   <br>
   <a href="https://baidakovil.github.io/metricsreporter/docs/samples/MetricsReport.html">▶ Open Live Interactive Demo</a>
 </p>

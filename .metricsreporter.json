@@ -5,7 +5,7 @@
     "verbosity": "normal",
     "timeoutSeconds": 900,
     "logTruncationLimit": 4000,
-    "editorPrefix": "cursor://"
+    "editorPrefix": "vscode://"
   },
   "paths": {
     "metricsDir": "Metrics",
