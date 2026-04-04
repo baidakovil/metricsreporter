@@ -4,6 +4,12 @@ All notable changes to MetricsReporter are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.6] - 2026-04-04
+
+### Added
+
+- **Production-Ready Example** — documented and linked a production-ready example based on [baidakovil/eShop](https://github.com/baidakovil/eShop). The example demonstrates end-to-end usage: Roslyn metrics, SARIF diagnostics, OpenCover coverage, ReportGenerator integration, AI-assisted refactoring, and a published HTML dashboard (interactive demo: https://baidakovil.github.io/eShop/MetricsReport.html).
+
 ## [0.4.4] - 2026-04-01
 
 ### Fixed
@@ -60,3 +66,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 [0.4.2]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.2
 [0.4.4]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.4
 [0.4.0]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.0
+
+[0.4.6]: https://github.com/baidakovil/metricsreporter/releases/tag/v0.4.6

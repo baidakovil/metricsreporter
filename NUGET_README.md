@@ -4,9 +4,14 @@
 **Turn your C# chaos into Coupling < 5 and Complexity < 15. In one prompt. Measurably.**
 
 [![CI](https://github.com/baidakovil/metricsreporter/actions/workflows/ci.yml/badge.svg)](https://github.com/baidakovil/metricsreporter/actions)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/baidakovil/metricsreporter)
 [![NuGet](https://img.shields.io/nuget/v/MetricsReporter.Tool.svg?logo=nuget)](https://www.nuget.org/packages/MetricsReporter.Tool)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/baidakovil/metricsreporter/blob/master/LICENSE)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+
+[![Coverage](https://codecov.io/gh/baidakovil/metricsreporter/branch/master/graph/badge.svg)](https://codecov.io/gh/baidakovil/metricsreporter)
+<img alt="Tests" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-tests.json">
+<img alt="Lines of code" src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/baidakovil/8fa349f2c1c8422a8c3e831343542811/raw/metricsreporter-loc.json">
 
 ---
 
@@ -15,6 +20,13 @@
 ![MetricsReporter Dashboard](https://raw.githubusercontent.com/baidakovil/metricsreporter/master/docs/images/dashboard_observing.png)
 
 **▶ [Open Live Interactive Demo](https://baidakovil.github.io/metricsreporter/docs/samples/MetricsReport.html)**
+
+---
+
+## Production-Ready Example
+
+MetricsReporter is also demonstrated on the production-ready [baidakovil/eShop](https://github.com/baidakovil/eShop) repository, which shows a full end-to-end setup on a non-trivial solution: Roslyn metrics, SARIF diagnostics, OpenCover coverage, ReportGenerator output, AI-assisted refactoring, and a published HTML dashboard. See the interactive demo for the eShop example here: https://baidakovil.github.io/eShop/MetricsReport.html
+
 
 ---
 
